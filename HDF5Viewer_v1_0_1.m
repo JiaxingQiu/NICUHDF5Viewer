@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 23-Apr-2018 13:42:46
+% Last Modified by GUIDE v2.5 03-May-2018 14:32:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -166,6 +166,13 @@ handles.h = zeros(handles.numplots,1);
 for s=1:numsigs
     varname = handles.value{1,s};
     handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
+    handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
+    % For Philips IX monitors, the waveform sampling frequency is listed as either 4,8, or 16, but it should be 256.
+    if handles.fs <=16
+        if contains(varname,'Waveform')
+            handles.fs = 256;
+        end
+    end
     handles.dataindex = find(ismember(handles.alldatasetnames,varname));
     if isfield(handles,'overlayon')
         if handles.overlayon
@@ -359,7 +366,9 @@ function callqrsdetection(hObject,eventdata,handles)
 [hrt,hr,rrt,rr] = runQRSDetection2(hObject,eventdata,handles);
 handles.h = subplot(1,1,1,'Parent',handles.PlotPanel);
 cla
-plot(hrt,hr,'.')
+if ~isempty(hr)
+    plot(hrt,hr,'.')
+end
 hold on
 plot(rrt,rr,'.m')
 addpath('zoomAdaptiveDateTicks');
@@ -530,3 +539,18 @@ else % Waveforms
     [~,handles.startindex] = min(abs(handles.wt-handles.windowstarttime));
 end
 plotdata(hObject, eventdata, handles, overwrite)
+
+
+% --- Executes on button press in forward_hour.
+function forward_hour_Callback(hObject, eventdata, handles)
+% hObject    handle to forward_hour (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scrolldata(hObject,eventdata,handles,60)
+
+% --- Executes on button press in back_hour.
+function back_hour_Callback(hObject, eventdata, handles)
+% hObject    handle to back_hour (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scrolldata(hObject,eventdata,handles,-60)

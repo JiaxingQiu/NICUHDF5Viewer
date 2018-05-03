@@ -9,7 +9,9 @@ function [hrt,hr,rrt,rr] = runQRSDetection2(hObject,eventdata,handles)
     ecgt = handles.utctime;
     % Convert to mV
     gain=400;
-    ecg=ecg/gain;
+    if ~strcmp(handles.unitofmeasure,'mV')
+        ecg=ecg/gain;
+    end
 %     THIS IS ONLY FOR UAB data
 %     ecg = (ecg-3071)/1023;
 
