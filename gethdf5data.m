@@ -61,6 +61,7 @@ for gr=1:length(Groups)
     end
 end
 
+
 %Find requested datasets
 n=length(allData);
 g=NaN*ones(n,1);
@@ -91,7 +92,9 @@ for i=1:n
     else
         j=i;
     end    
+
     x=double(h5read(hdf5file,allData{j}))';    % Amanda changed the orientation of the array so that when blocktime looks for gaps and needs to concatenate vertically, there isn't a problem
+    x(x==-32768) = NaN;     % Add NaNs where data is missing
     t=double(h5read(hdf5file,allTimes{j}))';    % Amanda changed the orientation of the array so that when blocktime looks for gaps and needs to concatenate vertically, there isn't a problem
     if isempty(data),continue,end
     data(j).x=x;

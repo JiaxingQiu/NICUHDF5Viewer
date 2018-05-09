@@ -167,6 +167,7 @@ for s=1:numsigs
     varname = handles.value{1,s};
     handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
     handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
+    handles.scale = double(h5readatt(fullfile(handles.pathname, handles.filename),[varname '/data'],'Scale'));
     % For Philips IX monitors, the waveform sampling frequency is listed as either 4,8, or 16, but it should be 256.
     if handles.fs <=16
         if contains(varname,'Waveform')
@@ -222,7 +223,9 @@ for s=1:numsigs
         handles.sig = handles.vdata(handles.startindex:handles.endindex,handles.dataindex);
         handles.utctime = handles.vt(handles.startindex:handles.endindex);
         handles.localtime = utc2local(handles.utctime/1000);
-        plot(handles.localtime,handles.sig,plotcolor);
+%         handles.sig(handles.sig==-32768) = NaN;
+        I = ~isnan(handles.sig); % Don't try to plot the NaN values
+        plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
     else % Waveforms
         handles.windowstarttime = handles.wt(handles.startindex);
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % 20 min from start time in utc in ms
@@ -230,7 +233,9 @@ for s=1:numsigs
         handles.sig = handles.wdata(handles.startindex:handles.endindex,handles.dataindex-length(handles.vname));
         handles.utctime = handles.wt(handles.startindex:handles.endindex);
         handles.localtime = utc2local(handles.utctime/1000);
-        plot(handles.localtime,handles.sig,plotcolor);
+%         handles.sig(handles.sig==-32768) = NaN;
+        I = ~isnan(handles.sig); % Don't try to plot the NaN values
+        plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
     end
     ylabel(varname);
     addpath('zoomAdaptiveDateTicks');
