@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 03-May-2018 14:32:43
+% Last Modified by GUIDE v2.5 11-May-2018 11:28:28
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -223,7 +223,6 @@ for s=1:numsigs
         handles.sig = handles.vdata(handles.startindex:handles.endindex,handles.dataindex);
         handles.utctime = handles.vt(handles.startindex:handles.endindex);
         handles.localtime = utc2local(handles.utctime/1000);
-%         handles.sig(handles.sig==-32768) = NaN;
         I = ~isnan(handles.sig); % Don't try to plot the NaN values
         plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
     else % Waveforms
@@ -233,7 +232,6 @@ for s=1:numsigs
         handles.sig = handles.wdata(handles.startindex:handles.endindex,handles.dataindex-length(handles.vname));
         handles.utctime = handles.wt(handles.startindex:handles.endindex);
         handles.localtime = utc2local(handles.utctime/1000);
-%         handles.sig(handles.sig==-32768) = NaN;
         I = ~isnan(handles.sig); % Don't try to plot the NaN values
         plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
     end
@@ -357,11 +355,9 @@ function AlgorithmSelectorPopUpMenu_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from AlgorithmSelectorPopUpMenu
 
 contents = cellstr(get(hObject,'String')); %returns popupmenu1 contents as cell array
-algchoice = contents{get(hObject,'Value')}; % returns selected item from popupmenu1
-addpath('QRSDetection');
-if strcmp(algchoice,'QRS Detection')
-    callqrsdetection(hObject,eventdata,handles);
-end
+handles.algchoice = contents{get(hObject,'Value')}; % returns selected item from popupmenu1
+% Update handles structure
+guidata(hObject, handles);
 
 
 function callqrsdetection(hObject,eventdata,handles)
@@ -395,7 +391,7 @@ function AlgorithmSelectorPopUpMenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-menuoptions = {'';'QRS Detection';'Another Algorithm';'Algorithm of your dreams'};
+menuoptions = {'';'QRS Detection';'Placeholder for Algorithm';'Placeholder for Another'};
 set(hObject,'String',menuoptions);
 
 
@@ -559,3 +555,14 @@ function back_hour_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 scrolldata(hObject,eventdata,handles,-60)
+
+
+% --- Executes on button press in RunAlgorithmButton.
+function RunAlgorithmButton_Callback(hObject, eventdata, handles)
+% hObject    handle to RunAlgorithmButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if strcmp(handles.algchoice,'QRS Detection')
+    addpath('QRSDetection');
+    callqrsdetection(hObject,eventdata,handles);
+end
