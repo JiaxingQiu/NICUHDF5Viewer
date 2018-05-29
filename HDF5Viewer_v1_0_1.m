@@ -323,6 +323,7 @@ handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
 set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
 handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
 set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
+set(handles.overlay_checkbox,'value',0); % Uncheck the overlay checkbox
 % Update handles structure
 guidata(hObject, handles);
 
@@ -507,6 +508,8 @@ state = get(hObject,'Value');
 handles.overlayon = state;
 % Update handles structure
 guidata(hObject, handles);
+overwrite = 1;
+plotdata(hObject, eventdata, handles,overwrite);
 
 
 % --- Executes on button press in forward_slow.
@@ -592,7 +595,7 @@ function Menu_help_instructions_Callback(hObject, eventdata, handles)
 % hObject    handle to Menu_help_instructions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer 1.0';
+msgbox({'HDF5Viewer 1.1';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 'To Load a File:';
@@ -603,7 +606,7 @@ msgbox({'HDF5Viewer 1.0';
 ''
 'To Display Multiple Datasets at Once:';
 '- To display multiple variables at once, with each on its own plot, select multiple variables in the left menu by using the SHIFT or CTRL keys.';
-'- To overlay multiple variables on the same plot, click the "Overlay" checkbox at the bottom of the screen, then sequentially select the different variables you want to overlay.';
+'- To overlay multiple variables on the same plot, click the "Overlay" checkbox at the bottom of the screen, then select (using the SHIFT or CTRL keys) the different variables you want to overlay.';
 '';
 'To Browse Through the Data:';
 'To browse through the data, click the buttons at the bottom of the screen to move through the file. To zoom in on the data, click and drag a box around the desired portion of the image you want to zoom in on, or use the mouse scroll wheel.';
