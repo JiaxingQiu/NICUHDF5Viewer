@@ -1,4 +1,4 @@
-function [hrt,hr,rrt,rr] = runQRSDetection2(hObject,eventdata,handles)
+function [hrt,hr,rrt,rr,ecgt,ecg,qrs] = runQRSDetection2(hObject,eventdata,handles)
     % Get signal data for data currently in window
     ecg = double(handles.sig);
     % Get rid of missing data

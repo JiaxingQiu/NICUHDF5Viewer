@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 11-May-2018 11:28:28
+% Last Modified by GUIDE v2.5 29-May-2018 10:26:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -364,8 +364,8 @@ function callqrsdetection(hObject,eventdata,handles)
 % run QRS detection on the selected signal with the designated lead, clear
 % all current plots, and plot the results of the QRS detection in
 % comparison to the heart rate plot
-[hrt,hr,rrt,rr] = runQRSDetection2(hObject,eventdata,handles);
-handles.h = subplot(1,1,1,'Parent',handles.PlotPanel);
+[hrt,hr,rrt,rr,ecgt,ecg,qrs] = runQRSDetection2(hObject,eventdata,handles);
+handles.h(1) = subplot(2,1,1,'Parent',handles.PlotPanel);
 cla
 if ~isempty(hr)
     plot(hrt,hr,'.')
@@ -376,6 +376,18 @@ addpath('zoomAdaptiveDateTicks');
 ylim auto
 zoomAdaptiveDateTicks('on')
 datetick('x',13)
+xlim([utc2local(min(ecgt)/1000) utc2local(max(ecgt)/1000)])
+
+handles.h(2) = subplot(2,1,2,'Parent',handles.PlotPanel);
+[ecgt_local,~,~] = utc2local(ecgt/1000);
+plot(ecgt_local,ecg,'k');
+hold on
+ylim auto
+zoomAdaptiveDateTicks('on')
+datetick('x',13)
+plot(ecgt_local(qrs),ecg(qrs),'*')
+xlim([utc2local(min(ecgt)/1000) utc2local(max(ecgt)/1000)])
+linkaxes(handles.h,'x')
 % Update handles structure
 guidata(hObject, handles);
 
@@ -566,3 +578,41 @@ if strcmp(handles.algchoice,'QRS Detection')
     addpath('QRSDetection');
     callqrsdetection(hObject,eventdata,handles);
 end
+
+
+% --------------------------------------------------------------------
+function Help_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to Help_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Menu_help_instructions_Callback(hObject, eventdata, handles)
+% hObject    handle to Menu_help_instructions (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({'HDF5Viewer 1.0';
+'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
+'';
+'To Load a File:';
+'Load in an hdf5 file by clicking the "Load HDF5" button on the left side of the screen. A "Loading..." message will appear below the Load button. Once loading completes, the name of the file will appear where the "Loading..." message previously was. A small list of the most important variable names should populate in the white box.';
+'';
+'To Display All of the Data in the File:';
+'To see all of the variables in the file click the "Show All Available Fields" checkbox at the bottom of the screen. To display data from one of the variables, click the variable name in the white box. Twenty minutes of data will display on the screen.'; 
+''
+'To Display Multiple Datasets at Once:';
+'- To display multiple variables at once, with each on its own plot, select multiple variables in the left menu by using the SHIFT or CTRL keys.';
+'- To overlay multiple variables on the same plot, click the "Overlay" checkbox at the bottom of the screen, then sequentially select the different variables you want to overlay.';
+'';
+'To Browse Through the Data:';
+'To browse through the data, click the buttons at the bottom of the screen to move through the file. To zoom in on the data, click and drag a box around the desired portion of the image you want to zoom in on, or use the mouse scroll wheel.';
+'';
+'Using QRS Detection to Compute Heart Rate:';
+'- First select a good EKG signal lead to display. Make sure the signal displayed in the window does not start with an empty signal. If it does, scroll (using the buttons at the bottom of the screen) to a part of the signal which does not begin with missing data.';
+'- Go to the "Run Algorithms" tab.'; 
+'- In the Dropdown menu, select the QRS Detection Algorithm.';
+'- Hit Run.' 
+'- A pink and a blue scatter plot should appear. The blue scatter plot shows the signal taken from the signal labeled "HR." The magenta scatter plot shows the heart rate calculated from the QRS detection algorithm.'; 
+'- If you want to see the QRS detection for other parts of the data, you can scroll through the data by using the buttons at the bottom of the screen. When you see data where you want to run the QRS detection, simply click the "Run" button again.';
+''},'Help')
