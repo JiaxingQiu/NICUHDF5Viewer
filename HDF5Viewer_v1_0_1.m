@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 29-May-2018 10:26:54
+% Last Modified by GUIDE v2.5 07-Jun-2018 16:37:08
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -164,17 +164,35 @@ else
 end
 handles.h = zeros(handles.numplots,1);
 for s=1:numsigs
+    isSIQ = 0; % This is set to 1 if it is SIQ
     varname = handles.value{1,s};
-    handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
-    handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
-    handles.scale = double(h5readatt(fullfile(handles.pathname, handles.filename),[varname '/data'],'Scale'));
-    % For Philips IX monitors, the waveform sampling frequency is listed as either 4,8, or 16, but it should be 256.
-    if handles.fs <=16
-        if contains(varname,'Waveform')
-            handles.fs = 256;
-        end
-    end
     handles.dataindex = find(ismember(handles.alldatasetnames,varname));
+    if handles.dataindex<=length(handles.vname)+length(handles.wname) % Determine if we are plotting a results file - here we are not plotting a results file
+        if handles.ishdf5
+            if strcmp(varname,'/VitalSigns/SIQ') % Because SIQ is not a root field, we need to get data from the corresponding signal
+                varname = '/VitalSigns/SPO2-perc'; % Get the sample frequency from the corresponding signal
+                isSIQ = 1;
+            end
+            handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
+            handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
+            handles.scale = double(h5readatt(fullfile(handles.pathname, handles.filename),[varname '/data'],'Scale'));
+            % For Philips IX monitors, the waveform sampling frequency is listed as either 4,8, or 16, but it should be 256.
+            if handles.fs <=16
+                if contains(varname,'Waveform')
+                    handles.fs = 256;
+                end
+            end
+        else
+            handles.fs = 1; % For WUSTL at least, I am just hard-coding this
+            handles.unitofmeasure = handles.vuom(s);
+            handles.scale = 1;
+        end
+    else % We are plotting a results file
+        handles.scale = 1;
+    end
+    if isSIQ
+        varname = '/VitalSigns/SIQ';
+    end
     if isfield(handles,'overlayon')
         if handles.overlayon
             handles.h(s) = subplot(handles.numplots,1,1,'Parent',handles.PlotPanel);
@@ -212,29 +230,41 @@ for s=1:numsigs
             cla;
         end
     end
-    handles.windowsize = 20*60*1000; % 20 min in milliseconds
+    if handles.ishdf5
+        handles.windowsize = handles.windowsizeuserinput*60*1000; % 20 min in milliseconds is default
+    else
+        handles.windowsize = handles.windowsizeuserinput*60; 
+    end
     if ~isfield(handles,'startindex')
         handles.startindex = 1;
     end
     if handles.dataindex<=length(handles.vname) % Vital Signs
         handles.windowstarttime = handles.vt(handles.startindex);
-        handles.windowendtime = handles.windowstarttime+handles.windowsize; % 20 min from start time in utc in ms
+        handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
         [~,handles.endindex] = min(abs(handles.vt-handles.windowendtime));
         handles.sig = handles.vdata(handles.startindex:handles.endindex,handles.dataindex);
         handles.utctime = handles.vt(handles.startindex:handles.endindex);
-        handles.localtime = utc2local(handles.utctime/1000);
-        I = ~isnan(handles.sig); % Don't try to plot the NaN values
-        plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
-    else % Waveforms
+    elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
         handles.windowstarttime = handles.wt(handles.startindex);
-        handles.windowendtime = handles.windowstarttime+handles.windowsize; % 20 min from start time in utc in ms
+        handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
         [~,handles.endindex] = min(abs(handles.wt-handles.windowendtime));
         handles.sig = handles.wdata(handles.startindex:handles.endindex,handles.dataindex-length(handles.vname));
         handles.utctime = handles.wt(handles.startindex:handles.endindex);
-        handles.localtime = utc2local(handles.utctime/1000);
-        I = ~isnan(handles.sig); % Don't try to plot the NaN values
-        plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
+    else % Results 
+        handles.windowstarttime = handles.rt(handles.startindex);
+        handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
+        [~,handles.endindex] = min(abs(handles.rt-handles.windowendtime));
+        handles.sig = handles.rdata(handles.startindex:handles.endindex,handles.dataindex-length(handles.vname)-length(handles.wname));
+        handles.utctime = handles.rt(handles.startindex:handles.endindex);
     end
+    if handles.ishdf5
+        handles.localtime = utc2local(handles.utctime/1000);
+    else
+        handles.localtime = handles.utctime; % WUSTL data is in datenum format already
+    end
+    I = ~isnan(handles.sig); % Don't try to plot the NaN values
+    plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
+    set(gca,'fontsize',15)
     ylabel(varname);
     addpath('zoomAdaptiveDateTicks');
     zoomAdaptiveDateTicks('on')
@@ -261,10 +291,17 @@ elseif contains(varname,'SPO2-R')
 elseif contains(varname,'SpO2')
     plotcolor = 'b';
     ylim([0 100])
+elseif contains(varname,'SPO2-perc')
+    plotcolor = 'b';
+    ylim([0 100])
 elseif contains(varname,'Waveforms/RR')
     plotcolor = 'g.';
 elseif contains(varname,'Waveforms/SPO2')
     plotcolor = 'b.';
+elseif contains(varname,'Results/CUartifact')
+    plotcolor = 'r';
+elseif contains(varname,'Results/WUSTLartifact')
+    plotcolor = 'k';
 end
 
 
@@ -286,7 +323,7 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[handles.filename, handles.pathname] = uigetfile('*.hdf5', 'Select an hdf5 file');
+[handles.filename, handles.pathname] = uigetfile({'*.hdf5';'*.mat'}, 'Select an hdf5 file');
 if isequal(handles.filename,0)
    disp('User selected Cancel')
 else
@@ -313,17 +350,36 @@ if isfield(handles,'h')
     end
 end
 % Load data from HDF5 File
-[handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
-[handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
-handles.alldatasetnames = vertcat(handles.vname,handles.wname);
+if contains(handles.filename,'.hdf5')
+    handles.ishdf5 = 1;
+    [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
+    [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
+else % Load data from WashU
+    handles.ishdf5 = 0;
+    load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
+    handles.vdata = values;
+    handles.vname = vlabel;
+    handles.vt = vt;
+    handles.vuom = vuom; % unit of measure
+    handles.wdata = [];
+    handles.wname = [];
+    handles.wt = [];
+end
+    
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
 % Show only the most useful signals as a default
-usefulfields = ["HR","SPO2-%","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
-usefulfieldindices = contains(handles.alldatasetnames,usefulfields);
+usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
+usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
 handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
 set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
+set(handles.TaggedEventsListbox,'string',handles.tagtitles);
+set(handles.TagListbox,'string','')
 handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
 set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
 set(handles.overlay_checkbox,'value',0); % Uncheck the overlay checkbox
+set(handles.show_all_avail_fields_checkbox,'value',0);
+handles.overlayon = 0;
 % Update handles structure
 guidata(hObject, handles);
 
@@ -438,6 +494,7 @@ function show_all_avail_fields_checkbox_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of show_all_avail_fields_checkbox
 handles = guidata(hObject);
+set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
 if ~isfield(handles,'alldatasetnames')
 %     findtimegroupanddatasetnames(hObject, eventdata, handles);
     readhdf5file(hObject,eventdata,handles);
@@ -551,8 +608,22 @@ jumptime = jumptime_minutes*60*1000; % convert minutes to milliseconds
 handles.windowstarttime = handles.windowstarttime+jumptime;
 if handles.dataindex<=length(handles.vname) % Vital Signs
     [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
-else % Waveforms
+elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
     [~,handles.startindex] = min(abs(handles.wt-handles.windowstarttime));
+else % Results
+    [~,handles.startindex] = min(abs(handles.rt-handles.windowstarttime));
+end
+plotdata(hObject, eventdata, handles, overwrite)
+
+function jumpintodata(hObject,eventdata,handles,userselectedstart)
+overwrite = 0;
+handles.windowstarttime = userselectedstart;
+if handles.dataindex<=length(handles.vname) % Vital Signs
+    [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
+elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
+    [~,handles.startindex] = min(abs(handles.wt-handles.windowstarttime));
+else % Results
+    [~,handles.startindex] = min(abs(handles.rt-handles.windowstarttime));
 end
 plotdata(hObject, eventdata, handles, overwrite)
 
@@ -619,3 +690,153 @@ msgbox({'HDF5Viewer 1.1';
 '- A pink and a blue scatter plot should appear. The blue scatter plot shows the signal taken from the signal labeled "HR." The magenta scatter plot shows the heart rate calculated from the QRS detection algorithm.'; 
 '- If you want to see the QRS detection for other parts of the data, you can scroll through the data by using the buttons at the bottom of the screen. When you see data where you want to run the QRS detection, simply click the "Run" button again.';
 ''},'Help')
+
+
+
+function WindowSize_Callback(hObject, eventdata, handles)
+% hObject    handle to WindowSize (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of WindowSize as text
+%        str2double(get(hObject,'String')) returns contents of WindowSize as a double
+handles.windowsizeuserinput = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function WindowSize_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to WindowSize (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+handles.windowsizeuserinput = str2double(get(hObject,'String'));
+% Update handles structure
+guidata(hObject, handles);
+
+
+% --- Executes on button press in UpdateWindowSize.
+function UpdateWindowSize_Callback(hObject, eventdata, handles)
+% hObject    handle to UpdateWindowSize (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+overwrite = 1;
+plotdata(hObject, eventdata, handles, overwrite);
+
+
+% --- Executes on selection change in TaggedEventsListbox.
+function TaggedEventsListbox_Callback(hObject, eventdata, handles)
+% hObject    handle to TaggedEventsListbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns TaggedEventsListbox contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from TaggedEventsListbox
+% contents = cellstr(get(hObject,'String'));
+handles.tagtitlechosen = get(hObject,'Value');
+tagsselected = handles.tags(handles.tagtitlechosen);
+starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start'))/1000));
+duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Duration'))/1000)); % seconds
+minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Minimum')));
+spaces = repmat(' -- ',[size(duration,1),1]);
+set(handles.TagListbox,'string',[starttimes spaces minimum spaces duration])
+set(handles.TagListbox, 'Value', 1); %%% FIX THIS!!!
+% Update handles structure
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function TaggedEventsListbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TaggedEventsListbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in TagListbox.
+function TagListbox_Callback(hObject, eventdata, handles)
+% hObject    handle to TagListbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns TagListbox contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from TagListbox
+handles.tagchosen = get(hObject,'Value');
+startcol = strcmp(handles.tagcolumns,'Start');
+starttimeofchosentag = handles.tags(handles.tagtitlechosen).tagtable(handles.tagchosen,startcol);
+jumpintodata(hObject,eventdata,handles,starttimeofchosentag);
+
+
+% --- Executes during object creation, after setting all properties.
+function TagListbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TagListbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on button press in run_tagging_algorithms.
+function run_tagging_algorithms_Callback(hObject, eventdata, handles)
+% hObject    handle to run_tagging_algorithms (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+run_all_tagging_algs(fullfile(handles.pathname, handles.filename))
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
+set(handles.TaggedEventsListbox,'string',handles.tagtitles);
+% Update handles structure
+guidata(hObject, handles);
+
+
+% --- Executes on button press in CustomTag.
+function CustomTag_Callback(hObject, eventdata, handles)
+% hObject    handle to CustomTag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+h = brush;
+set(h,'Color',[.6 .2 .1],'Enable','on');
+
+
+
+function edit3_Callback(hObject, eventdata, handles)
+% hObject    handle to edit3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit3 as text
+%        str2double(get(hObject,'String')) returns contents of edit3 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in SaveTag.
+function SaveTag_Callback(hObject, eventdata, handles)
+% hObject    handle to SaveTag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+tagname = get(handles.edit3, 'string')

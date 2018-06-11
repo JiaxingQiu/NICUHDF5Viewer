@@ -16,6 +16,7 @@ function [vdata,vname,vt,info]=gethdf5vital(hdf5file,vname,vformat)
 vdata=[];
 vt=[];
 info=[];
+siq = [];
 if ~exist('vname','var'),vname=cell(0,1);end
 if ~exist('vformat','var'),vformat=0;end
 
@@ -37,12 +38,22 @@ if nv==0,return,end
 t=[];
 x=[];
 v=[];
-for i=1:nv
+i = 1;
+while i<nv
     n=length(vdata(i).t);
     if n==0,continue,end
-    x=[x;vdata(i).x];    
+    x=[x;vdata(i).x(:,1)];    
     t=[t;vdata(i).t];
     v=[v;i*ones(n,1)];
+    if size(vdata(i).x,2)>1 % If there is an SIQ signal present
+        x=[x;vdata(i).x(:,2)];
+        t=[t;vdata(i).t];
+        vname = [vname(1:i,1);'/VitalSigns/SIQ';vname(i+1:end,1)];
+        i = i+1;
+        v=[v;i*ones(n,1)];
+        nv = nv+1;
+    end
+    i = i+1;
 end
 %Long matrix output
 if vformat==2
