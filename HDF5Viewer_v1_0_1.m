@@ -273,8 +273,13 @@ for s=1:numsigs
         handles.localtime = handles.utctime; % WUSTL data is in datenum format already
     end
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
-    handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
-    ylabel(varname);
+    if sum(I)==0
+        handles.plothandle(s) = plot(0,0);
+        ylabel({'No data for time period:'; varname});
+    else
+        handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
+        ylabel(varname);
+    end
     addpath('zoomAdaptiveDateTicks');
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
