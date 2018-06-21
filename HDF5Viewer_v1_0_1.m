@@ -173,9 +173,18 @@ for s=1:numsigs
                 varname = '/VitalSigns/SPO2-perc'; % Get the sample frequency from the corresponding signal
                 isSIQ = 1;
             end
-            handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
+            try
+                handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
+            catch
+                handles.fs = 1/(double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Period (ms)'))/1000);
+            end
             handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
+            handles.layoutversion = h5readatt(fullfile(handles.pathname, handles.filename),'/','Layout Version');
             handles.scale = double(h5readatt(fullfile(handles.pathname, handles.filename),[varname '/data'],'Scale'));
+            % For layout version 3, scale is simply a multiplicative factor for the original value. To get the real value, you divide by scale. For layout version 4.0, a real value of 1.2 is stored as 12 with a scale of 1, where scale is stored as the power of 10, so to convert from 12 back to 1.2, you need to divide by 10^scale. Later in this code, when we are actually plotting the data, we divide by scale
+            if str2double(handles.layoutversion{1}(1)) ~= 3 
+                handles.scale = 10^handles.scale;
+            end
             % For Philips IX monitors, the waveform sampling frequency is listed as either 4,8, or 16, but it should be 256.
             if handles.fs <=16
                 if contains(varname,'Waveform')
@@ -237,6 +246,7 @@ for s=1:numsigs
     end
     if ~isfield(handles,'startindex')
         handles.startindex = 1;
+        handles.startindex = find(~isnan(handles.vdata(:,handles.dataindex)),1);
     end
     if handles.dataindex<=length(handles.vname) % Vital Signs
         handles.windowstarttime = handles.vt(handles.startindex);
@@ -263,8 +273,7 @@ for s=1:numsigs
         handles.localtime = handles.utctime; % WUSTL data is in datenum format already
     end
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
-    plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
-    set(gca,'fontsize',15)
+    handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
     ylabel(varname);
     addpath('zoomAdaptiveDateTicks');
     zoomAdaptiveDateTicks('on')
@@ -291,7 +300,13 @@ elseif contains(varname,'SPO2-R')
 elseif contains(varname,'SpO2')
     plotcolor = 'b';
     ylim([0 100])
+elseif contains(varname,'SIQ')
+    plotcolor = 'k';
+    ylim([0 3])
 elseif contains(varname,'SPO2-perc')
+    plotcolor = 'b';
+    ylim([0 100])
+elseif contains(varname,'SPO2')
     plotcolor = 'b';
     ylim([0 100])
 elseif contains(varname,'Waveforms/RR')
@@ -339,43 +354,45 @@ function loaddata(hObject, eventdata, handles)
 set(handles.loadedfile,'string','Loading...');
 waitfor(handles.loadedfile,'string','Loading...');
 handles.nextfiledisplay.String = '';
-% Remove startindex field from previous file
-if isfield(handles,'startindex')
-    handles = rmfield(handles,'startindex');
-end
-% Remove plots from previous signal
-if isfield(handles,'h')
-    for i=1:length(handles.h)
-        cla(handles.h(i))
+% try
+    % Remove startindex field from previous file
+    if isfield(handles,'startindex')
+        handles = rmfield(handles,'startindex');
     end
-end
-% Load data from HDF5 File
-if contains(handles.filename,'.hdf5')
-    handles.ishdf5 = 1;
-    [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
-    [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
-else % Load data from WashU
-    handles.ishdf5 = 0;
-    load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
-    handles.vdata = values;
-    handles.vname = vlabel;
-    handles.vt = vt;
-    handles.vuom = vuom; % unit of measure
-    handles.wdata = [];
-    handles.wname = [];
-    handles.wt = [];
-end
-    
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
-handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
-% Show only the most useful signals as a default
-usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
-usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
-handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
-set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
-set(handles.TaggedEventsListbox,'string',handles.tagtitles);
-set(handles.TagListbox,'string','')
-handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
+    % Remove plots from previous signal
+    if isfield(handles,'h')
+        for i=1:length(handles.h)
+            cla(handles.h(i))
+        end
+    end
+    % Load data from HDF5 File
+    if contains(handles.filename,'.hdf5')
+        handles.ishdf5 = 1;
+        [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
+        [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
+    else % Load data from WashU
+        handles.ishdf5 = 0;
+        load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
+        handles.vuom = vuom;
+        [handles.vdata,handles.vname,handles.vt,~]=getWUSTLvital(values,vt,vlabel);
+        handles.wdata = [];
+        handles.wname = [];
+        handles.wt = [];
+    end
+
+    [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+    handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
+    % Show only the most useful signals as a default
+    usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
+    usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
+    handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
+    set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
+    set(handles.TaggedEventsListbox,'string',handles.tagtitles);
+    set(handles.TagListbox,'string','')
+    handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
+% catch e
+%     handles.loadedfile.String = e.message;
+% end
 set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
 set(handles.overlay_checkbox,'value',0); % Uncheck the overlay checkbox
 set(handles.show_all_avail_fields_checkbox,'value',0);
@@ -604,7 +621,11 @@ scrolldata(hObject,eventdata,handles,-10)
 % This function is called when the user selects the >, <, >>, or << buttons
 function scrolldata(hObject,eventdata,handles,jumptime_minutes)
 overwrite = 0;
-jumptime = jumptime_minutes*60*1000; % convert minutes to milliseconds
+if handles.ishdf5
+    jumptime = jumptime_minutes*60*1000; % convert minutes to milliseconds
+else % for WUSTL data
+    jumptime = jumptime_minutes*60; % convert minutes to seconds
+end
 handles.windowstarttime = handles.windowstarttime+jumptime;
 if handles.dataindex<=length(handles.vname) % Vital Signs
     [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
@@ -689,7 +710,25 @@ msgbox({'HDF5Viewer 1.1';
 '- Hit Run.' 
 '- A pink and a blue scatter plot should appear. The blue scatter plot shows the signal taken from the signal labeled "HR." The magenta scatter plot shows the heart rate calculated from the QRS detection algorithm.'; 
 '- If you want to see the QRS detection for other parts of the data, you can scroll through the data by using the buttons at the bottom of the screen. When you see data where you want to run the QRS detection, simply click the "Run" button again.';
-''},'Help')
+'';
+'To Tag Bradycardias and Desaturation Events';
+'- Select the Tagged Events Tab';
+'- Click the Run Tagging Algorithms Button';
+'- Wait until the white listboxes on that page populate';
+'- Select in the top box what category of events you want to look at';
+'- The tagged events should populate in the lower white box';
+'- You can click on one of these tagged events to show the event in the viewer';
+'- The first timestamp of that tagged event will be shown on the leftmost edge of the viewer window';
+'';
+'To Custom Tag Events: [IN PROGRESS - THIS HAS NOT BEEN FULLY TESTED]';
+'- Go to the Tagged Events Tab';
+'- Click the Start Tag Button';
+'- Click and drag in the figure window to highlight a portion of the data';
+'- Enter a custom tag name in the small white box';
+'- Hit the Save Tag button';
+'- The tag should show up in the large white boxes above';
+'';
+},'Help')
 
 
 
@@ -807,9 +846,10 @@ function CustomTag_Callback(hObject, eventdata, handles)
 % hObject    handle to CustomTag (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-h = brush;
-set(h,'Color',[.6 .2 .1],'Enable','on');
-
+handles.brushhandle = brush(handles.figure1);
+set(handles.brushhandle,'Color',[.6 .2 .1],'Enable','on');
+% Update handles structure
+guidata(hObject, handles);
 
 
 function edit3_Callback(hObject, eventdata, handles)
@@ -839,4 +879,46 @@ function SaveTag_Callback(hObject, eventdata, handles)
 % hObject    handle to SaveTag (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-tagname = get(handles.edit3, 'string')
+
+% Grab the custom tag name from the text box
+customtaglabel = get(handles.edit3, 'string');
+
+% Grab the brushed data from the window
+notfoundyet = 1;
+s = 1;
+while notfoundyet && s<=length(handles.plothandle)
+    brushedIdx = logical(handles.plothandle(s).BrushData)'; % This gives the indices of the highlighted data within the plotted window, but not within the whole dataset
+    if sum(brushedIdx)>0
+        handles.plothandle(s).BrushData = zeros(size(handles.plothandle(s).BrushData)); % Remove the brushing
+        notfoundyet=0;
+    end
+    s=1+s;
+end
+fulldataset = zeros(length(handles.vt),1);
+fulldataset(handles.startindex:handles.endindex,1) = brushedIdx; % This puts the brushed data in the context of the full dataset
+
+% Turn this into tags
+pmin = 1; % minimum number of points below threshold (default one) - only applies to tags!!
+tmin = 0; % time gap between crossings to join (default zero) - only applies to tags!!
+[tag,tagname]=threshtags(~fulldataset,handles.vt,0.5,pmin,tmin);
+
+% Add tags to results file
+addtoresultsfile(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vt,tag,tagname);
+
+% Show the custom tag in the listbox
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
+set(handles.TaggedEventsListbox,'string',handles.tagtitles);
+
+% Update which tagged events are shown
+categorychoice = get(handles.TaggedEventsListbox, 'Value'); 
+TagListbox_Callback(hObject, eventdata, handles)
+TaggedEventsListbox_Callback(hObject, eventdata, handles)
+set(handles.TaggedEventsListbox.hObject, 'Value', categorychoice);
+
+% Update the plots
+overwrite = 1;
+plotdata(hObject, eventdata, handles, overwrite)
+
+% Update handles structure
+guidata(hObject, handles);

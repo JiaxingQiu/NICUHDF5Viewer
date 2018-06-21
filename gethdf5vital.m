@@ -38,22 +38,24 @@ if nv==0,return,end
 t=[];
 x=[];
 v=[];
-i = 1;
-while i<nv
-    n=length(vdata(i).t);
+i = 1; % this counts the index of the original vdata
+j = 1; % this counts the index of the new data vectors when SIQ is added
+while i<=nv
+    n=length(vdata(j).t);
     if n==0,continue,end
-    x=[x;vdata(i).x(:,1)];    
-    t=[t;vdata(i).t];
+    x=[x;vdata(j).x(:,1)];    
+    t=[t;vdata(j).t];
     v=[v;i*ones(n,1)];
-    if size(vdata(i).x,2)>1 % If there is an SIQ signal present
-        x=[x;vdata(i).x(:,2)];
-        t=[t;vdata(i).t];
+    if size(vdata(j).x,2)>1 % If there is an SIQ signal present
+        x=[x;vdata(j).x(:,2)];
+        t=[t;vdata(j).t];
         vname = [vname(1:i,1);'/VitalSigns/SIQ';vname(i+1:end,1)];
         i = i+1;
         v=[v;i*ones(n,1)];
         nv = nv+1;
     end
     i = i+1;
+    j = j+1;
 end
 %Long matrix output
 if vformat==2

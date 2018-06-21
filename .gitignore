@@ -1,0 +1,36 @@
+# Windows default autosave extension
+*.asv
+
+# OSX / *nix default autosave extension
+*.m~
+
+# Compiled MEX binaries (all platforms)
+*.mex*
+
+# Packaged app and toolbox files 
+*.mlappinstall 
+*.mltbx 
+  
+# Generated helpsearch folders 
+helpsearch*/ 
+
+# Simulink code generation folders
+slprj/
+sccprj/
+
+# Simulink autosave extension
+*.autosave
+
+# Octave session info
+octave-workspace
+
+# HDF5 Test Files
+*.hdf5
+
+# Matlab Project files
+*.prj
+HDF5Viewer/
+HDF5Viewer_resources/
+HDF5Viewer_v1_2/
+HDF5Viewer_v1_2_resources/
+Old/

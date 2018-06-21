@@ -16,7 +16,11 @@ spo2rdata = vdata(:,dataindex);
 dataindex = ismember(vname,'/VitalSigns/HR');
 hrdata = vdata(:,dataindex);
 numsamps = length(spo2rdata);
-fs = double(h5readatt(filename,'/VitalSigns/HR','Sample Frequency (Hz)'));
+try
+    fs = double(h5readatt(filename,'/VitalSigns/HR','Sample Frequency (Hz)'));
+catch
+    fs = 1/(double(h5readatt(filename,'/VitalSigns/HR','Sample Period (ms)'))/1000);
+end
 onehrsamples = 60*60*fs; % 60 min of samples
 artifact = zeros(numsamps,1);
 

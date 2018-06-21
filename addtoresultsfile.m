@@ -18,14 +18,23 @@ function addtoresultsfile(filename,vname,vresult,vtime,tag,tagname)
         % check to see if results already contain this name
         load(resultfilename,'result_vital_name','result_vital_data','result_tags','result_tagcolumns','result_tagtitle');
         if any(strcmp(result_vital_name,vname))
-            index = find(contains(result_vital_name,vname));
+            index = find(strcmp(result_vital_name, vname));
+%             index = find(contains(result_vital_name,vname));
+            if contains(vname,'CustomTag')
+                result_vital_data(:,index) = result_vital_data(:,index)|vresult;
+                result_tags(index).tagtable = vertcat(result_tags(index).tagtable,tag);
+                result_tags(index).tagtable = sortrows(result_tags(index).tagtable);
+            else
+                result_vital_data(:,index) = vresult;
+                result_tags(index).tagtable = tag;
+            end
         else
             index = length(result_vital_name)+1;
             result_vital_name{index,1} = vname;
+            result_vital_data(:,index) = vresult;
+            result_tags(index).tagtable = tag;
         end
-        result_vital_data(:,index) = vresult;
         result_vital_time = vtime;
-        result_tags(index).tagtable = tag;
         result_tagcolumns = tagname;
         result_tagtitle{index,1} = vname;
     end
