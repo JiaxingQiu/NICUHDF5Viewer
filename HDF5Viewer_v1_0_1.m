@@ -244,28 +244,37 @@ for s=1:numsigs
     else
         handles.windowsize = handles.windowsizeuserinput*60; 
     end
-    if ~isfield(handles,'startindex')
-        handles.startindex = 1;
-        handles.startindex = find(~isnan(handles.vdata(:,handles.dataindex)),1);
-    end
     if handles.dataindex<=length(handles.vname) % Vital Signs
+        if ~isfield(handles,'startindex')
+            handles.startindex = 1;
+            handles.startindex = find(~isnan(handles.vdata(:,handles.dataindex)),1);
+        end
         handles.windowstarttime = handles.vt(handles.startindex);
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
         [~,handles.endindex] = min(abs(handles.vt-handles.windowendtime));
         handles.sig = handles.vdata(handles.startindex:handles.endindex,handles.dataindex);
         handles.utctime = handles.vt(handles.startindex:handles.endindex);
     elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
-        handles.windowstarttime = handles.wt(handles.startindex);
+        if ~isfield(handles,'startindexw')
+            handles.startindexw = 1;
+            handles.startindexw = find(~isnan(handles.wdata(:,handles.dataindex-length(handles.vname))),1);
+        end
+        [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
+        handles.windowstarttime = handles.wt(handles.startindexw);
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
-        [~,handles.endindex] = min(abs(handles.wt-handles.windowendtime));
-        handles.sig = handles.wdata(handles.startindex:handles.endindex,handles.dataindex-length(handles.vname));
-        handles.utctime = handles.wt(handles.startindex:handles.endindex);
+        [~,handles.endindexw] = min(abs(handles.wt-handles.windowendtime));
+        handles.sig = handles.wdata(handles.startindexw:handles.endindexw,handles.dataindex-length(handles.vname));
+        handles.utctime = handles.wt(handles.startindexw:handles.endindexw);
     else % Results 
-        handles.windowstarttime = handles.rt(handles.startindex);
+        if ~isfield(handles,'startindexr')
+            handles.startindexr = 1;
+            handles.startindexr = find(~isnan(handles.rdata(:,handles.dataindex-length(handles.vname)-length(handles.wname))),1);
+        end
+        handles.windowstarttime = handles.rt(handles.startindexr);
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
-        [~,handles.endindex] = min(abs(handles.rt-handles.windowendtime));
-        handles.sig = handles.rdata(handles.startindex:handles.endindex,handles.dataindex-length(handles.vname)-length(handles.wname));
-        handles.utctime = handles.rt(handles.startindex:handles.endindex);
+        [~,handles.endindexr] = min(abs(handles.rt-handles.windowendtime));
+        handles.sig = handles.rdata(handles.startindexr:handles.endindexr,handles.dataindex-length(handles.vname)-length(handles.wname));
+        handles.utctime = handles.rt(handles.startindexr:handles.endindexr);
     end
     if handles.ishdf5
         handles.localtime = utc2local(handles.utctime/1000);
@@ -315,9 +324,9 @@ elseif contains(varname,'SPO2')
     plotcolor = 'b';
     ylim([0 100])
 elseif contains(varname,'Waveforms/RR')
-    plotcolor = 'g.';
+    plotcolor = 'g';
 elseif contains(varname,'Waveforms/SPO2')
-    plotcolor = 'b.';
+    plotcolor = 'b';
 elseif contains(varname,'Results/CUartifact')
     plotcolor = 'r';
 elseif contains(varname,'Results/WUSTLartifact')
@@ -632,24 +641,42 @@ else % for WUSTL data
     jumptime = jumptime_minutes*60; % convert minutes to seconds
 end
 handles.windowstarttime = handles.windowstarttime+jumptime;
-if handles.dataindex<=length(handles.vname) % Vital Signs
-    [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
-elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
-    [~,handles.startindex] = min(abs(handles.wt-handles.windowstarttime));
-else % Results
-    [~,handles.startindex] = min(abs(handles.rt-handles.windowstarttime));
+if isfield(handles,'startindexw')
+    [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
 end
+if isfield(handles,'startindex')
+    [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
+end
+if isfield(handles,'startindexr')
+    [~,handles.startindexr] = min(abs(handles.rt-handles.windowstarttime));
+end
+% if handles.dataindex<=length(handles.vname) % Vital Signs
+%     [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
+% elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
+%     [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
+% else % Results
+%     [~,handles.startindex] = min(abs(handles.rt-handles.windowstarttime));
+% end
 plotdata(hObject, eventdata, handles, overwrite)
 
 function jumpintodata(hObject,eventdata,handles,userselectedstart)
 overwrite = 0;
 handles.windowstarttime = userselectedstart;
-if handles.dataindex<=length(handles.vname) % Vital Signs
+% if handles.dataindex<=length(handles.vname) % Vital Signs
+%     [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
+% elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
+%     [~,handles.startindex] = min(abs(handles.wt-handles.windowstarttime));
+% else % Results
+%     [~,handles.startindex] = min(abs(handles.rt-handles.windowstarttime));
+% end
+if isfield(handles,'startindexw')
+    [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
+end
+if isfield(handles,'startindex')
     [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
-elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
-    [~,handles.startindex] = min(abs(handles.wt-handles.windowstarttime));
-else % Results
-    [~,handles.startindex] = min(abs(handles.rt-handles.windowstarttime));
+end
+if isfield(handles,'startindexr')
+    [~,handles.startindexr] = min(abs(handles.rt-handles.windowstarttime));
 end
 plotdata(hObject, eventdata, handles, overwrite)
 
