@@ -152,7 +152,13 @@ plotdata(hObject, eventdata, handles, overwrite);
 
 
 function plotdata(hObject, eventdata, handles,overwrite)
-numsigs = length(handles.value);
+if isfield(handles,'value')
+    numsigs = length(handles.value);
+    set(handles.tagalgstextbox,'string','')
+else
+    set(handles.tagalgstextbox,'string','Please select a signal to plot in the Main tab')
+    return
+end
 if isfield(handles,'overlayon')
     if handles.overlayon
         handles.numplots = 1;
@@ -366,6 +372,7 @@ loaddata(hObject, eventdata, handles);
 function loaddata(hObject, eventdata, handles)
 % Let the user know the GUI is currently working on loading the data
 set(handles.loadedfile,'string','Loading...');
+handles.tagalgstextbox.String = "";
 waitfor(handles.loadedfile,'string','Loading...');
 handles.nextfiledisplay.String = '';
 % try
@@ -865,8 +872,14 @@ function run_tagging_algorithms_Callback(hObject, eventdata, handles)
 % hObject    handle to run_tagging_algorithms (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+set(handles.tagalgstextbox,'string','Running...');
 run_all_tagging_algs(fullfile(handles.pathname, handles.filename))
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+if isempty(handles.rdata)
+    set(handles.tagalgstextbox,'string','File lacks variables needed to generate results file');
+else
+    set(handles.tagalgstextbox,'string','');
+end
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
 set(handles.TaggedEventsListbox,'string',handles.tagtitles);
 % Update handles structure

@@ -11,6 +11,10 @@ if sum(contains(vname,'/VitalSigns/SPO2-R'))
     dataindex = ismember(vname,'/VitalSigns/SPO2-R');
 elseif sum(contains(vname,'/VitalSigns/PULSE'))
     dataindex = ismember(vname,'/VitalSigns/PULSE');
+else
+    results = [];
+    vt = [];
+    return
 end
 spo2rdata = vdata(:,dataindex);
 dataindex = ismember(vname,'/VitalSigns/HR');
@@ -19,7 +23,13 @@ numsamps = length(spo2rdata);
 try
     fs = double(h5readatt(filename,'/VitalSigns/HR','Sample Frequency (Hz)'));
 catch
-    fs = 1/(double(h5readatt(filename,'/VitalSigns/HR','Sample Period (ms)'))/1000);
+    try
+        fs = 1/(double(h5readatt(filename,'/VitalSigns/HR','Sample Period (ms)'))/1000);
+    catch
+        results = [];
+        vt = [];
+        return
+    end
 end
 onehrsamples = 60*60*fs; % 60 min of samples
 artifact = zeros(numsamps,1);

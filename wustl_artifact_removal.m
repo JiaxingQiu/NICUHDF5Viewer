@@ -8,6 +8,10 @@ elseif sum(contains(vname,'/VitalSigns/SPO2-perc'))
     dataindex = ismember(vname,'/VitalSigns/SPO2-perc');
 elseif sum(contains(vname,'/VitalSigns/SPO2'))
     dataindex = ismember(vname,'/VitalSigns/SPO2');
+else
+    results = [];
+    vt = [];
+    return
 end
 spo2data = vdata(:,dataindex);
 numsamps = length(spo2data);
