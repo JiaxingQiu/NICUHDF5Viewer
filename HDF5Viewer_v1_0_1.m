@@ -265,6 +265,7 @@ for s=1:numsigs
             handles.startindexw = 1;
             handles.startindexw = find(~isnan(handles.wdata(:,handles.dataindex-length(handles.vname))),1);
         end
+        handles.windowstarttime = handles.wt(handles.startindexw);
         [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
         handles.windowstarttime = handles.wt(handles.startindexw);
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
