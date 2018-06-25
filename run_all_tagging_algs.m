@@ -30,14 +30,14 @@ end
 % Run a bradycardia detection algorithm
 bradythresh = 100;
 [brady100,vt,tag,tagname] = bradydetector(filename,bradythresh,pmin,tmin);
-if ~isempty(tag)
+if ~isempty(brady100)
     addtoresultsfile(filename,'/Results/Brady<=100',brady100,vt,tag,tagname);
 end
 
 % Run a desaturation detection algorithm
 desatthresh = 80;
 [desat80,vt,tag,tagname] = desatdetector(filename,desatthresh,pmin,tmin);
-if ~isempty(tag)
+if ~isempty(desat80)
     addtoresultsfile(filename,'/Results/Desat<=80',desat80,vt,tag,tagname);
 end
 end

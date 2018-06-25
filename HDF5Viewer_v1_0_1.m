@@ -312,22 +312,22 @@ plotcolor = 'k';
 if contains(varname,'HR')
     plotcolor = 'r';
     ylim([0 250])
-elseif contains(varname,'SPO2-%')
+elseif contains(varname,'VitalSigns/SPO2-%')
     plotcolor = 'b';
     ylim([0 100])
-elseif contains(varname,'SPO2-R')
+elseif contains(varname,'VitalSigns/SPO2-R')
     plotcolor = 'm';
     ylim([0 250])
-elseif contains(varname,'SpO2')
+elseif contains(varname,'VitalSigns/SpO2')
     plotcolor = 'b';
     ylim([0 100])
 elseif contains(varname,'SIQ')
     plotcolor = 'k';
     ylim([0 3])
-elseif contains(varname,'SPO2-perc')
+elseif contains(varname,'VitalSigns/SPO2-perc')
     plotcolor = 'b';
     ylim([0 100])
-elseif contains(varname,'SPO2')
+elseif contains(varname,'VitalSigns/SPO2')
     plotcolor = 'b';
     ylim([0 100])
 elseif contains(varname,'Waveforms/RR')
@@ -499,7 +499,7 @@ function AlgorithmSelectorPopUpMenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-menuoptions = {'';'QRS Detection';'Placeholder for Algorithm';'Placeholder for Another'};
+menuoptions = {'';'QRS Detection (MUST SELECT EKG LEAD!)';'Placeholder for Algorithm';'Placeholder for Another'};
 set(hObject,'String',menuoptions);
 
 
@@ -709,7 +709,7 @@ function RunAlgorithmButton_Callback(hObject, eventdata, handles)
 % hObject    handle to RunAlgorithmButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if strcmp(handles.algchoice,'QRS Detection')
+if strcmp(handles.algchoice,'QRS Detection (MUST SELECT EKG LEAD!)')
     addpath('QRSDetection');
     callqrsdetection(hObject,eventdata,handles);
 end
@@ -746,7 +746,7 @@ msgbox({'HDF5Viewer 1.1';
 'Using QRS Detection to Compute Heart Rate:';
 '- First select a good EKG signal lead to display. Make sure the signal displayed in the window does not start with an empty signal. If it does, scroll (using the buttons at the bottom of the screen) to a part of the signal which does not begin with missing data.';
 '- Go to the "Run Algorithms" tab.'; 
-'- In the Dropdown menu, select the QRS Detection Algorithm.';
+'- In the Dropdown menu, select the QRS Detection algorithm.';
 '- Hit Run.' 
 '- A pink and a blue scatter plot should appear. The blue scatter plot shows the signal taken from the signal labeled "HR." The magenta scatter plot shows the heart rate calculated from the QRS detection algorithm.'; 
 '- If you want to see the QRS detection for other parts of the data, you can scroll through the data by using the buttons at the bottom of the screen. When you see data where you want to run the QRS detection, simply click the "Run" button again.';
@@ -874,6 +874,7 @@ function run_tagging_algorithms_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.tagalgstextbox,'string','Running...');
+drawnow
 run_all_tagging_algs(fullfile(handles.pathname, handles.filename))
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
 if isempty(handles.rdata)
@@ -941,7 +942,9 @@ while notfoundyet && s<=length(handles.plothandle)
     s=1+s;
 end
 fulldataset = zeros(length(handles.vt),1);
-fulldataset(handles.startindex:handles.endindex,1) = brushedIdx; % This puts the brushed data in the context of the full dataset
+brushedindices = handles.startindex:handles.endindex;
+brushedindices = brushedindices(~isnan(handles.sig));
+fulldataset(brushedindices,1) = brushedIdx; % This puts the brushed data in the context of the full dataset
 
 % Turn this into tags
 pmin = 1; % minimum number of points below threshold (default one) - only applies to tags!!
@@ -960,7 +963,7 @@ set(handles.TaggedEventsListbox,'string',handles.tagtitles);
 categorychoice = get(handles.TaggedEventsListbox, 'Value'); 
 TagListbox_Callback(hObject, eventdata, handles)
 TaggedEventsListbox_Callback(hObject, eventdata, handles)
-set(handles.TaggedEventsListbox.hObject, 'Value', categorychoice);
+set(handles.TaggedEventsListbox, 'Value', categorychoice);
 
 % Update the plots
 overwrite = 1;
