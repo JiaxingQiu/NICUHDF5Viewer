@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 07-Jun-2018 16:37:08
+% Last Modified by GUIDE v2.5 26-Jun-2018 09:46:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -255,7 +255,11 @@ for s=1:numsigs
             handles.startindex = 1;
             handles.startindex = find(~isnan(handles.vdata(:,handles.dataindex)),1);
         end
-        handles.windowstarttime = handles.vt(handles.startindex);
+        if ~isfield(handles,'windowstarttime')
+            handles.windowstarttime = handles.vt(handles.startindex);
+        else
+            [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
+        end
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
         [~,handles.endindex] = min(abs(handles.vt-handles.windowendtime));
         handles.sig = handles.vdata(handles.startindex:handles.endindex,handles.dataindex);
@@ -265,7 +269,11 @@ for s=1:numsigs
             handles.startindexw = 1;
             handles.startindexw = find(~isnan(handles.wdata(:,handles.dataindex-length(handles.vname))),1);
         end
-        handles.windowstarttime = handles.wt(handles.startindexw);
+        if ~isfield(handles,'windowstarttime')
+            handles.windowstarttime = handles.wt(handles.startindexw);
+        else
+            [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
+        end
         [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
         handles.windowstarttime = handles.wt(handles.startindexw);
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
@@ -276,6 +284,11 @@ for s=1:numsigs
         if ~isfield(handles,'startindexr')
             handles.startindexr = 1;
             handles.startindexr = find(~isnan(handles.rdata(:,handles.dataindex-length(handles.vname)-length(handles.wname))),1);
+        end
+        if ~isfield(handles,'windowstarttime')
+            handles.windowstarttime = handles.rt(handles.startindexr);
+        else
+            [~,handles.startindexr] = min(abs(handles.rt-handles.windowstarttime));
         end
         handles.windowstarttime = handles.rt(handles.startindexr);
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
@@ -364,9 +377,9 @@ if isequal(handles.filename,0)
    disp('User selected Cancel')
 else
    disp(['User selected ', fullfile(handles.pathname, handles.filename)])
+   handles.nomorefiles = 0;
+   loaddata(hObject, eventdata, handles);
 end
-handles.nomorefiles = 0;
-loaddata(hObject, eventdata, handles);
 
 
 % This is where the data is actually loaded in - the money code!!
@@ -380,6 +393,7 @@ handles.nextfiledisplay.String = '';
     % Remove startindex field from previous file
     if isfield(handles,'startindex')
         handles = rmfield(handles,'startindex');
+        handles = rmfield(handles,'windowstarttime');
     end
     % Remove plots from previous signal
     if isfield(handles,'h')
@@ -409,7 +423,7 @@ handles.nextfiledisplay.String = '';
     usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
     handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
     set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
-    set(handles.TaggedEventsListbox,'string',handles.tagtitles);
+    set(handles.TagCategoryListbox,'string',handles.tagtitles);
     set(handles.TagListbox,'string','')
     handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
 % catch e
@@ -461,7 +475,7 @@ function callqrsdetection(hObject,eventdata,handles)
 % all current plots, and plot the results of the QRS detection in
 % comparison to the heart rate plot
 [hrt,hr,rrt,rr,ecgt,ecg,qrs] = runQRSDetection2(hObject,eventdata,handles);
-handles.h(1) = subplot(2,1,1,'Parent',handles.PlotPanel);
+handles.h(1) = subplot(2,1,1,'Parent',handles.PlotPanel); 
 cla
 if ~isempty(hr)
     plot(hrt,hr,'.')
@@ -808,30 +822,33 @@ overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite);
 
 
-% --- Executes on selection change in TaggedEventsListbox.
-function TaggedEventsListbox_Callback(hObject, eventdata, handles)
-% hObject    handle to TaggedEventsListbox (see GCBO)
+% --- Executes on selection change in TagCategoryListbox.
+function TagCategoryListbox_Callback(hObject, eventdata, handles)
+% hObject    handle to TagCategoryListbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns TaggedEventsListbox contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from TaggedEventsListbox
+% Hints: contents = cellstr(get(hObject,'String')) returns TagCategoryListbox contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from TagCategoryListbox
 % contents = cellstr(get(hObject,'String'));
 handles.tagtitlechosen = get(hObject,'Value');
-tagsselected = handles.tags(handles.tagtitlechosen);
-starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start'))/1000));
-duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Duration'))/1000)); % seconds
-minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Minimum')));
-spaces = repmat(' -- ',[size(duration,1),1]);
-set(handles.TagListbox,'string',[starttimes spaces minimum spaces duration])
-set(handles.TagListbox, 'Value', 1); %%% FIX THIS!!!
+if ~isempty(handles.tags)
+    tagsselected = handles.tags(handles.tagtitlechosen);
+    starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start'))/1000));
+    duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Duration'))/1000)); % seconds
+    minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Minimum')));
+    spaces = repmat(' -- ',[size(duration,1),1]);
+    set(handles.TagListbox,'string',[starttimes spaces minimum spaces duration])
+    set(handles.TagListbox,'Max',2);
+    set(handles.TagListbox, 'Value', []); %%% FIX THIS!!!
+end
 % Update handles structure
 guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function TaggedEventsListbox_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to TaggedEventsListbox (see GCBO)
+function TagCategoryListbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TagCategoryListbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -883,7 +900,7 @@ else
     set(handles.tagalgstextbox,'string','');
 end
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
-set(handles.TaggedEventsListbox,'string',handles.tagtitles);
+set(handles.TagCategoryListbox,'string',handles.tagtitles);
 % Update handles structure
 guidata(hObject, handles);
 
@@ -957,13 +974,13 @@ addtoresultsfile(fullfile(handles.pathname, handles.filename),['/Results/CustomT
 % Show the custom tag in the listbox
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
-set(handles.TaggedEventsListbox,'string',handles.tagtitles);
+set(handles.TagCategoryListbox,'string',handles.tagtitles);
 
 % Update which tagged events are shown
-categorychoice = get(handles.TaggedEventsListbox, 'Value'); 
+categorychoice = get(handles.TagCategoryListbox, 'Value'); 
 TagListbox_Callback(hObject, eventdata, handles)
-TaggedEventsListbox_Callback(hObject, eventdata, handles)
-set(handles.TaggedEventsListbox, 'Value', categorychoice);
+TagCategoryListbox_Callback(hObject, eventdata, handles)
+set(handles.TagCategoryListbox, 'Value', categorychoice);
 
 % Update the plots
 overwrite = 1;
