@@ -375,6 +375,7 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 [handles.filename, handles.pathname] = uigetfile({'*.hdf5';'*.mat'}, 'Select an hdf5 file');
 if isequal(handles.filename,0)
    disp('User selected Cancel')
+   set(handles.loadedfile,'string','No file selected');
 else
    disp(['User selected ', fullfile(handles.pathname, handles.filename)])
    handles.nomorefiles = 0;
@@ -832,6 +833,9 @@ function TagCategoryListbox_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from TagCategoryListbox
 % contents = cellstr(get(hObject,'String'));
 handles.tagtitlechosen = get(hObject,'Value');
+UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
+
+function UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles)
 if ~isempty(handles.tags)
     tagsselected = handles.tags(handles.tagtitlechosen);
     starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start'))/1000));
@@ -871,6 +875,7 @@ handles.tagchosen = get(hObject,'Value');
 startcol = strcmp(handles.tagcolumns,'Start');
 starttimeofchosentag = handles.tags(handles.tagtitlechosen).tagtable(handles.tagchosen,startcol);
 jumpintodata(hObject,eventdata,handles,starttimeofchosentag);
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -953,7 +958,7 @@ s = 1;
 while notfoundyet && s<=length(handles.plothandle)
     brushedIdx = logical(handles.plothandle(s).BrushData)'; % This gives the indices of the highlighted data within the plotted window, but not within the whole dataset
     if sum(brushedIdx)>0
-        handles.plothandle(s).BrushData = zeros(size(handles.plothandle(s).BrushData)); % Remove the brushing
+        handles.plothandle(s).BrushData = []; %zeros(size(handles.plothandle(s).BrushData)); % Remove the brushing
         notfoundyet=0;
     end
     s=1+s;
@@ -971,20 +976,16 @@ tmin = 0; % time gap between crossings to join (default zero) - only applies to 
 % Add tags to results file
 addtoresultsfile(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vt,tag,tagname);
 
-% Show the custom tag in the listbox
+% Show the custom tag in the tag category listbox
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
 set(handles.TagCategoryListbox,'string',handles.tagtitles);
 
 % Update which tagged events are shown
 categorychoice = get(handles.TagCategoryListbox, 'Value'); 
-TagListbox_Callback(hObject, eventdata, handles)
-TagCategoryListbox_Callback(hObject, eventdata, handles)
 set(handles.TagCategoryListbox, 'Value', categorychoice);
+UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 
 % Update the plots
 overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite)
-
-% Update handles structure
-guidata(hObject, handles);
