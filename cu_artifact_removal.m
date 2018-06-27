@@ -31,7 +31,7 @@ catch
         return
     end
 end
-onehrsamples = 60*60*fs; % 60 min of samples
+onehrsamples = round(60*60*fs); % 60 min of samples
 artifact = zeros(numsamps,1);
 
 for n=1:numsamps

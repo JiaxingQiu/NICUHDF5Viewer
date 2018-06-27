@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 26-Jun-2018 09:46:44
+% Last Modified by GUIDE v2.5 27-Jun-2018 16:55:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -306,7 +306,8 @@ for s=1:numsigs
         handles.plothandle(s) = plot(0,0);
         ylabel({'No data for time period:'; varname});
     else
-        handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
+%         handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
+        handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I),plotcolor);
         ylabel(varname);
     end
     addpath('zoomAdaptiveDateTicks');
@@ -420,7 +421,7 @@ handles.nextfiledisplay.String = '';
     [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
     handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
     % Show only the most useful signals as a default
-    usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
+    usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SpO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
     usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
     handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
     set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
@@ -775,13 +776,15 @@ msgbox({'HDF5Viewer 1.1';
 '- You can click on one of these tagged events to show the event in the viewer';
 '- The first timestamp of that tagged event will be shown on the leftmost edge of the viewer window';
 '';
-'To Custom Tag Events: [IN PROGRESS - THIS HAS NOT BEEN FULLY TESTED]';
+'To Custom Tag Events:';
 '- Go to the Tagged Events Tab';
 '- Click the Start Tag Button';
-'- Click and drag in the figure window to highlight a portion of the data';
 '- Enter a custom tag name in the small white box';
+'- Click and drag in the figure window to highlight a portion of the data';
 '- Hit the Save Tag button';
 '- The tag should show up in the large white boxes above';
+'- The tag should also show up in the Main Tab under the list of signals';
+'- You can tag multiple instances within the file with the same name and they will all be conglomerated under a single tag category with separate tags';
 '';
 },'Help')
 
@@ -966,7 +969,7 @@ end
 fulldataset = zeros(length(handles.vt),1);
 brushedindices = handles.startindex:handles.endindex;
 brushedindices = brushedindices(~isnan(handles.sig));
-fulldataset(brushedindices,1) = brushedIdx; % This puts the brushed data in the context of the full dataset
+fulldataset(brushedindices(1:end),1) = brushedIdx; % This puts the brushed data in the context of the full dataset
 
 % Turn this into tags
 pmin = 1; % minimum number of points below threshold (default one) - only applies to tags!!
@@ -987,5 +990,17 @@ set(handles.TagCategoryListbox, 'Value', categorychoice);
 UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 
 % Update the plots
+overwrite = 1;
+plotdata(hObject, eventdata, handles, overwrite)
+
+
+% --- Executes on button press in RemoveTag.
+function RemoveTag_Callback(hObject, eventdata, handles)
+% hObject    handle to RemoveTag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+removefromresultsfile(fullfile(handles.pathname, handles.filename),handles.TagCategoryListbox.String(handles.TagCategoryListbox.Value),handles.TagCategoryListbox.Value,handles.tagchosen);
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite)

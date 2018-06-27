@@ -91,10 +91,17 @@ for i=1:n
         if length(j)~=1,continue,end
     else
         j=i;
-    end    
+    end
 
     x=double(h5read(hdf5file,allData{j}))';    % Amanda changed the orientation of the array so that when blocktime looks for gaps and needs to concatenate vertically, there isn't a problem
     x(x==-32768) = NaN;     % Add NaNs where data is missing
+    scale = double(h5readatt(hdf5file,allData{j},'Scale'));
+    layoutversion = h5readatt(hdf5file,'/','Layout Version');
+    % For layout version 3, scale is simply a multiplicative factor for the original value. To get the real value, you divide by scale. For layout version 4.0, a real value of 1.2 is stored as 12 with a scale of 1, where scale is stored as the power of 10, so to convert from 12 back to 1.2, you need to divide by 10^scale. Later in this code, when we are actually plotting the data, we divide by scale
+    if str2double(layoutversion{1}(1)) ~= 3 
+        scale = 10^scale;
+    end
+    x = x/scale;
     t=double(h5read(hdf5file,allTimes{j}))';    % Amanda changed the orientation of the array so that when blocktime looks for gaps and needs to concatenate vertically, there isn't a problem
     if isempty(data),continue,end
     data(j).x=x;
