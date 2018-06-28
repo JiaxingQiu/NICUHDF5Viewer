@@ -36,7 +36,7 @@ end
 if wformat==1
     for i=1:nw
         dt = median(diff(wdata(i).t)); % Amanda added this, it originally was dt = 1;
-        tmax = dt*5; % Amanda added this, but she isn't sure if 5 is a good choice
+        tmax = dt; % Amanda added this, but she isn't sure if 5 is a good choice
         wdata(i).T=blocktime(wdata(i).x,wdata(i).t,dt,tmax);
     end
 end

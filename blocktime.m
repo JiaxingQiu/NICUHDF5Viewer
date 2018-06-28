@@ -35,15 +35,15 @@ end
 b1=1;
 b2=nt;
 if ~isempty(b)
-    b1=[1;(b+1)];
-    b2=[b;nt];        
+    b1=[1;(b+1)]; % block start (time index)
+    b2=[b;nt];    % block end (time index)
 end
 
 %Find size and start/stop times of each block 
 nb=length(b1);
-bs=(b2-b1+1)*block;
-t1=t(b1);
-t2=t1+bs/fs;
+bs=(b2-b1+1)*block; % number of samples in each block
+t1=t(b1); % find the time stamps (in utc time, which correspond to the block start indices)
+t2=t1+bs/fs; % find the time stamps (in utc time, which correspond to the block end indices)
 stop=t2(nb);
 
 %Put time stamps into consecutive values for each block
