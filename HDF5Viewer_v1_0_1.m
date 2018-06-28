@@ -503,6 +503,15 @@ linkaxes(handles.h,'x')
 % Update handles structure
 guidata(hObject, handles);
 
+function callFFT(hObject,eventdata,handles)
+[f,P1] = plotAmandafft(handles.sig,handles.utctime);
+handles.h(1) = subplot(2,1,1,'Parent',handles.PlotPanel); 
+cla
+plot(f,P1) 
+zoomAdaptiveDateTicks('off')
+title('Single-Sided Amplitude Spectrum of X(t)')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
 
 % --- Executes during object creation, after setting all properties.
 function AlgorithmSelectorPopUpMenu_CreateFcn(hObject, eventdata, handles)
@@ -515,7 +524,7 @@ function AlgorithmSelectorPopUpMenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-menuoptions = {'';'QRS Detection (MUST SELECT EKG LEAD!)';'Placeholder for Algorithm';'Placeholder for Another'};
+menuoptions = {'';'QRS Detection (MUST SELECT EKG LEAD!)';'Rough Fourier Transform';'Placeholder for Algorithm'};
 set(hObject,'String',menuoptions);
 
 
@@ -728,6 +737,10 @@ function RunAlgorithmButton_Callback(hObject, eventdata, handles)
 if strcmp(handles.algchoice,'QRS Detection (MUST SELECT EKG LEAD!)')
     addpath('QRSDetection');
     callqrsdetection(hObject,eventdata,handles);
+end
+if strcmp(handles.algchoice,'Rough Fourier Transform')
+    addpath('FFT');
+    callFFT(hObject,eventdata,handles);
 end
 
 
