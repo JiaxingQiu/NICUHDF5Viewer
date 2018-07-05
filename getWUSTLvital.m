@@ -31,9 +31,27 @@ t=[];
 x=[];
 v=[];
 
+timediffs = diff(datetime(vtin,'ConvertFrom','datenum'));
+jumps = find(timediffs>seconds(2)); % the index where a time jump takes place that is greater than 2 seconds
+startindex = 1;
+consecutivetimearray = [];
+consecutivedataarray = [];
+for j=1:length(jumps)
+    roundedstarttime = datenum_round_off(vtin(startindex),'second');
+    roundedendtime = datenum_round_off(vtin(jumps(j)),'second');
+    consecutivetimearray = vertcat(consecutivetimearray,(roundedstarttime:datenum(seconds(1)):roundedendtime)');
+    consecutivedataarray = vertcat(consecutivedataarray,vdata(startindex:jumps(j),:));
+%     size(consecutivetimearray,1)-size(consecutivedataarray,1)
+    minlength = min(size(consecutivetimearray,1),size(consecutivedataarray,1));
+    consecutivetimearray = consecutivetimearray(1:minlength,:);
+    consecutivedataarray = consecutivedataarray(1:minlength,:);
+    startindex = jumps(j)+1;
+end
+    
+
 roundedtime = datenum_round_off(vtin,'second');
 
-mastertime = roundedtime(1):datenum(seconds(1)):roundedtime(end)';
+mastertime = (roundedtime(1):datenum(seconds(1)):roundedtime(end))';
 M = ismember(datevec(mastertime),datevec(roundedtime),'rows');
 
 for i=1:nv

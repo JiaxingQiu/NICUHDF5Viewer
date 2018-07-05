@@ -6,11 +6,11 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 %      University of Virginia. This graphical user interface allows users
 %      to:
 %
-%      - View data from hdf5 files in a 20 minute time window
+%      - View data from hdf5 files
 %      - View multiple datasets at once on non-overlapping axes
 %      - Interactively zoom using the mouse
 %      - If desired, overlay multiple signals by checking the 'overlay box'
-%      - Scroll forward and backward in the file in 5/10 minute increments
+%      - Scroll forward and backward in the file
 %      - Run QRS detection on waveform data
 %      - Allow the user to choose to show only high-priority datasets or
 %      all datasets contained in the file by checking a box
@@ -245,10 +245,10 @@ for s=1:numsigs
             cla;
         end
     end
-    if handles.ishdf5
+    if handles.ishdf5 % UTC time
         handles.windowsize = handles.windowsizeuserinput*60*1000; % 20 min in milliseconds is default
-    else
-        handles.windowsize = handles.windowsizeuserinput*60; 
+    else % Matlab local time
+        handles.windowsize = datenum(seconds(handles.windowsizeuserinput*60)); 
     end
     if handles.dataindex<=length(handles.vname) % Vital Signs
         if ~isfield(handles,'startindex')
@@ -313,7 +313,11 @@ for s=1:numsigs
     addpath('zoomAdaptiveDateTicks');
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
-    xlim([utc2local(handles.windowstarttime/1000) utc2local(handles.windowendtime/1000)])
+    if handles.ishdf5
+        xlim([utc2local(handles.windowstarttime/1000) utc2local(handles.windowendtime/1000)])
+    else
+        xlim([handles.windowstarttime handles.windowendtime])
+    end
 end
 linkaxes(handles.h,'x')
 zoom on
@@ -352,6 +356,12 @@ elseif contains(varname,'Results/CUartifact')
     plotcolor = 'r';
 elseif contains(varname,'Results/WUSTLartifact')
     plotcolor = 'k';
+elseif strcmp(varname,'SPO2')
+    plotcolor = 'b';
+    ylim([0 100])
+elseif strcmp(varname,'SpO2_r')
+    plotcolor = 'm';
+    ylim([0 250])
 end
 
 
@@ -380,7 +390,11 @@ if isequal(handles.filename,0)
 else
    disp(['User selected ', fullfile(handles.pathname, handles.filename)])
    handles.nomorefiles = 0;
-   loaddata(hObject, eventdata, handles);
+   try
+       loaddata(hObject, eventdata, handles);
+   catch
+       handles.loadedfile.String = "Data loading failed";
+   end
 end
 
 
@@ -404,15 +418,26 @@ handles.nextfiledisplay.String = '';
         end
     end
     % Load data from HDF5 File
+    corrupt = 0;
     if contains(handles.filename,'.hdf5')
         handles.ishdf5 = 1;
-        [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
-        [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
+        try
+            [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
+        catch
+            handles.loadedfile.String = "Vitals could not load. File may be corrupt.";
+            corrupt = 1;
+        end
+        try
+            [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
+        catch
+            handles.loadedfile.String = "Waveforms could not load. File may be corrupt.";
+            corrupt = 1;
+        end
     else % Load data from WashU
         handles.ishdf5 = 0;
         load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
         handles.vuom = vuom;
-        [handles.vdata,handles.vname,handles.vt,~]=getWUSTLvital(values,vt,vlabel);
+        [handles.vdata,handles.vname,handles.vt]=getWUSTLvital2(values,vt,vlabel);
         handles.wdata = [];
         handles.wname = [];
         handles.wt = [];
@@ -427,7 +452,11 @@ handles.nextfiledisplay.String = '';
     set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
     set(handles.TagCategoryListbox,'string',handles.tagtitles);
     set(handles.TagListbox,'string','')
-    handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
+    if corrupt
+        handles.loadedfile.String = [fullfile(handles.filename) " WARNING: File may be corrupt!!!"]; % Show the name of the loaded file
+    else
+        handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
+    end
 % catch e
 %     handles.loadedfile.String = e.message;
 % end
@@ -671,7 +700,7 @@ overwrite = 0;
 if handles.ishdf5
     jumptime = jumptime_minutes*60*1000; % convert minutes to milliseconds
 else % for WUSTL data
-    jumptime = jumptime_minutes*60; % convert minutes to seconds
+    jumptime = datenum(seconds*jumptime_minutes*60); % convert minutes to seconds
 end
 handles.windowstarttime = handles.windowstarttime+jumptime;
 if isfield(handles,'startindexw')
