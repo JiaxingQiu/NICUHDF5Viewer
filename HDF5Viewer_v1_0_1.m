@@ -15,7 +15,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 %      - Allow the user to choose to show only high-priority datasets or
 %      all datasets contained in the file by checking a box
 %      - This code is designed to work with HDF5 files produced using
-%      UFC_v1.0.1
+%      UFC
 %      
 %      This code will be improved over time to add additional features.
 %
@@ -296,9 +296,9 @@ for s=1:numsigs
         handles.sig = handles.rdata(handles.startindexr:handles.endindexr,handles.dataindex-length(handles.vname)-length(handles.wname));
         handles.utctime = handles.rt(handles.startindexr:handles.endindexr);
     end
-    if handles.ishdf5
+    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), convert to local time
         handles.localtime = utc2local(handles.utctime/1000);
-    else
+    else % the time is in matlab time
         handles.localtime = handles.utctime; % WUSTL data is in datenum format already
     end
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
@@ -313,7 +313,7 @@ for s=1:numsigs
     addpath('zoomAdaptiveDateTicks');
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
-    if handles.ishdf5
+    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), con
         xlim([utc2local(handles.windowstarttime/1000) utc2local(handles.windowendtime/1000)])
     else
         xlim([handles.windowstarttime handles.windowendtime])
@@ -435,9 +435,14 @@ handles.nextfiledisplay.String = '';
         end
     else % Load data from WashU
         handles.ishdf5 = 0;
-        load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
-        handles.vuom = vuom;
-        [handles.vdata,handles.vname,handles.vt]=getWUSTLvital2(values,vt,vlabel);
+        try
+            load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
+            handles.vuom = vuom;
+            [handles.vdata,handles.vname,handles.vt]=getWUSTLvital2(values,vt,vlabel);
+        catch
+            handles.loadedfile.String = ".mat file could not load";
+            corrupt = 1;
+        end
         handles.wdata = [];
         handles.wname = [];
         handles.wt = [];
@@ -618,12 +623,17 @@ masterfolder = pwd;
 % Go to the directory the user selected (we have to go here to use the dir command)
 cd(handles.pathname); 
 % Find all the hdf5 files in this directory
-hdf5files = dir('*.hdf5'); 
+if handles.ishdf5
+    hdf5files = dir('*.hdf5'); 
+else
+    hdf5files = dir('*.mat');
+end
 filenames = strings(length(hdf5files),1);
 % Store the filenames as strings
 for i=1:length(hdf5files) 
     filenames(i) = string(hdf5files(i).name);
 end
+filenames = filenames(~contains(filenames,'results'));
 % Sort the filenames so we are always looking at them in the same order regardless of what order the computer grabs them
 if length(hdf5files)>1 
     filenames = sort(filenames);
@@ -880,11 +890,17 @@ function TagCategoryListbox_Callback(hObject, eventdata, handles)
 handles.tagtitlechosen = get(hObject,'Value');
 UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 
+
 function UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles)
 if ~isempty(handles.tags)
     tagsselected = handles.tags(handles.tagtitlechosen);
-    starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start'))/1000));
-    duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Duration'))/1000)); % seconds
+    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), con
+        starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start'))/1000));
+        duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Duration'))/1000)); % seconds
+    else
+        starttimes = datestr(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start')));
+        duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Duration')))); % seconds
+    end
     minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Minimum')));
     spaces = repmat(' -- ',[size(duration,1),1]);
     set(handles.TagListbox,'string',[starttimes spaces minimum spaces duration])
@@ -922,7 +938,6 @@ starttimeofchosentag = handles.tags(handles.tagtitlechosen).tagtable(handles.tag
 jumpintodata(hObject,eventdata,handles,starttimeofchosentag);
 
 
-
 % --- Executes during object creation, after setting all properties.
 function TagListbox_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to TagListbox (see GCBO)
@@ -934,6 +949,7 @@ function TagListbox_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 % --- Executes on button press in run_tagging_algorithms.
 function run_tagging_algorithms_Callback(hObject, eventdata, handles)

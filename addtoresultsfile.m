@@ -6,7 +6,11 @@ function addtoresultsfile(filename,vname,vresult,vtime,tag,tagname)
     % vname: the name of the results file
     % vresult: the results
     % vtime: the time vector
-    resultfilename = strrep(filename,'.hdf5','_results.mat');
+    if contains(filename,'.hdf5')
+        resultfilename = strrep(filename,'.hdf5','_results.mat');
+    else
+        resultfilename = strrep(filename,'.mat','_results.mat');
+    end
     if ~exist(resultfilename,'file')
         result_vital_name{1,1} = vname;
         result_vital_data(:,1) = vresult;

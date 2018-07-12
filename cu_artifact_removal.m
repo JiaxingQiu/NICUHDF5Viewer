@@ -7,17 +7,27 @@
  % here
  
 [vdata,vname,vt,~]=gethdf5vital(filename);
+if isempty(vdata)
+    load(filename,'values','vlabel','vt','vuom')
+    [vdata,vname,vt]=getWUSTLvital2(values,vt,vlabel);
+end
 if sum(contains(vname,'/VitalSigns/SPO2-R'))
     dataindex = ismember(vname,'/VitalSigns/SPO2-R');
 elseif sum(contains(vname,'/VitalSigns/PULSE'))
     dataindex = ismember(vname,'/VitalSigns/PULSE');
+elseif sum(contains(vname,'PULSE'))
+    dataindex = ismember(vname,'PULSE');
 else
     results = [];
     vt = [];
     return
 end
 spo2rdata = vdata(:,dataindex);
-dataindex = ismember(vname,'/VitalSigns/HR');
+if sum(contains(vname,'/VitalSigns/HR'))
+    dataindex = ismember(vname,'/VitalSigns/HR');
+elseif sum(contains(vname,'HR'))
+    dataindex = ismember(vname,'HR');
+end
 hrdata = vdata(:,dataindex);
 numsamps = length(spo2rdata);
 try
@@ -26,9 +36,13 @@ catch
     try
         fs = 1/(double(h5readatt(filename,'/VitalSigns/HR','Sample Period (ms)'))/1000);
     catch
-        results = [];
-        vt = [];
-        return
+        try
+            fs = 1/24*3600*median(diff(vt));
+        catch
+            results = [];
+            vt = [];
+            return
+        end
     end
 end
 onehrsamples = round(60*60*fs); % 60 min of samples
