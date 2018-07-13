@@ -4,7 +4,7 @@
  % smoothed HR." - Joe Isler
  
  % I don't know what constitutes "smoothed HR," so I will just use raw HR
- % here
+ % here - I talked to Joe and he said it was boxcar smoothing for 1 hr
  
 [vdata,vname,vt,~]=gethdf5vital(filename);
 if isempty(vdata)
@@ -37,7 +37,7 @@ catch
         fs = 1/(double(h5readatt(filename,'/VitalSigns/HR','Sample Period (ms)'))/1000);
     catch
         try
-            fs = 1/24*3600*median(diff(vt));
+            fs = 1/(24*3600*median(diff(vt)));
         catch
             results = [];
             vt = [];
@@ -46,6 +46,7 @@ catch
     end
 end
 onehrsamples = round(60*60*fs); % 60 min of samples
+hrdata = smoothdata(hrdata,'movmean',onehrsamples);
 artifact = zeros(numsamps,1);
 
 for n=1:numsamps

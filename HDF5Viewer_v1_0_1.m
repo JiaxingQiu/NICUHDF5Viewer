@@ -362,6 +362,8 @@ elseif strcmp(varname,'SPO2')
 elseif strcmp(varname,'SpO2_r')
     plotcolor = 'm';
     ylim([0 250])
+elseif strcmp(varname, 'PULSE')
+    ylim([0 250])
 end
 
 
