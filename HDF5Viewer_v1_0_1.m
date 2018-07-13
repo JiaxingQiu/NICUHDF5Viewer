@@ -184,9 +184,21 @@ for s=1:numsigs
             catch
                 handles.fs = 1/(double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Period (ms)'))/1000);
             end
-            handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
-            handles.layoutversion = h5readatt(fullfile(handles.pathname, handles.filename),'/','Layout Version');
-            handles.scale = double(h5readatt(fullfile(handles.pathname, handles.filename),[varname '/data'],'Scale'));
+            try
+                handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
+            catch
+                handles.unitofmeasure = "Unit of measure not recorded";
+            end
+            try
+                handles.layoutversion = h5readatt(fullfile(handles.pathname, handles.filename),'/','Layout Version');
+            catch
+                handles.layoutversion = "Doug's Layout";
+            end
+            try
+                handles.scale = double(h5readatt(fullfile(handles.pathname, handles.filename),[varname '/data'],'Scale'));
+            catch
+                handles.scale = 0;
+            end
             % For layout version 3, scale is simply a multiplicative factor for the original value. To get the real value, you divide by scale. For layout version 4.0, a real value of 1.2 is stored as 12 with a scale of 1, where scale is stored as the power of 10, so to convert from 12 back to 1.2, you need to divide by 10^scale. Later in this code, when we are actually plotting the data, we divide by scale
             if str2double(handles.layoutversion{1}(1)) ~= 3 
                 handles.scale = 10^handles.scale;
@@ -516,7 +528,7 @@ function callqrsdetection(hObject,eventdata,handles)
 handles.h(1) = subplot(2,1,1,'Parent',handles.PlotPanel); 
 cla
 if ~isempty(hr)
-    plot(hrt,hr,'.')
+    plot(hrt,hr,'.b')
 end
 hold on
 plot(rrt,rr,'.m')

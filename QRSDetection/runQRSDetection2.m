@@ -42,7 +42,11 @@ function [hrt,hr,rrt,rr,ecgt,ecg,qrs] = runQRSDetection2(hObject,eventdata,handl
     end
 
     % Compare with HR vital sign:
-    dataindex = ismember(handles.alldatasetnames,'/VitalSigns/HR');
+    if sum(contains(handles.alldatasetnames,'/VitalSigns/HR'))
+        dataindex = ismember(handles.alldatasetnames,'/VitalSigns/HR');
+    elseif sum(contains(handles.alldatasetnames,'/VitalSigns/PR'))
+        dataindex = ismember(handles.alldatasetnames,'/VitalSigns/PR');
+    end
     % Find the vital sign indices that line up most closely with the start
     % and end times of the window which is currently showing waveform data
     [~,startindex] = min(abs(handles.vt-handles.windowstarttime));

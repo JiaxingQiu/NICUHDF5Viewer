@@ -15,6 +15,8 @@ if sum(contains(vname,'/VitalSigns/HR'))
     dataindex = ismember(vname,'/VitalSigns/HR');
 elseif sum(contains(vname,'HR'))
     dataindex = ismember(vname,'HR');
+elseif sum(contains(vname,'/VitalSigns/PR'))
+    dataindex = ismember(vname,'/VitalSigns/PR');
 end
 hrdata = vdata(:,dataindex);
 
