@@ -18,6 +18,7 @@ e2=round(fs*max(ecgt));
 xt=(e1:e2)'/fs;
 
 [x,xt,xna]=naninterp(double(ecg)/gain,ecgt,xt);
+x = fillmissing(x,'nearest');
 
 %QRS detection
 [q,sign,en_thres]=qrs_detect2(x,0.2,0.6,fs);

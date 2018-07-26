@@ -438,14 +438,17 @@ handles.nextfiledisplay.String = '';
         try
             [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
         catch
-            handles.loadedfile.String = "Vitals could not load. File may be corrupt.";
+            handles.loadedfile.String = "Vitals could not load.";
             corrupt = 1;
         end
         try
             [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
         catch
-            handles.loadedfile.String = "Waveforms could not load. File may be corrupt.";
-            corrupt = 1;
+            handles.wdata = [];
+            handles.wname = [];
+            handles.wt = [];
+            handles.loadedfile.String = "Waveforms could not load.";
+            corrupt = 0;
         end
     else % Load data from WashU
         handles.ishdf5 = 0;
@@ -462,7 +465,7 @@ handles.nextfiledisplay.String = '';
         handles.wt = [];
     end
 
-    [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+    [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
     handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
     % Show only the most useful signals as a default
     usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SpO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
@@ -909,13 +912,17 @@ function UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles)
 if ~isempty(handles.tags)
     tagsselected = handles.tags(handles.tagtitlechosen);
     if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), con
-        starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start'))/1000));
-        duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Duration'))/1000)); % seconds
+        starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'))/1000));
+        duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
     else
-        starttimes = datestr(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Start')));
-        duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Duration')))); % seconds
+        starttimes = datestr(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start')));
+        duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration')))); % seconds
     end
-    minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns,'Minimum')));
+    try
+        minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Minimum')));
+    catch
+        minimum = 0;
+    end
     spaces = repmat(' -- ',[size(duration,1),1]);
     set(handles.TagListbox,'string',[starttimes spaces minimum spaces duration])
     set(handles.TagListbox,'Max',2);
@@ -947,7 +954,7 @@ function TagListbox_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns TagListbox contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from TagListbox
 handles.tagchosen = get(hObject,'Value');
-startcol = strcmp(handles.tagcolumns,'Start');
+startcol = strcmp(handles.tagcolumns(tagchosen).tagname,'Start');
 starttimeofchosentag = handles.tags(handles.tagtitlechosen).tagtable(handles.tagchosen,startcol);
 jumpintodata(hObject,eventdata,handles,starttimeofchosentag);
 
@@ -973,7 +980,7 @@ function run_tagging_algorithms_Callback(hObject, eventdata, handles)
 set(handles.tagalgstextbox,'string','Running...');
 drawnow
 run_all_tagging_algs(fullfile(handles.pathname, handles.filename))
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
 if isempty(handles.rdata)
     set(handles.tagalgstextbox,'string','File lacks variables needed to generate results file');
 else
@@ -1049,10 +1056,10 @@ tmin = 0; % time gap between crossings to join (default zero) - only applies to 
 [tag,tagname]=threshtags(~fulldataset,handles.vt,0.5,pmin,tmin);
 
 % Add tags to results file
-addtoresultsfile(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vt,tag,tagname);
+addtoresultsfile2(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vt,tag,tagname);
 
 % Show the custom tag in the tag category listbox
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
 set(handles.TagCategoryListbox,'string',handles.tagtitles);
 
@@ -1071,8 +1078,8 @@ function RemoveTag_Callback(hObject, eventdata, handles)
 % hObject    handle to RemoveTag (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-removefromresultsfile(fullfile(handles.pathname, handles.filename),handles.TagCategoryListbox.String(handles.TagCategoryListbox.Value),handles.TagCategoryListbox.Value,handles.tagchosen);
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile(fullfile(handles.pathname, handles.filename));
+removefromresultsfile2(fullfile(handles.pathname, handles.filename),handles.TagCategoryListbox.String(handles.TagCategoryListbox.Value),handles.TagCategoryListbox.Value,handles.tagchosen);
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
 UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite)

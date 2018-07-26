@@ -1,4 +1,4 @@
-function [tag,tagname,tag0]=wmtagevents(p,pgood,pt,ps)  
+function [tagout,tagname,tag0]=wmtagevents2(p,pgood,pt,ps)  
 
 if ~exist('ps','var'),ps=4;end
 p=p(:);
@@ -11,7 +11,7 @@ if ~exist('pt','var')
     pt=(1:n)'/ps;
 end
 %tag=[s(:) e(:)-s(:)+1 wad(:) nna(:) t0(:) t1(:) gapl(:) gapr(:)];
-tagname = {'ix' 'dur' 'wad' 'nna' 'st' 'et' 'gap1' 'gapr'}'; % index, duration, weighted apnea duration (not an apnea unless this value is >10), number of Nans in window, start time, end time, gap to the left (find out how far away the next event to the left is), gap to the right
+tagname = {'ix' 'Duration' 'wad' 'nna' 'Start' 'Stop' 'gap1' 'gapr'}'; % index, duration, weighted apnea duration (not an apnea unless this value is >10), number of Nans in window, start time, end time, gap to the left (find out how far away the next event to the left is), gap to the right
 nc=length(tagname);
 tag=zeros(0,nc);
 tag0=zeros(0,nc);
@@ -100,3 +100,8 @@ for i=2:n0
     tag(n,6)=pt(e);
     tag(n,8)=tag0(i,8);
 end
+
+% % Amanda added this:
+% % start time, stop time, duration, np, area, xmin
+% tagname =
+% tagout=[t0 t1 e-s+1 nan nan nan];

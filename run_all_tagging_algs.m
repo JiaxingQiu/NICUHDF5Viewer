@@ -15,7 +15,7 @@ tmin = 0; % time gap between crossings to join (default zero) - only applies to 
 [cu_artifact,vt] = cu_artifact_removal(filename);
 [tag,tagname]=threshtags(~cu_artifact,vt,0.5,pmin,tmin);
 if ~isempty(tag)
-    addtoresultsfile(filename,'/Results/CUartifact',cu_artifact,vt,tag,tagname);
+    addtoresultsfile2(filename,'/Results/CUartifact',cu_artifact,vt,tag,tagname);
 end
 
 % Run and plot WashU artifact removal, which works by removing low or
@@ -24,21 +24,40 @@ spo2min = 50; % Threshold for spo2 values to determine if they are non-physiolog
 [wu_artifact,vt] = wustl_artifact_removal(filename,spo2min);
 [tag,tagname]=threshtags(~wu_artifact,vt,0.5,pmin,tmin);
 if ~isempty(tag)
-    addtoresultsfile(filename,'/Results/WUSTLartifact',wu_artifact,vt,tag,tagname);
+    addtoresultsfile2(filename,'/Results/WUSTLartifact',wu_artifact,vt,tag,tagname);
 end
 
 % Run a bradycardia detection algorithm
 bradythresh = 100;
 [brady100,vt,tag,tagname] = bradydetector(filename,bradythresh,pmin,tmin);
 if ~isempty(brady100)
-    addtoresultsfile(filename,'/Results/Brady<=100',brady100,vt,tag,tagname);
+    addtoresultsfile2(filename,'/Results/Brady<=100',brady100,vt,tag,tagname);
 end
 
 % Run a desaturation detection algorithm
 desatthresh = 80;
 [desat80,vt,tag,tagname] = desatdetector(filename,desatthresh,pmin,tmin);
 if ~isempty(desat80)
-    addtoresultsfile(filename,'/Results/Desat<=80',desat80,vt,tag,tagname);
+    addtoresultsfile2(filename,'/Results/Desat<=80',desat80,vt,tag,tagname);
+end
+
+
+% Run the apnea detection algorithm using lead I
+[apnea,pt,tag,tagname] = apneadetector(filename,1);
+if ~isempty(apnea)
+    addtoresultsfile2(filename,'/Results/Apnea_I',apnea,pt*1000,tag,tagname);
+end
+
+% Run the apnea detection algorithm using lead II
+[apnea,pt,tag,tagname] = apneadetector(filename,2);
+if ~isempty(apnea)
+    addtoresultsfile2(filename,'/Results/Apnea_II',apnea,pt*1000,tag,tagname);
+end
+
+% Run the apnea detection algorithm using lead III
+[apnea,pt,tag,tagname] = apneadetector(filename,3);
+if ~isempty(apnea)
+    addtoresultsfile2(filename,'/Results/Apnea_III',apnea,pt*1000,tag,tagname);
 end
 
 end
