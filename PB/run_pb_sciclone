@@ -1,0 +1,28 @@
+#!/bin/tcsh
+
+# Check for right number of arguments
+if ($# != 2) then
+	echo "Usage:  run_calc_pb_wavelet_sciclone begin end"
+	exit 1
+endif
+
+if ($1 > $2) then
+	echo "Error: beginning value is larger than ending value"  
+	exit 1
+endif
+
+
+# Generate an array of jobs
+qsub -N run_pb_sciclone -t $1-$2 <<EOF
+#!/bin/tcsh
+#PBS -l nodes=1:c9:ppn=2
+#PBS -l walltime=180:00:00
+#PBS -j oe
+#PBS -q matlab
+module load matlab
+cd /sciclone/home2/hqtruong/PB_detector
+
+matlab -nojvm -nodisplay -r "run_pb_sciclone(\$PBS_ARRAYID)" >run_pb_sciclone_\$PBS_ARRAYID.out
+EOF
+
+exit

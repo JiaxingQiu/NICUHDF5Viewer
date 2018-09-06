@@ -1,6 +1,6 @@
-function [results,vt,tag,tagname] = bradydetector(filename,threshold,pmin,tmin)
+function [results,vt,tag,tagname] = bradydetector(filename,vdata,vname,vt,threshold,pmin,tmin)
 
-[vdata,vname,vt,~]=gethdf5vital(filename);
+% [vdata,vname,vt,~]=gethdf5vital(filename);
 if isempty(vdata)
     load(filename,'values','vlabel','vt','vuom')
     [vdata,vname,vt]=getWUSTLvital2(values,vt,vlabel);
@@ -17,8 +17,15 @@ elseif sum(contains(vname,'HR'))
     dataindex = ismember(vname,'HR');
 elseif sum(contains(vname,'/VitalSigns/PR'))
     dataindex = ismember(vname,'/VitalSigns/PR');
+else
+    results = [];
+    tag = [];
+    tagname = [];
+    return
 end
 hrdata = vdata(:,dataindex);
 
 results = hrdata<=threshold;
-[tag,tagname]=threshtags(hrdata,vt,threshold,pmin,tmin);
+period = median(diff(vt/1000));
+fs = 1/period;
+[tag,tagname]=threshtags(hrdata,vt,threshold,round(pmin*fs),(tmin*fs));

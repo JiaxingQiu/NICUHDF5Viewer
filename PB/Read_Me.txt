@@ -1,0 +1,1 @@
+Run add new wavelets to add mypb6a and mypb6b to the list of wavelets that Matlab recognizes. You only need to do this once.

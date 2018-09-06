@@ -1,4 +1,4 @@
-function [tag,tagname]=threshtags(x,xt,T,pmin,tmin)
+function [tag,tagname]=threshtags(x,xt,T,pmin,tmin,negthresh)
 % function [tag,tagname]=threshtags(x,xt,T,pmin,tmin)
 %
 % x = input signal
@@ -9,6 +9,8 @@ function [tag,tagname]=threshtags(x,xt,T,pmin,tmin)
 %
 % tag = tag times and info
 % tagname = name of tagput data
+% negthresh = 1 if you want to identify events that drop below a threshold
+% negthresh = 0 if you want to identify events above a threshold
 
 tagname=cell(6,1);
 tagname{1}='Start';
@@ -27,6 +29,7 @@ if isempty(x),return,end
 
 if ~exist('tmin','var'),tmin=0;end
 if ~exist('pmin','var'),pmin=1;end
+if ~exist('negthresh','var'),negthresh=1;end
 
 % if length(tmin)>1
 %     tmin=tmin(1);
@@ -42,7 +45,7 @@ if ~exist('pmin','var'),pmin=1;end
 % end
 
 % Find crossing events with minimum number of points
-[i1,i2]=threshcross(x,T,pmin);
+[i1,i2]=threshcross(x,T,pmin,negthresh);
 if isempty(i1),return,end
 
 t1=xt(i1);
@@ -71,13 +74,24 @@ dur=t2-t1+2;
 %np=j2-j1+1;
 np=zeros(ne,1);
 area=zeros(ne,1);
-xmin=NaN*ones(ne,1);
+extrema=NaN*ones(ne,1);
 for i=1:ne
     j=(j1(i):j2(i))';
     xx=x(j);
-    xmin(i)=min(xx);
+    if negthresh
+        extrema(i)=min(xx);
+    else
+        extrema(i)=max(xx);
+    end
+    if extrema(i)<1
+        extrema(i) = round(extrema(i),2);
+    end
     aa=max(T+1-xx,0);
     area(i)=sum(aa);
-    np(i)=sum(xx<=T);
+    if negthresh
+        np(i)=sum(xx<=T);
+    else
+        np(i)=sum(xx>=T);
+    end
 end
-tag=[t1 t2 dur np area xmin];
+tag=[t1 t2 dur np area extrema];

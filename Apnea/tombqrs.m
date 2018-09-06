@@ -26,7 +26,7 @@ q=q(:);
 nq=length(q);
 qt=xt(q);
 
-%Find good hearbeats and RR intervals
+%Find good heartbeats and RR intervals
 [qb,qgood,rr,rrt,drop]=qrsgood(qt);
 
 end

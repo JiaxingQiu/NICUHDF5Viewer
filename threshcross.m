@@ -1,4 +1,4 @@
-function [start,stop]=threshcross(x,T,pmin)
+function [start,stop]=threshcross(x,T,pmin,negthresh)
 %function [start,stop]=threshcross(x,T,pmin)
 %
 % x = input signal
@@ -7,13 +7,20 @@ function [start,stop]=threshcross(x,T,pmin)
 %
 % start = starting indice for threshold crossing
 % stop = stopping indice for threshold crossing
+% negthresh = 1 if you want to identify events that drop below a threshold
+% negthresh = 0 if you want to identify events above a threshold
 
 if ~exist('pmin','var'),pmin=1;end
+if ~exist('negthresh','var'),negthresh=1;end
 
 start=[];
 stop=[];
 %Find all data below threshold
-c=find(x<=T);
+if negthresh
+    c=find(x<=T);
+else
+    c=find(x>=T);
+end
 if length(c)<pmin,return,end
 start=c;
 stop=c;

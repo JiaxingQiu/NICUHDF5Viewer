@@ -1,4 +1,4 @@
- function [results,vt] = cu_artifact_removal(filename)
+ function [results,vt] = cu_artifact_removal(filename,vdata,vname,vt)
  % "HR is compared with PR and data are considered valid only if the
  % difference between HR and lagged PR is > 1 standard deviation from 1h
  % smoothed HR." - Joe Isler
@@ -6,7 +6,7 @@
  % I don't know what constitutes "smoothed HR," so I will just use raw HR
  % here - I talked to Joe and he said it was boxcar smoothing for 1 hr
  
-[vdata,vname,vt,~]=gethdf5vital(filename);
+% [vdata,vname,vt,~]=gethdf5vital(filename);
 if isempty(vdata)
     load(filename,'values','vlabel','vt','vuom')
     [vdata,vname,vt]=getWUSTLvital2(values,vt,vlabel);

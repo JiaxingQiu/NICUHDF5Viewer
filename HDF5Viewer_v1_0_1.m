@@ -345,6 +345,9 @@ if contains(varname,'HR')
 elseif contains(varname,'VitalSigns/SPO2-%')
     plotcolor = 'b';
     ylim([0 100])
+elseif contains(varname,'VitalSigns/SPO2_R')
+    plotcolor = 'm';
+    ylim([0 250])
 elseif contains(varname,'VitalSigns/SPO2-R')
     plotcolor = 'm';
     ylim([0 250])
@@ -360,6 +363,9 @@ elseif contains(varname,'VitalSigns/SPO2-perc')
 elseif contains(varname,'VitalSigns/SPO2')
     plotcolor = 'b';
     ylim([0 100])
+elseif contains(varname,'VitalSigns/SPO2_pct')
+    plotcolor = 'b';
+    ylim([0 100])
 elseif contains(varname,'Waveforms/RR')
     plotcolor = 'g';
 elseif contains(varname,'Waveforms/SPO2')
@@ -368,6 +374,10 @@ elseif contains(varname,'Results/CUartifact')
     plotcolor = 'r';
 elseif contains(varname,'Results/WUSTLartifact')
     plotcolor = 'k';
+elseif contains(varname,'Results/PeriodicBreathing')
+    ylim([0 1])
+elseif contains(varname,'Results/Apnea')
+    ylim([0 1])
 elseif strcmp(varname,'SPO2')
     plotcolor = 'b';
     ylim([0 100])
@@ -404,11 +414,11 @@ if isequal(handles.filename,0)
 else
    disp(['User selected ', fullfile(handles.pathname, handles.filename)])
    handles.nomorefiles = 0;
-   try
+%    try
        loaddata(hObject, eventdata, handles);
-   catch
-       handles.loadedfile.String = "Data loading failed";
-   end
+%    catch
+%        handles.loadedfile.String = "Data loading failed";
+%    end
 end
 
 
@@ -436,12 +446,16 @@ handles.nextfiledisplay.String = '';
     if contains(handles.filename,'.hdf5')
         handles.ishdf5 = 1;
         try
+            set(handles.loadedfile,'string','Loading Vital Signs...');
+            waitfor(handles.loadedfile,'string','Loading Vital Signs...');
             [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
         catch
             handles.loadedfile.String = "Vitals could not load.";
             corrupt = 1;
         end
         try
+            set(handles.loadedfile,'string','Loading Waveforms...');
+            waitfor(handles.loadedfile,'string','Loading Waveforms...');
             [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
         catch
             handles.wdata = [];
@@ -466,16 +480,28 @@ handles.nextfiledisplay.String = '';
     end
 
     [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
+    if ~isempty(handles.rdata)
+        if isstring(handles.rdata) % an old results file is associated with this file type
+            handles.rdata = [];
+            corrupt = 2;
+        end
+    end
     handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
     % Show only the most useful signals as a default
-    usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SpO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
+    usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SPO2_pct","SpO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
     usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
     handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
     set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
-    set(handles.TagCategoryListbox,'string',handles.tagtitles);
+    if ~isempty(handles.tagtitles)
+        set(handles.TagCategoryListbox,'string',handles.tagtitles);
+    else
+        set(handles.TagCategoryListbox,'string','');
+    end
     set(handles.TagListbox,'string','')
-    if corrupt
+    if corrupt == 1
         handles.loadedfile.String = [fullfile(handles.filename) " WARNING: File may be corrupt!!!"]; % Show the name of the loaded file
+    elseif corrupt == 2
+        handles.loadedfile.String = 'URGENT: Delete old result file before continuing';
     else
         handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
     end
@@ -646,6 +672,7 @@ else
     hdf5files = dir('*.mat');
 end
 filenames = strings(length(hdf5files),1);
+set(handles.TagCategoryListbox,'Value',1);
 % Store the filenames as strings
 for i=1:length(hdf5files) 
     filenames(i) = string(hdf5files(i).name);
@@ -812,7 +839,7 @@ function Menu_help_instructions_Callback(hObject, eventdata, handles)
 % hObject    handle to Menu_help_instructions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer 1.1';
+msgbox({'HDF5Viewer v2.2';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 'To Load a File:';
@@ -836,7 +863,7 @@ msgbox({'HDF5Viewer 1.1';
 '- A pink and a blue scatter plot should appear. The blue scatter plot shows the signal taken from the signal labeled "HR." The magenta scatter plot shows the heart rate calculated from the QRS detection algorithm.'; 
 '- If you want to see the QRS detection for other parts of the data, you can scroll through the data by using the buttons at the bottom of the screen. When you see data where you want to run the QRS detection, simply click the "Run" button again.';
 '';
-'To Tag Bradycardias and Desaturation Events';
+'To Tag Bradycardias, Desats, Apneas, and Other Events';
 '- Select the Tagged Events Tab';
 '- Click the Run Tagging Algorithms Button';
 '- Wait until the white listboxes on that page populate';
@@ -844,6 +871,7 @@ msgbox({'HDF5Viewer 1.1';
 '- The tagged events should populate in the lower white box';
 '- You can click on one of these tagged events to show the event in the viewer';
 '- The first timestamp of that tagged event will be shown on the leftmost edge of the viewer window';
+'- If you want to see details about the tag, go back to the Main tab and toggle the "Show All Available Fields" checkbox once or twice. Then you should see the result vector pop up in the bottom of the list. You can highlight the name of the tag to plot it along with the other signals you want to plot.';
 '';
 'To Custom Tag Events:';
 '- Go to the Tagged Events Tab';
@@ -911,17 +939,31 @@ UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 function UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles)
 if ~isempty(handles.tags)
     tagsselected = handles.tags(handles.tagtitlechosen);
-    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), con
-        starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'))/1000));
-        duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
+    if ~isfield(handles,'utctime')
+        msgbox('Please select a signal to plot from the main tab');
+        return
+    end
+    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190)
+        if ~isempty(tagsselected.tagtable)
+            starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'))/1000));
+            duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
+        else
+            starttimes = [];
+            duration = [];
+        end
     else
-        starttimes = datestr(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start')));
-        duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration')))); % seconds
+        if ~isempty(tagsselected.tagtable)
+            starttimes = datestr(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start')));
+            duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration')))); % seconds
+        else
+            starttimes = [];
+            duration = [];
+        end
     end
     try
         minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Minimum')));
     catch
-        minimum = 0;
+        minimum = zeros(length(duration),1);
     end
     spaces = repmat(' -- ',[size(duration,1),1]);
     set(handles.TagListbox,'string',[starttimes spaces minimum spaces duration])
@@ -954,7 +996,7 @@ function TagListbox_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns TagListbox contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from TagListbox
 handles.tagchosen = get(hObject,'Value');
-startcol = strcmp(handles.tagcolumns(tagchosen).tagname,'Start');
+startcol = strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start');
 starttimeofchosentag = handles.tags(handles.tagtitlechosen).tagtable(handles.tagchosen,startcol);
 jumpintodata(hObject,eventdata,handles,starttimeofchosentag);
 
@@ -979,7 +1021,7 @@ function run_tagging_algorithms_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.tagalgstextbox,'string','Running...');
 drawnow
-run_all_tagging_algs(fullfile(handles.pathname, handles.filename))
+run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.vdata,handles.vname,handles.vt,handles.wdata,handles.wname,handles.wt)
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
 if isempty(handles.rdata)
     set(handles.tagalgstextbox,'string','File lacks variables needed to generate results file');
@@ -987,7 +1029,19 @@ else
     set(handles.tagalgstextbox,'string','');
 end
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
+if get(handles.show_all_avail_fields_checkbox,'Value')
+    for i=1:length(handles.alldatasetnames)
+        set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
+    end
+else
+    for i=1:length(handles.usefuldatasetnames)
+        set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
+    end
+end
 set(handles.TagCategoryListbox,'string',handles.tagtitles);
+set(handles.TagCategoryListbox,'Value',1)
+set(handles.TagListbox,'string','')
+set(handles.TagListbox,'Value',1)
 % Update handles structure
 guidata(hObject, handles);
 

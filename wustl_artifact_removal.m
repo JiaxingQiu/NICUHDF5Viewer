@@ -1,7 +1,7 @@
-function [results,vt] = wustl_artifact_removal(filename,thresh)
+function [results,vt] = wustl_artifact_removal(filename,thresh,vdata,vname,vt)
 e_size = 30; % epoch size: the number of samples in each epoch
 % thresh = 50; % Threshold for spo2 values to determine if they are non-physiologic. Any spo2 value below this level is determined to be "missing" data
-[vdata,vname,vt,~]=gethdf5vital(filename);
+% [vdata,vname,vt,~]=gethdf5vital(filename);
 if isempty(vdata)
     load(filename,'values','vlabel','vt','vuom')
     [vdata,vname,vt]=getWUSTLvital2(values,vt,vlabel);
@@ -14,6 +14,8 @@ elseif sum(contains(vname,'/VitalSigns/SPO2'))
     dataindex = ismember(vname,'/VitalSigns/SPO2');
 elseif sum(contains(vname,'SPO2'))
     dataindex = ismember(vname,'SPO2');
+elseif sum(contains(vname,'SPO2_pct'))
+    dataindex = ismember(vname,'SPO2_pct');
 else
     results = [];
     vt = [];

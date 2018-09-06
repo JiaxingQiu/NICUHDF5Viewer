@@ -107,17 +107,6 @@ for i=1:n
     end
     
     %Convert to row vectors if necessary
-    [nr,nc]=size(x);
-    if nr>1
-        if nc>=nr
-            x=x(1,:);
-        else
-            if nc>1
-                x=x(:,1);
-            end
-        end
-    end
-        
     if size(x,1)==1
         x=x(:);
     end
@@ -221,10 +210,10 @@ for i=1:n
             end
         end        
     end
-%     if nt>0
-%         if isempty(start),start=t(1);end        
-%         if isempty(stop),stop=t(nt);end
-%     end
+    if nt>0
+        if isempty(start),start=t(1);end        
+        if isempty(stop),stop=t(nt);end
+    end
     
     data(i).x=x;
     data(i).t=t;
@@ -236,11 +225,8 @@ for i=1:n
     data(i).scalefac=fac;
     data(i).cal=cal;
     data(i).window=window;
-    if nt>0        
-        data(i).start=t(1);
-        data(i).stop=t(nt);
-    end
-
+    data(i).start=start;
+    data(i).stop=stop;    
     
 end
 

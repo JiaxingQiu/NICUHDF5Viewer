@@ -1,29 +1,40 @@
-function [p,pt,pgood,hrf1,hrf2,x,xt]=tombstone(resp,respt,qt,qb,fs)
-%function [p,pt,pgood,hrf1,hrf2,x]=tombstone(resp,respt,qt,qb,fs)
+function [p,pt,pgood,psd,hrf1,hrf2]=tombstone(x,xt,fs,qt,qb)
+%function [p,pt,pgood,psd,hrf1,hrf2]=tombstone(x,xt,fs,qt,qb)
 %
-% resp chest impedance waveform
-% respt timestamp for chest impedance
-% qt times of detected heartbeats
-% qb beat number of detected heartbeats
-% fs sampling freauency for interpolated signal (default=60Hz)
+% x    respiratory waveform (chest impedance)
+% xt    timestamps for respiratory waveform
+% fs    sampling freauency for respiratory waveform
+% qt    times of detected heartbeats
+% qb    beat number of detected heartbeats
 %
-% p apnea probability (tombstones)
-% pt apnea probability timestamps
+% p     apnea probability (tombstones)
+% pt    apnea probability timestamps in seconds
 % pgood flag for no missing data
-% hrf1 heart rate filtered signal
-% hrf2 doubly filtered normalized signal
-% x interpolated chest impedance signal
-% xt timestamps for interpolated chest impedance signal
+% psd   apnea standard deviation
+% hrf1  heart rate filtered signal
+% hrf2  doubly filtered normalized signal
 
-%Find time range
-c1=round(fs*min(respt));
-c2=round(fs*max(respt));
-%xt=(c1:c2)'/fs;
-xt=(c1:c2)';
-yt=round(fs*respt);
-%Interpolate to get consecutive data
-[x,xt,xna]=naninterp(resp,yt,xt);
-xt=xt/fs;
+if ~exist('qt','var'),qt=[];end
+if ~exist('qb','var'),qb=[];end
+
+
+%Get rid of NaNs at beginning and end of the signal
+
+n=length(x);
+xgood=~isnan(x);
+ngood=sum(xgood);
+if ngood==0,return,end
+if ngood<n
+    j1=find(xgood,1);
+    j2=find(xgood,1,'last');
+    x=x(j1:j2);
+    xt=xt(j1:j2);
+    n=length(x);
+end
+
+%Resample signal to make consecutive
+
+[x,xt,xna]=nogaps(x,xt,fs);
 
 %Calculate envelope
 [bhi,ahi]=butter(3,0.4/fs*2,'high');
@@ -33,12 +44,16 @@ env=filtfilt(blo,alo,abs(xhi));
 
 %Heart rate filter
 ns=30;
-hrf1=wmhrfilt(x,xt,qt,qb,ns);
+if ~isempty(qt)
+    hrf1=wmhrfilt(x,xt,qt,qb,ns);
+else
+    hrf1=x;
+end
 
 %Doubly filtered normalized signal
 hrf2=filtfilt(bhi,ahi,hrf1)./env;
 
-%Four samples per second
+%Four probability samples per second
 ps=4;
 p1=ceil(ps*xt(1));
 p2=ceil(ps*xt(end));
@@ -46,7 +61,7 @@ pt=(p1:p2)'/ps;
 dt=2;
 [p,psd,nx]=wmaprob(hrf2(~xna),xt(~xna),pt,dt);
 dtn=dt*fs;
-pgood=nx>=(dtn*0.9); % At least 90% of the data in the two second window cannot be nans
+pgood=nx>=.9*dtn;
 
 end
 
