@@ -449,6 +449,14 @@ handles.nextfiledisplay.String = '';
             set(handles.loadedfile,'string','Loading Vital Signs...');
             waitfor(handles.loadedfile,'string','Loading Vital Signs...');
             [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
+            % I think the time zone has already been taken care of in these files
+%             try
+%                 handles.timezoneoffset = double(h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone Offset'));
+%             catch
+%                 handles.timezoneoffset = 0;
+%                 handles.loadedfile.String = "Time zone not specified. Using GMT.";
+%             end
+%             handles.vt = handles.vt + handles.timezoneoffset;
         catch
             handles.loadedfile.String = "Vitals could not load.";
             corrupt = 1;
@@ -457,6 +465,14 @@ handles.nextfiledisplay.String = '';
             set(handles.loadedfile,'string','Loading Waveforms...');
             waitfor(handles.loadedfile,'string','Loading Waveforms...');
             [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
+            % I think the time zone has already been taken care of in these files
+%             try
+%                 handles.timezoneoffset = double(h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone Offset'));
+%             catch
+%                 handles.timezoneoffset = 0;
+%                 handles.loadedfile.String = "Time zone not specified. Using GMT.";
+%             end
+%             handles.wt = handles.wt + handles.timezoneoffset;
         catch
             handles.wdata = [];
             handles.wname = [];
@@ -478,7 +494,7 @@ handles.nextfiledisplay.String = '';
         handles.wname = [];
         handles.wt = [];
     end
-
+    % The results file time stamps have already been converted to the appropriate time zone
     [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
     if ~isempty(handles.rdata)
         if isstring(handles.rdata) % an old results file is associated with this file type
@@ -839,7 +855,7 @@ function Menu_help_instructions_Callback(hObject, eventdata, handles)
 % hObject    handle to Menu_help_instructions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer v2.2';
+msgbox({'HDF5Viewer v2.3';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 'To Load a File:';

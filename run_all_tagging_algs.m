@@ -9,7 +9,7 @@ function run_all_tagging_algs(filename,vdata,vname,vt,wdata,wname,wt)
 
 pmin = 1; % minimum number of points below threshold (default one) - only applies to tags!!
 tmin = 0; % time gap between crossings to join (default zero) - only applies to tags!!
-nalgs = 8; % number of algorithms
+nalgs = 9; % number of algorithms
 msgboxtitle = 'Tagging';
 
 % Run and plot Columbia artifact removal, which works by comparing HR vs
@@ -98,14 +98,14 @@ catch
 end
 
 % % Run the periodic breathing algorithm
-% msgbox(['Running algorithm 8 of ' num2str(nalgs) ': Periodic Breathing.'],msgboxtitle,'modal');
-% [pb_indx,pb_time,tag,tagname] = periodicbreathing(filename);
-% if ~isempty(pb_indx)
-% 	addtoresultsfile2(filename,'/Results/PeriodicBreathing',pb_indx,pb_time,tag,tagname);
-% end
+msgbox(['Running algorithm 8 of ' num2str(nalgs) ': Periodic Breathing.'],msgboxtitle,'modal');
+[pb_indx,pb_time,tag,tagname] = periodicbreathing(filename);
+if ~isempty(pb_indx)
+	addtoresultsfile2(filename,'/Results/PeriodicBreathing',pb_indx,pb_time,tag,tagname);
+end
 
 % Run a bradycardia detection algorithm
-msgbox(['Running algorithm 8 of ' num2str(nalgs) ': Brady Detection Pete'],msgboxtitle,'modal');
+msgbox(['Running algorithm 9 of ' num2str(nalgs) ': Brady Detection Pete'],msgboxtitle,'modal');
 try
     bradythresh = 100;
     [brady100,vt,tag,tagname] = bradydetector(filename,vdata,vname,vt,bradythresh,4,4);

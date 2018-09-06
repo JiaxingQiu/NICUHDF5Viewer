@@ -3,6 +3,8 @@ addpath('PB')
 
 % Add the wavelet pattern to Matlab
 % add_new_wavelets;
+load('Wavelets_Info.mat','Wavelets_Info')
+setappdata(0,'Wavelets_Info',Wavelets_Info);
 
 % Find the name of the result file
 if contains(filename,'.hdf5')
