@@ -24,8 +24,15 @@ else
     return
 end
 hrdata = vdata(:,dataindex);
-
-results = hrdata<=threshold;
+hrdata(hrdata<=1) = nan;
 period = median(diff(vt/1000));
 fs = 1/period;
-[tag,tagname]=threshtags(hrdata,vt,threshold,round(pmin*fs),(tmin*fs));
+
+[tag,tagname]=threshtags(hrdata,vt,threshold,ceil(pmin*fs),tmin,1);
+
+[~,startindices] = ismember(tag(:,1),vt);
+[~,endindices] = ismember(tag(:,2),vt);
+results = zeros(length(hrdata),1);
+for i=1:length(startindices)
+    results(startindices(i):endindices(i))=1;
+end

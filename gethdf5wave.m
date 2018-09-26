@@ -11,18 +11,10 @@ function [wdata,wname,wt,info]=gethdf5wave(hdf5file,wname,wformat)
 
 % wdata=[];
 % info=[];
-if ~exist('wname','var'),wname=cell(0,1);end
+if ~exist('wname','var'),wname='/Waveforms';end
 if ~exist('wformat','var'),wformat=0;end
 
-
-
-% [data,~,info]=gethdf5data(hdf5file,'/Waveforms',wname);
-
-allwave=isempty(wname);
-[wdata,Name,info]=gethdf5data(hdf5file,'/Waveforms',wname);
-if allwave
-    wname=Name;
-end
+[wdata,~,info]=gethdf5data(hdf5file,wname);
 
 nw=length(wdata);
 fs=zeros(nw,1);
@@ -39,7 +31,6 @@ end
     for i=1:nw
         dt = median(diff(wdata(i).t)); % Amanda added this, it originally was dt = 1;
         tmax = dt; % Amanda added this, but she isn't sure if it is a good choice
-%         wdata(i).T=blocktime(wdata(i).x,wdata(i).t,dt,tmax);
         wdata(i).t=blocktime(wdata(i).x,wdata(i).t,dt,tmax);
     end
 % end

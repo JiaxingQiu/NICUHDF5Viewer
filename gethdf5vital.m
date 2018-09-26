@@ -1,5 +1,4 @@
-function [vdata,vname,vt,info]=gethdf5vital(hdf5file,vformat)
-%function [vdata,vname,vt,info]=gethdf5vital(hdf5file)
+function [vdata,vname,vt,info]=gethdf5vital(hdf5file,vname,vformat)
 %
 %hdf5file - HDF5 file with vital sign data
 %vname - name of vital signs to retrieve ... 0 or empty => all (default);
@@ -17,11 +16,11 @@ function [vdata,vname,vt,info]=gethdf5vital(hdf5file,vformat)
 % vt=[];
 % info=[];
 % siq = [];
-% if ~exist('vname','var'),vname=cell(0,1);end
+if ~exist('vname','var'),vname='/VitalSigns';end
 if ~exist('vformat','var'),vformat=0;end
 
 % allvital=isempty(vname);
-[data,~,info]=gethdf5data(hdf5file,'/VitalSigns');%,vname);
+[data,~,info]=gethdf5data(hdf5file,vname);
 [vdata,t,vname]=vdataformat(data,vformat);
 vt = t*1000; % convert to ms
 

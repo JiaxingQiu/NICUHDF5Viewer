@@ -56,4 +56,4 @@ if isrow(pb_indx)
     pb_indx = pb_indx';
     pb_time = pb_time';
 end
-[tag,tagname]=threshtags(pb_indx,pb_time,0.6,1,0,0); % This threshold was chosend from Mary Mohr's thesis
+[tag,tagname]=threshtags(pb_indx,pb_time,0.6,1,0,0); % This threshold was chosen from Mary Mohr's thesis

@@ -37,6 +37,9 @@ if lead == 1
     elseif sum(any(strcmp(wname,'/Waveforms/CmpndECG(I)')))
         dataindex = strcmp(wname,'/Waveforms/CmpndECG(I)');
         varname = '/Waveforms/CmpndECG(I)';
+    elseif sum(any(strcmp(wname,'/Waveforms/ECG')))
+        dataindex = strcmp(wname,'/Waveforms/ECG');
+        varname = '/Waveforms/ECG';
     else
         results = [];
         pt = [];

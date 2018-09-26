@@ -10,12 +10,14 @@ if sum(contains(vname,'/VitalSigns/SPO2-%'))
     dataindex = ismember(vname,'/VitalSigns/SPO2-%');
 elseif sum(contains(vname,'/VitalSigns/SPO2-perc'))
     dataindex = ismember(vname,'/VitalSigns/SPO2-perc');
+elseif sum(contains(vname,'/VitalSigns/SPO2_pct'))
+    dataindex = ismember(vname,'/VitalSigns/SPO2_pct');
 elseif sum(contains(vname,'/VitalSigns/SPO2'))
     dataindex = ismember(vname,'/VitalSigns/SPO2');
 elseif sum(contains(vname,'SPO2'))
     dataindex = ismember(vname,'SPO2');
-elseif sum(contains(vname,'SPO2_pct'))
-    dataindex = ismember(vname,'SPO2_pct');
+elseif sum(contains(vname,'/VitalSigns/SpO2'))
+    dataindex = ismember(vname,'/VitalSigns/SpO2');
 else
     results = [];
     vt = [];

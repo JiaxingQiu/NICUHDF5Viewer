@@ -13,6 +13,8 @@ if isempty(vdata)
 end
 if sum(contains(vname,'/VitalSigns/SPO2-R'))
     dataindex = ismember(vname,'/VitalSigns/SPO2-R');
+elseif sum(contains(vname,'/VitalSigns/SPO2_R'))
+    dataindex = ismember(vname,'/VitalSigns/SPO2_R');
 elseif sum(contains(vname,'/VitalSigns/PULSE'))
     dataindex = ismember(vname,'/VitalSigns/PULSE');
 elseif sum(contains(vname,'PULSE'))

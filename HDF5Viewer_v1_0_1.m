@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 27-Jun-2018 16:55:29
+% Last Modified by GUIDE v2.5 19-Sep-2018 09:13:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -200,8 +200,15 @@ for s=1:numsigs
                 handles.scale = 0;
             end
             % For layout version 3, scale is simply a multiplicative factor for the original value. To get the real value, you divide by scale. For layout version 4.0, a real value of 1.2 is stored as 12 with a scale of 1, where scale is stored as the power of 10, so to convert from 12 back to 1.2, you need to divide by 10^scale. Later in this code, when we are actually plotting the data, we divide by scale
-            if str2double(handles.layoutversion{1}(1)) ~= 3 
-                handles.scale = 10^handles.scale;
+            if ischar(handles.layoutversion)
+                majorversion = str2num(handles.layoutversion(1));
+                if majorversion~=3
+                    handles.scale = 10^handles.scale;
+                end
+            else
+                if str2double(handles.layoutversion{1}(1)) ~= 3 
+                    handles.scale = 10^handles.scale;
+                end
             end
             % For Philips IX monitors, the waveform sampling frequency is listed as either 4,8, or 16, but it should be 256.
             if handles.fs <=16
@@ -309,12 +316,12 @@ for s=1:numsigs
         handles.utctime = handles.rt(handles.startindexr:handles.endindexr);
     end
     if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), convert to local time
-        handles.localtime = utc2local(handles.utctime/1000);
+        handles.localtime = utc2localwrapper(handles.utctime/1000,handles.timezone);
     else % the time is in matlab time
         handles.localtime = handles.utctime; % WUSTL data is in datenum format already
     end
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
-    if sum(I)==0
+    if isempty(I) || sum(I)==0
         handles.plothandle(s) = plot(0,0);
         ylabel({'No data for time period:'; varname});
     else
@@ -326,7 +333,7 @@ for s=1:numsigs
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
     if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), con
-        xlim([utc2local(handles.windowstarttime/1000) utc2local(handles.windowendtime/1000)])
+        xlim([utc2localwrapper(handles.windowstarttime/1000,handles.timezone) utc2localwrapper(handles.windowendtime/1000,handles.timezone)])
     else
         xlim([handles.windowstarttime handles.windowendtime])
     end
@@ -449,14 +456,14 @@ handles.nextfiledisplay.String = '';
             set(handles.loadedfile,'string','Loading Vital Signs...');
             waitfor(handles.loadedfile,'string','Loading Vital Signs...');
             [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
-            % I think the time zone has already been taken care of in these files
-%             try
-%                 handles.timezoneoffset = double(h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone Offset'));
-%             catch
-%                 handles.timezoneoffset = 0;
-%                 handles.loadedfile.String = "Time zone not specified. Using GMT.";
-%             end
-%             handles.vt = handles.vt + handles.timezoneoffset;
+            try
+                handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
+                handles.timezone = handles.timezone{1}; % switch cell array to string
+            catch
+                handles.timezone = '';
+                handles.loadedfile.String = "Time zone not specified. Using ET.";
+            end
+            handles.vdata = scaledata(hObject, eventdata, handles, handles.vname, handles.vdata);
         catch
             handles.loadedfile.String = "Vitals could not load.";
             corrupt = 1;
@@ -465,14 +472,14 @@ handles.nextfiledisplay.String = '';
             set(handles.loadedfile,'string','Loading Waveforms...');
             waitfor(handles.loadedfile,'string','Loading Waveforms...');
             [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
-            % I think the time zone has already been taken care of in these files
-%             try
-%                 handles.timezoneoffset = double(h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone Offset'));
-%             catch
-%                 handles.timezoneoffset = 0;
-%                 handles.loadedfile.String = "Time zone not specified. Using GMT.";
-%             end
-%             handles.wt = handles.wt + handles.timezoneoffset;
+            try
+                handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
+                handles.timezone = handles.timezone{1}; % switch cell array to string
+            catch
+                handles.timezone = '';
+                handles.loadedfile.String = "Time zone not specified. Using ET.";
+            end
+            handles.wdata = scaledata(hObject, eventdata, handles, handles.wname, handles.wdata);
         catch
             handles.wdata = [];
             handles.wname = [];
@@ -581,17 +588,17 @@ addpath('zoomAdaptiveDateTicks');
 ylim auto
 zoomAdaptiveDateTicks('on')
 datetick('x',13)
-xlim([utc2local(min(ecgt)/1000) utc2local(max(ecgt)/1000)])
+xlim([utc2localwrapper(min(ecgt)/1000,handles.timezone) utc2localwrapper(max(ecgt)/1000,handles.timezone)])
 
 handles.h(2) = subplot(2,1,2,'Parent',handles.PlotPanel);
-[ecgt_local,~,~] = utc2local(ecgt/1000);
+[ecgt_local,~,~] = utc2localwrapper(ecgt/1000,handles.timezone);
 plot(ecgt_local,ecg,'k');
 hold on
 ylim auto
 zoomAdaptiveDateTicks('on')
 datetick('x',13)
 plot(ecgt_local(qrs),ecg(qrs),'*')
-xlim([utc2local(min(ecgt)/1000) utc2local(max(ecgt)/1000)])
+xlim([utc2localwrapper(min(ecgt)/1000,handles.timezone) utc2localwrapper(max(ecgt)/1000,handles.timezone)])
 linkaxes(handles.h,'x')
 % Update handles structure
 guidata(hObject, handles);
@@ -855,7 +862,7 @@ function Menu_help_instructions_Callback(hObject, eventdata, handles)
 % hObject    handle to Menu_help_instructions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer v2.3';
+msgbox({'HDF5Viewer v2.4';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 'To Load a File:';
@@ -961,7 +968,7 @@ if ~isempty(handles.tags)
     end
     if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190)
         if ~isempty(tagsselected.tagtable)
-            starttimes = datestr(utc2local(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'))/1000));
+            starttimes = datestr(utc2localwrapper(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'))/1000,handles.timezone));
             duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
         else
             starttimes = [];
@@ -1153,3 +1160,34 @@ removefromresultsfile2(fullfile(handles.pathname, handles.filename),handles.TagC
 UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite)
+
+
+function data = scaledata(hObject, eventdata, handles, namesofinterest, data)
+% hObject    handle to RemoveTag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scalematrix = zeros(length(namesofinterest),1);
+for n=1:length(namesofinterest)
+    try
+        scalematrix(n) = double(h5readatt(fullfile(handles.pathname, handles.filename),[namesofinterest{n} '/data'],'Scale'));
+    catch
+        scalematrix(n) = 0;
+    end
+    % For layout version 3, scale is simply a multiplicative factor for the original value. To get the real value, you divide by scale. For layout version 4.0, a real value of 1.2 is stored as 12 with a scale of 1, where scale is stored as the power of 10, so to convert from 12 back to 1.2, you need to divide by 10^scale. Later in this code, when we are actually plotting the data, we divide by scale
+    try
+        handles.layoutversion = h5readatt(fullfile(handles.pathname, handles.filename),'/','Layout Version');
+    catch
+        handles.layoutversion = "Doug's Layout";
+    end
+    if ischar(handles.layoutversion)
+        majorversion = str2num(handles.layoutversion(1));
+        if majorversion~=3
+            scalematrix(n) = 10^scalematrix(n);
+        end
+    else
+        if str2double(handles.layoutversion{1}(1)) ~= 3 
+            scalematrix(n) = 10^scalematrix(n);
+        end
+    end
+    data(:,n) = data(:,n)/scalematrix(n);
+end

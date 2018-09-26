@@ -11,6 +11,7 @@ function [tag,tagname]=threshtags(x,xt,T,pmin,tmin,negthresh)
 % tagname = name of tagput data
 % negthresh = 1 if you want to identify events that drop below a threshold
 % negthresh = 0 if you want to identify events above a threshold
+% tsamp = duration of each point (ex. 2 sec for UVA in seconds, 1000 ms for WashU in ms)
 
 tagname=cell(6,1);
 tagname{1}='Start';
@@ -58,6 +59,8 @@ t2=xt(i2);
 %     i2(j)=[];
 % end
 
+tsamp = median(diff(xt));
+
 %Join events with minimum time gap
 if tmin>0
     [k1,k2]=tagjoin(t1,t2,tmin);   
@@ -70,7 +73,8 @@ end
 t1=xt(j1);
 t2=xt(j2);
 ne=length(j1);
-dur=t2-t1+2;
+
+dur=t2-t1+tsamp;
 %np=j2-j1+1;
 np=zeros(ne,1);
 area=zeros(ne,1);
