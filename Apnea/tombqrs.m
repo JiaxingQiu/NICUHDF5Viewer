@@ -12,6 +12,13 @@ function [qt,qb,qgood,x,xt]=tombqrs(ecg,ecgt,gain,fs)
 % x interpolated EKG signal
 % xt timestamps for interpolated EKG signal
 
+j1=find(diff(ecg)~=0,1);
+ecg(1:j1)=[];
+ecgt(1:j1)=[];
+% j2=find(diff(ecg)~=0,1,'last');
+% ecg((j2+1):end)=[];
+% ecgt(j2+1:end)=[];
+
 %Find time range
 e1=round(fs*min(ecgt));
 e2=round(fs*max(ecgt));

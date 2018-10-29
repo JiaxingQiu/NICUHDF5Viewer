@@ -15,7 +15,7 @@ else
     tagname = [];
     return
 end
-% 
+
 % resp = wdata(:,dataindex);
 % respt = wt;
 
@@ -28,7 +28,6 @@ CIfs = fs;
 % catch
 %     CIfs = 1/(double(h5readatt(filename,wname{dataindex},'Sample Period (ms)'))/1000);
 % end
-
 
 if lead == 1
     if sum(any(strcmp(wname,'/Waveforms/I')))
@@ -82,13 +81,14 @@ ecgt = (start+xt/fs)*1000;
 
 % ecg = wdata(:,dataindex);
 % ecgt = wt;
-% 
-% fs=240;
-% CIfs = 60;
-gain=1;%400;
 
-addpath('Apnea')
-addpath('QRSDetection')
+% fs = 240;
+% CIfs = 60;
+gain = 1;%400;
+
+addpath('X:\Amanda\NICUHDF5Viewer\Apnea')
+addpath('X:\Amanda\NICUHDF5Viewer\QRSDetection')
+% [ecg,~,~]=calwavedata(ecg,filename,varname);
 [qt,qb,qgood,x,xt]=tombqrs(ecg,ecgt/1000,gain,fs);
 goodrespvals = ~isnan(resp);
 resp = resp(goodrespvals);

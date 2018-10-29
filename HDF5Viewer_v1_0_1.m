@@ -182,7 +182,9 @@ for s=1:numsigs
             try
                 handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
             catch
-                handles.fs = 1/(double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Period (ms)'))/1000);
+                rps = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Readings Per Sample'));
+                samp_pd = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Period (ms)'))/1000;
+                handles.fs = rps/samp_pd;
             end
             try
                 handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
@@ -323,11 +325,11 @@ for s=1:numsigs
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
     if isempty(I) || sum(I)==0
         handles.plothandle(s) = plot(0,0);
-        ylabel({'No data for time period:'; varname});
+        ylabel({'No data for time period:'; strrep(varname,'_',' ')});
     else
 %         handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
         handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I),plotcolor);
-        ylabel(varname);
+        ylabel(strrep(varname,'_',' '));
     end
     addpath('zoomAdaptiveDateTicks');
     zoomAdaptiveDateTicks('on')

@@ -1,6 +1,7 @@
 function [hrt,hr,rrt,rr,ecgt,ecg,qrs] = runQRSDetection2(hObject,eventdata,handles)
     % Get signal data for data currently in window
     ecg = double(handles.sig);
+    [ecg,~,~]=calwavedata(ecg,fullfile(handles.pathname, handles.filename),handles.value{1});
     % Get rid of missing data
     ecg(ecg==-32768)=NaN;
     % Sampling frequency
@@ -8,10 +9,10 @@ function [hrt,hr,rrt,rr,ecgt,ecg,qrs] = runQRSDetection2(hObject,eventdata,handl
     % Get time vector for data currently in window
     ecgt = handles.utctime;
     % Convert to mV
-    gain=400;
-    if ~strcmp(handles.unitofmeasure,'mV')
-        ecg=ecg/gain;
-    end
+%     gain=400;
+%     if ~strcmp(handles.unitofmeasure,'mV')
+%         ecg=ecg/gain;
+%     end
 %     THIS IS ONLY FOR UAB data
 %     ecg = (ecg-3071)/1023;
 

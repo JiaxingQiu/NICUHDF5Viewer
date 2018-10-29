@@ -170,7 +170,8 @@ for i=1:n
         fac=h5readatt(file,dataset,'ScaleFactor');
     end
     try
-        cal=h5readatt(file,dataset,'Cal');
+%        cal=h5readatt(file,dataset,'Cal');
+        cal=h5readatt(file,dgroup,'Cal');        
     end
 %Convert calibration to numbers if necessary
     if iscell(cal)
