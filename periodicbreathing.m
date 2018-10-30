@@ -1,5 +1,7 @@
 function [pb_indx,pb_time,tag,tagname] = periodicbreathing(filename)
-addpath('X:\Amanda\NICUHDF5Viewer\PB')
+if ~isdeployed
+    addpath('X:\Amanda\NICUHDF5Viewer\PB')
+end
 
 % Add the wavelet pattern to Matlab
 % add_new_wavelets;

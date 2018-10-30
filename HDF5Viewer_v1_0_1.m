@@ -73,7 +73,9 @@ function HDF5Viewer_v1_0_1_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for HDF5Viewer_v1_0_1
 handles.output = hObject;
-addpath('TabManager');
+if ~isdeployed
+    addpath('TabManager');
+end
 % Initialise tabs
 handles.tabManager = TabManager( hObject );
 
@@ -331,7 +333,9 @@ for s=1:numsigs
         handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I),plotcolor);
         ylabel(strrep(varname,'_',' '));
     end
-    addpath('zoomAdaptiveDateTicks');
+    if ~isdeployed
+        addpath('zoomAdaptiveDateTicks');
+    end
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
     if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), con
@@ -586,7 +590,9 @@ if ~isempty(hr)
 end
 hold on
 plot(rrt,rr,'.m')
-addpath('zoomAdaptiveDateTicks');
+if ~isdeployed
+    addpath('zoomAdaptiveDateTicks');
+end
 ylim auto
 zoomAdaptiveDateTicks('on')
 datetick('x',13)
@@ -843,11 +849,15 @@ function RunAlgorithmButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 if strcmp(handles.algchoice,'QRS Detection (MUST SELECT EKG LEAD!)')
-    addpath('QRSDetection');
+    if ~isdeployed
+        addpath('QRSDetection');
+    end
     callqrsdetection(hObject,eventdata,handles);
 end
 if strcmp(handles.algchoice,'Rough Fourier Transform')
-    addpath('FFT');
+    if ~isdeployed
+        addpath('FFT');
+    end
     callFFT(hObject,eventdata,handles);
 end
 
@@ -864,7 +874,7 @@ function Menu_help_instructions_Callback(hObject, eventdata, handles)
 % hObject    handle to Menu_help_instructions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer v2.5beta';
+msgbox({'HDF5Viewer v2.5';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 'To Load a File:';

@@ -1,4 +1,8 @@
 function [results,pt,tag,tagname] = apneadetector(filename,lead,wdata,wname,wt)
+if iscell(filename)
+    filename = char(filename);
+    sprintf('Filename was a cell array. It has been converted to a char array.');
+end
 if sum(any(strcmp(wname,'/Waveforms/RR')))
     dataindex = strcmp(wname,'/Waveforms/RR');
     varname = '/Waveforms/RR';
@@ -86,8 +90,10 @@ ecgt = (start+xt/fs)*1000;
 % CIfs = 60;
 gain = 1;%400;
 
-addpath('X:\Amanda\NICUHDF5Viewer\Apnea')
-addpath('X:\Amanda\NICUHDF5Viewer\QRSDetection')
+if ~isdeployed
+    addpath('X:\Amanda\NICUHDF5Viewer\Apnea')
+    addpath('X:\Amanda\NICUHDF5Viewer\QRSDetection')
+end
 % [ecg,~,~]=calwavedata(ecg,filename,varname);
 [qt,qb,qgood,x,xt]=tombqrs(ecg,ecgt/1000,gain,fs);
 goodrespvals = ~isnan(resp);

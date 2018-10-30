@@ -74,8 +74,10 @@ if algstorun(4)
         if ~isempty(desat80)
             addtoresultsfile2(filename,'/Results/Desat<80',desat80,vt_temp,tag,tagname);
         end
-    catch
+    catch e
         msgbox(['Failure running algorithm 4 of ' num2str(nalgs) ': Desat Detection. Continuing running tagging algorithms.'],msgboxtitle,'modal');
+        fprintf(1,'The identifier was:\n%s',e.identifier);
+        fprintf(1,'There was an error! The message was:\n%s',e.message);
         pause(1)
     end
 end
@@ -89,8 +91,10 @@ if algstorun(5)
         if ~isempty(apnea)
             addtoresultsfile2(filename,'/Results/Apnea-I',apnea,pt_temp*1000,tag,tagname);
         end
-    catch
+    catch e
         msgbox(['Failure running algorithm 5 of ' num2str(nalgs) ': Apnea Detection with ECG Lead I. Continuing running tagging algorithms.'],msgboxtitle,'modal');
+        fprintf(1,'The identifier was:\n%s',e.identifier);
+        fprintf(1,'There was an error! The message was:\n%s',e.message);
         pause(1)
     end
 end
@@ -103,8 +107,10 @@ if algstorun(6)
         if ~isempty(apnea)
             addtoresultsfile2(filename,'/Results/Apnea-II',apnea,pt_temp*1000,tag,tagname);
         end
-    catch
+    catch e
         msgbox(['Failure running algorithm 6 of ' num2str(nalgs) ': Apnea Detection with ECG Lead II. Continuing running tagging algorithms.'],msgboxtitle,'modal');
+        fprintf(1,'The identifier was:\n%s',e.identifier);
+        fprintf(1,'There was an error! The message was:\n%s',e.message);
         pause(1)
     end
 end
@@ -117,8 +123,10 @@ if algstorun(7)
         if ~isempty(apnea)
             addtoresultsfile2(filename,'/Results/Apnea-III',apnea,pt_temp*1000,tag,tagname);
         end
-    catch
+    catch e
         msgbox(['Failure running algorithm 7 of ' num2str(nalgs) ': Apnea Detection with ECG Lead III. Continuing running tagging algorithms.'],msgboxtitle,'modal');
+        fprintf(1,'The identifier was:\n%s',e.identifier);
+        fprintf(1,'There was an error! The message was:\n%s',e.message);
         pause(1)
     end
 end
@@ -131,8 +139,10 @@ if algstorun(8)
         if ~isempty(pb_indx)
             addtoresultsfile2(filename,'/Results/PeriodicBreathing',pb_indx,pb_time,tag,tagname);
         end
-    catch
+    catch e
         msgbox(['Failure running algorithm 8 of ' num2str(nalgs) ': Periodic Breathing. Continuing running tagging algorithms.'],msgboxtitle,'modal');
+        fprintf(1,'The identifier was:\n%s',e.identifier);
+        fprintf(1,'There was an error! The message was:\n%s',e.message);
         pause(1)
     end
 end
