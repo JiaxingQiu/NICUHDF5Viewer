@@ -1,35 +1,43 @@
 function [results,vt,tag,tagname] = bradydetector(filename,vdata,vname,vt,threshold,pmin,tmin)
+% This bradycardia detection algorithm tags bradycardia events based on the
+% thresholds and joining rules in the input array
 
-% [vdata,vname,vt,~]=gethdf5vital(filename);
-if isempty(vdata)
-    load(filename,'values','vlabel','vt','vuom')
-    [vdata,vname,vt]=getWUSTLvital2(values,vt,vlabel);
-end
-% if sum(contains(vname,'/VitalSigns/SPO2-R'))
-%     dataindex = ismember(vname,'/VitalSigns/SPO2-R');
-% elseif sum(contains(vname,'/VitalSigns/PULSE'))
-%     dataindex = ismember(vname,'/VitalSigns/PULSE');
-% end
-% spo2rdata = vdata(:,dataindex);
-if sum(contains(vname,'/VitalSigns/HR'))
-    dataindex = ismember(vname,'/VitalSigns/HR');
-elseif sum(contains(vname,'HR'))
-    dataindex = ismember(vname,'HR');
-elseif sum(contains(vname,'/VitalSigns/PR'))
-    dataindex = ismember(vname,'/VitalSigns/PR');
-else
+% INPUT:
+% filename:  char array path to hdf5 file
+% vdata:     if it is empty, grabneededdata will extract the needed data
+% vname:     if it is empty, grabneededdata will extract the needed data
+% vt:        if it is empty, grabneededdata will extract the needed data
+% threshold: hr (<=) threshold for bradycardia event. If you want <80, set to 79.99 or the like
+% pmin:      minimum number of points below threshold (default one)
+% tmin:      time gap between crossings to join (default zero)
+
+% OUTPUT:
+% results: binary array of 1 for bradycardia and 0 for no bradycardia
+% vt:      UTC time
+% tag:     tags ready to be saved in the results file
+% tagname: tagnames ready to be saved in the results file
+%
+
+% Load in the heart rate signal
+[hrdata,vt,~,fs] = grabneededdata(filename,vdata,vname,vt,'HR');
+
+% If the necessary data isn't available, return empty matrices & exit
+if isempty(vt)
     results = [];
     tag = [];
     tagname = [];
     return
 end
-hrdata = vdata(:,dataindex);
-hrdata(hrdata<=1) = nan;
-period = median(diff(vt/1000));
-fs = 1/period;
 
+% Remove negative HR values
+hrdata(hrdata<=1) = nan;
+% period = median(diff(vt/1000));
+% fs = 1/period;
+
+% Tag bradycardia events
 [tag,tagname]=threshtags(hrdata,vt,threshold,ceil(pmin*fs),tmin,1);
 
+% Store bradycardia time points in a binary array
 [~,startindices] = ismember(tag(:,1),vt);
 [~,endindices] = ismember(tag(:,2),vt);
 results = zeros(length(hrdata),1);

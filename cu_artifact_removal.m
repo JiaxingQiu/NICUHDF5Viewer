@@ -1,56 +1,48 @@
- function [results,vt] = cu_artifact_removal(filename,vdata,vname,vt)
- % "HR is compared with PR and data are considered valid only if the
- % difference between HR and lagged PR is > 1 standard deviation from 1h
- % smoothed HR." - Joe Isler
+function [results,vt,tag,tagname] = cu_artifact_removal(filename,vdata,vname,t,pmin,tmin)
+% Columbia University artifact removal algorithm created by Joe Isler. The
+% algorithm is described here:
+%
+% "HR is compared with PR and data are considered valid only if the
+% difference between HR and lagged PR is > 1 standard deviation from 1h
+% smoothed HR." - Joe Isler
+
+% I don't know what constitutes "smoothed HR," so I will just use raw HR
+% here - I talked to Joe and he said it was boxcar smoothing for 1 hr
  
- % I don't know what constitutes "smoothed HR," so I will just use raw HR
- % here - I talked to Joe and he said it was boxcar smoothing for 1 hr
- 
-% [vdata,vname,vt,~]=gethdf5vital(filename);
-if isempty(vdata)
-    load(filename,'values','vlabel','vt','vuom')
-    [vdata,vname,vt]=getWUSTLvital2(values,vt,vlabel);
-end
-if sum(contains(vname,'/VitalSigns/SPO2-R'))
-    dataindex = ismember(vname,'/VitalSigns/SPO2-R');
-elseif sum(contains(vname,'/VitalSigns/SPO2_R'))
-    dataindex = ismember(vname,'/VitalSigns/SPO2_R');
-elseif sum(contains(vname,'/VitalSigns/PULSE'))
-    dataindex = ismember(vname,'/VitalSigns/PULSE');
-elseif sum(contains(vname,'PULSE'))
-    dataindex = ismember(vname,'PULSE');
-else
-    results = [];
-    vt = [];
+% INPUT:
+% filename: char array path to hdf5 file
+% vdata:    if it is empty, grabneededdata will extract the needed data
+% vname:    if it is empty, grabneededdata will extract the needed data
+% t:        if it is empty, grabneededdata will extract the needed data
+% pmin:     minimum number of points below threshold (default one)
+% tmin:     time gap between crossings to join (default zero)
+
+% OUTPUT:
+% results: binary array of 1 for artifact and 0 for no artifact
+% vt:      UTC time
+% tag:     tags ready to be saved in the results file
+% tagname: tagnames ready to be saved in the results file
+%
+
+% Initialize output variables in case the necessary data isn't available
+results = [];
+
+% Load in the pulse rate and heart rate signals
+[spo2rdata,~,~,~] = grabneededdata(filename,vdata,vname,t,'Pulse');
+[hrdata,vt,~,fs] = grabneededdata(filename,vdata,vname,t,'HR');
+if isempty(vt)
     return
 end
-spo2rdata = vdata(:,dataindex);
-if sum(contains(vname,'/VitalSigns/HR'))
-    dataindex = ismember(vname,'/VitalSigns/HR');
-elseif sum(contains(vname,'HR'))
-    dataindex = ismember(vname,'HR');
-end
-hrdata = vdata(:,dataindex);
+
+% Initialize artifact array
 numsamps = length(spo2rdata);
-try
-    fs = double(h5readatt(filename,'/VitalSigns/HR','Sample Frequency (Hz)'));
-catch
-    try
-        fs = 1/(double(h5readatt(filename,'/VitalSigns/HR','Sample Period (ms)'))/1000);
-    catch
-        try
-            fs = 1/(24*3600*median(diff(vt)));
-        catch
-            results = [];
-            vt = [];
-            return
-        end
-    end
-end
-onehrsamples = round(60*60*fs); % 60 min of samples
-hrdata = smoothdata(hrdata,'movmean',onehrsamples);
 artifact = zeros(numsamps,1);
 
+% Create 1 hour smoothed heart rate
+onehrsamples = round(60*60*fs); % 60 min of samples
+hrdata = smoothdata(hrdata,'movmean',onehrsamples);
+
+% Run Joe Isler's Artifact Detection Algorithm
 for n=1:numsamps
     if n>onehrsamples
         stdev = std(hrdata((n-onehrsamples):n));
@@ -58,10 +50,8 @@ for n=1:numsamps
             artifact(n) = 1;
         end
     else
-%         stdev = std(hrdata(1:n));
         artifact(n) = 1;
     end
-
 end
 
 % artifact = abs(hrdata-spo2rdata)>thresh;
@@ -69,13 +59,17 @@ end
 % plot(spo2rdata,'Color',[0.5843 0.5157 0.9882])
 % hold on
 % plot(hrdata,'b')
-% 
+
 % for q=1:numsamps
 %     if artifact(q)
 %         fillbar(q)
 %     end
 % end
 
+% Tag the Artifacts
+[tag,tagname]=threshtags(~artifact,vt,0.5,pmin,tmin);
+
+% Output the artifact timeseries
 results = artifact;
 end
 

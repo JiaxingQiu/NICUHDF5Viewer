@@ -32,11 +32,15 @@ xhi=filtfilt(bhi,ahi,x);
 env=filtfilt(blo,alo,abs(xhi)); 
 
 %Heart rate filter
-ns=30;
-hrf1=wmhrfilt(x,xt,qt,qb,ns);
+if ~isempty(qt) % Handle the situation where there is no ekg signal
+    ns=30;
+    hrf1=wmhrfilt(x,xt,qt,qb,ns);
 
-%Doubly filtered normalized signal
-hrf2=filtfilt(bhi,ahi,hrf1)./env;
+    %Doubly filtered normalized signal
+    hrf2=filtfilt(bhi,ahi,hrf1)./env;
+else
+    x = x./env;
+end
 
 %Four samples per second
 ps=4;
@@ -44,7 +48,11 @@ p1=ceil(ps*xt(1));
 p2=ceil(ps*xt(end));
 pt=(p1:p2)'/ps;
 dt=2;
-[p,psd,nx]=wmaprob(hrf2(~xna),xt(~xna),pt,dt);
+if ~isempty(qt)  % Handle the situation where there is no ekg signal
+    [p,psd,nx]=wmaprob(hrf2(~xna),xt(~xna),pt,dt);
+else
+    [p,psd,nx]=wmaprob(x(~xna),xt(~xna),pt,dt);
+end
 dtn=dt*fs;
 pgood=nx>=(dtn*0.9); % At least 90% of the data in the two second window cannot be nans
 

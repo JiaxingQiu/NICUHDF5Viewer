@@ -338,7 +338,7 @@ for s=1:numsigs
     end
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
-    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), con
+    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), convert to local time
         xlim([utc2localwrapper(handles.windowstarttime/1000,handles.timezone) utc2localwrapper(handles.windowendtime/1000,handles.timezone)])
     else
         xlim([handles.windowstarttime handles.windowendtime])

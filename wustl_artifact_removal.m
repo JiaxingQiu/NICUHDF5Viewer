@@ -1,29 +1,34 @@
-function [results,vt] = wustl_artifact_removal(filename,thresh,vdata,vname,vt)
+function [results,vt,tag,tagname] = wustl_artifact_removal(filename,thresh,vdata,vname,vt,pmin,tmin)
+% The WUSTL artifact removal algorithm is described here:
+% Epochs with a change greater than 3% between serial data points were 
+% judged to be contaminated with motion artifact and were discarded
+
+% INPUT:
+% filename: char array path to hdf5 file
+% thresh:   threshold for spo2 values to determine if they are non-physiologic. Any spo2 value below this level is determined to be "missing" data
+% vdata:    if it is empty, grabneededdata will extract the needed data
+% vname:    if it is empty, grabneededdata will extract the needed data
+% vt:       if it is empty, grabneededdata will extract the needed data
+% pmin:     minimum number of points below threshold (default one)
+% tmin:     time gap between crossings to join (default zero)
+
+% OUTPUT:
+% results: binary array of 1 for artifact and 0 for no artifact
+% vt:      UTC time
+% tag:     tags ready to be saved in the results file
+% tagname: tagnames ready to be saved in the results file
+%
+
 e_size = 30; % epoch size: the number of samples in each epoch
-% thresh = 50; % Threshold for spo2 values to determine if they are non-physiologic. Any spo2 value below this level is determined to be "missing" data
-% [vdata,vname,vt,~]=gethdf5vital(filename);
-if isempty(vdata)
-    load(filename,'values','vlabel','vt','vuom')
-    [vdata,vname,vt]=getWUSTLvital2(values,vt,vlabel);
-end
-if sum(contains(vname,'/VitalSigns/SPO2-%'))
-    dataindex = ismember(vname,'/VitalSigns/SPO2-%');
-elseif sum(contains(vname,'/VitalSigns/SPO2-perc'))
-    dataindex = ismember(vname,'/VitalSigns/SPO2-perc');
-elseif sum(contains(vname,'/VitalSigns/SPO2_pct'))
-    dataindex = ismember(vname,'/VitalSigns/SPO2_pct');
-elseif sum(contains(vname,'/VitalSigns/SPO2'))
-    dataindex = ismember(vname,'/VitalSigns/SPO2');
-elseif sum(contains(vname,'SPO2'))
-    dataindex = ismember(vname,'SPO2');
-elseif sum(contains(vname,'/VitalSigns/SpO2'))
-    dataindex = ismember(vname,'/VitalSigns/SpO2');
-else
+
+% Load in the spo2% signal
+[spo2data,vt,~] = grabneededdata(filename,vdata,vname,vt,'SPO2_pct');
+if isempty(vt)
     results = [];
-    vt = [];
     return
 end
-spo2data = vdata(:,dataindex);
+
+% Initialize artifact array
 numsamps = length(spo2data);
 nepochs = floor(numsamps/e_size); % The number of epochs, given that each epoch is 60 seconds (i.e. 30 samples)
 e_artifact = zeros(nepochs,1); % Epoch artifact: if 1, at least 50% of the epoch has missing data
@@ -55,6 +60,11 @@ for e=1:nepochs
     end
 end
 % plot(spo2data,'r')
+
+% Tag Artifacts
+[tag,tagname]=threshtags(~results,vt,0.5,pmin,tmin);
+
+clear spo2data
 end
 
 function fillbar(e)

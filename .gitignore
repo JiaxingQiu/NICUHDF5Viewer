@@ -27,10 +27,22 @@ octave-workspace
 # HDF5 Test Files
 *.hdf5
 
+# Zip Files
+*.zip
+
+# Files for Zach
+FilesForZach/
+
 # Matlab Project files
 *.prj
 HDF5Viewer/
 HDF5Viewer_resources/
 HDF5Viewer_v1_2/
 HDF5Viewer_v1_2_resources/
+HDF5Viewer_v1_3/
+HDF5Viewer_v1_3_resources/
+HDF5Viewer_v*/
 Old/
+Matlab Scripts for HDF5/
+
+DELETETHIS*
