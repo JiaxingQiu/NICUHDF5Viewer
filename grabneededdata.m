@@ -24,15 +24,16 @@ else
     dataindex = [];
     for i = 1:length(varnamestruct)
         varname = varnamestruct(i).Name;
-%         if sum(contains(vname,varname))
         if sum(ismember(vname,varname))
             dataindex = ismember(vname,varname);
             break
         end
     end
     if isempty(dataindex)
-        results = [];
+        data = [];
         vt = [];
+        varname =[];
+        fs = [];
         return
     end
     data = vdata(:,dataindex);

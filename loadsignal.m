@@ -25,7 +25,6 @@ varnamestruct = getfield(VariableNames,signame);
 dataindex = [];
 for i = 1:length(varnamestruct)
     varname = varnamestruct(i).Name;
-%     if sum(contains(varnames,varname))
     if sum(ismember(varnames,[varname '/data']))
         dataindex = ismember(varnames,[varname '/data']);
         VorW = varnamestruct(i).VorW;
@@ -46,6 +45,11 @@ else
     varname = [];
     return
 end
+
+% isutc = strcmp(h5readatt(hdf5file,'/','Timezone'),'UTC');
+% if ~isutc
+%     t = datenum(duration(0,0,0,t));
+% end
 
 % Scale the data
 data = scaledata(hdf5file, name, data);

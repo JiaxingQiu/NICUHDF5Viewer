@@ -66,4 +66,10 @@ if VorW==2
     end
 end
 %% Convert to ms
+% isutc = strcmp(h5readatt(hdf5file,'/','Timezone'),'UTC');
+% if isutc
+%     vt = t*1000; % convert to ms
+% else
+%     vt = t; % already in datenum
+% end
 vt = t*1000; % convert to ms

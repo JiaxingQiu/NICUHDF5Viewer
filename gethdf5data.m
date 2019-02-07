@@ -96,7 +96,11 @@ for i=1:n
     block=[];
     fs=[];
     T=1000;
-    tunit=1000;
+    try
+        tunit=double(h5readatt(file,dataset,'Time Unit')); %1000
+    catch
+        tunit = 1000;
+    end
     if ~timeonly
         try
             x=h5read(file,dgroup);         
@@ -104,6 +108,7 @@ for i=1:n
     end
     try
         t=h5read(file,tgroup);
+        t = double(t);
     end
     
     %Convert to row vectors if necessary
@@ -148,7 +153,7 @@ for i=1:n
     block=double(block);
     t=double(t)/tunit;
     if isempty(fs)
-        T=double(T)/tunit;        
+        T=double(T)/1000; % sample period is always in (ms)        
         fs=block/T;
     else
         T=block/fs;
@@ -158,6 +163,12 @@ for i=1:n
     dt=floor(T);
     if nojitter
         t=fixjitter(t,dt);
+    end
+    
+    isutc = strcmp(h5readatt(file,'/','Timezone'),'UTC');
+    if ~isutc
+        t = datenum(duration(0,0,t));
+        t = t/1000; % Because everything gets multiplied by 1000
     end
     
 %Convert scaling factor to calibration vector used for BedMaster data

@@ -268,7 +268,7 @@ for s=1:numsigs
             cla;
         end
     end
-    if handles.ishdf5 % UTC time
+    if handles.ishdf5 && handles.isutc % UTC time
         handles.windowsize = handles.windowsizeuserinput*60*1000; % 20 min in milliseconds is default
     else % Matlab local time
         handles.windowsize = datenum(seconds(handles.windowsizeuserinput*60)); 
@@ -319,10 +319,19 @@ for s=1:numsigs
         handles.sig = handles.rdata(handles.startindexr:handles.endindexr,handles.dataindex-length(handles.vname)-length(handles.wname));
         handles.utctime = handles.rt(handles.startindexr:handles.endindexr);
     end
-    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), convert to local time
+%     handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Timezone'),'UTC');
+%     handles.isutc = handles.isutc && median(handles.utctime)>800000; % if the time is in UTC time (this code will work until the year 2190) as opposed to localtime, this will catch the localtime that WUSTL's format uses
+    if handles.isutc
         handles.localtime = utc2localwrapper(handles.utctime/1000,handles.timezone);
+        set(handles.DayTextBox,'string','');
     else % the time is in matlab time
         handles.localtime = handles.utctime; % WUSTL data is in datenum format already
+        if handles.windowstarttime<0
+            daytodisp = -day(-handles.windowstarttime);
+        else
+            daytodisp = day(handles.windowstarttime);
+        end
+        set(handles.DayTextBox,'string',['Day: ' num2str(daytodisp)]);
     end
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
     if isempty(I) || sum(I)==0
@@ -338,7 +347,7 @@ for s=1:numsigs
     end
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
-    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190), convert to local time
+    if handles.isutc % if the time is in UTC time (this code will work until the year 2190), convert to local time
         xlim([utc2localwrapper(handles.windowstarttime/1000,handles.timezone) utc2localwrapper(handles.windowendtime/1000,handles.timezone)])
     else
         xlim([handles.windowstarttime handles.windowendtime])
@@ -352,53 +361,53 @@ guidata(hObject, handles);
 
 function [plotcolor] = customplotcolors(varname)
 plotcolor = 'k';
-if contains(varname,'HR')
-    plotcolor = 'r';
-    ylim([0 250])
-elseif contains(varname,'VitalSigns/SPO2-%')
-    plotcolor = 'b';
-    ylim([0 100])
-elseif contains(varname,'VitalSigns/SPO2_R')
-    plotcolor = 'm';
-    ylim([0 250])
-elseif contains(varname,'VitalSigns/SPO2-R')
-    plotcolor = 'm';
-    ylim([0 250])
-elseif contains(varname,'VitalSigns/SpO2')
-    plotcolor = 'b';
-    ylim([0 100])
-elseif contains(varname,'SIQ')
+
+% Get the list of all possible variable strings that go with the desired signame
+load('X:\Amanda\NICUHDF5Viewer\VariableNames','VariableNames')
+
+% Find out if varname matches with any of the signal names in the varnamestruct
+varnamestruct = getfield(VariableNames,'HR');
+for i = 1:length(varnamestruct)
+    if strcmp(varname,varnamestruct(i).Name)
+        plotcolor = 'r';
+        ylim([0 250])
+    end
+end
+
+varnamestruct = getfield(VariableNames,'SPO2_pct');
+for i = 1:length(varnamestruct)
+    if strcmp(varname,varnamestruct(i).Name)
+        plotcolor = 'b';
+        ylim([0 100])
+    end
+end
+
+varnamestruct = getfield(VariableNames,'Pulse');
+for i = 1:length(varnamestruct)
+    if strcmp(varname,varnamestruct(i).Name)
+        plotcolor = 'm';
+        ylim([0 250])
+    end
+end
+
+varnamestruct = getfield(VariableNames,'Resp');
+for i = 1:length(varnamestruct)
+    if strcmp(varname,varnamestruct(i).Name)
+        plotcolor = 'g';
+    end
+end
+
+if contains(varname,'SIQ')
     plotcolor = 'k';
     ylim([0 3])
-elseif contains(varname,'VitalSigns/SPO2-perc')
-    plotcolor = 'b';
-    ylim([0 100])
-elseif contains(varname,'VitalSigns/SPO2')
-    plotcolor = 'b';
-    ylim([0 100])
-elseif contains(varname,'VitalSigns/SPO2_pct')
-    plotcolor = 'b';
-    ylim([0 100])
-elseif contains(varname,'Waveforms/RR')
-    plotcolor = 'g';
 elseif contains(varname,'Waveforms/SPO2')
     plotcolor = 'b';
 elseif contains(varname,'Results/CUartifact')
     plotcolor = 'r';
-elseif contains(varname,'Results/WUSTLartifact')
-    plotcolor = 'k';
-elseif contains(varname,'Results/PeriodicBreathing')
+end
+
+if contains(varname,'Results')
     ylim([0 1])
-elseif contains(varname,'Results/Apnea')
-    ylim([0 1])
-elseif strcmp(varname,'SPO2')
-    plotcolor = 'b';
-    ylim([0 100])
-elseif strcmp(varname,'SpO2_r')
-    plotcolor = 'm';
-    ylim([0 250])
-elseif strcmp(varname, 'PULSE')
-    ylim([0 250])
 end
 
 
@@ -462,6 +471,10 @@ handles.nextfiledisplay.String = '';
             set(handles.loadedfile,'string','Loading Vital Signs...');
             waitfor(handles.loadedfile,'string','Loading Vital Signs...');
             [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
+            handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+%             if ~handles.isutc
+%                 handles.vt = datenum(duration(0,0,0,handles.vt));
+%             end
             try
                 handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
                 handles.timezone = handles.timezone{1}; % switch cell array to string
@@ -478,6 +491,10 @@ handles.nextfiledisplay.String = '';
             set(handles.loadedfile,'string','Loading Waveforms...');
             waitfor(handles.loadedfile,'string','Loading Waveforms...');
             [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
+            handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+%             if ~handles.isutc
+%                 handles.wt = datenum(duration(0,0,0,handles.wt));
+%             end
             try
                 handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
                 handles.timezone = handles.timezone{1}; % switch cell array to string
@@ -507,6 +524,8 @@ handles.nextfiledisplay.String = '';
         handles.wname = [];
         handles.wt = [];
     end
+    set(handles.loadedfile,'string','Loading Results...');
+    waitfor(handles.loadedfile,'string','Loading Results...');
     % The results file time stamps have already been converted to the appropriate time zone
     [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
     if ~isempty(handles.rdata)
@@ -517,7 +536,7 @@ handles.nextfiledisplay.String = '';
     end
     handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
     % Show only the most useful signals as a default
-    usefulfields = ["HR","SPO2-%","SPO2","SPO2-perc","SPO2_pct","SpO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR","Waveforms/SPO2"];
+    usefulfields = ["/VitalSigns/HR","VitalSigns/SPO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR"];
     usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
     handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
     set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
@@ -782,7 +801,7 @@ scrolldata(hObject,eventdata,handles,-10)
 % This function is called when the user selects the >, <, >>, or << buttons
 function scrolldata(hObject,eventdata,handles,jumptime_minutes)
 overwrite = 0;
-if handles.ishdf5
+if handles.ishdf5 && handles.isutc
     jumptime = jumptime_minutes*60*1000; % convert minutes to milliseconds
 else % for WUSTL data
     jumptime = datenum(seconds*jumptime_minutes*60); % convert minutes to seconds
@@ -874,7 +893,7 @@ function Menu_help_instructions_Callback(hObject, eventdata, handles)
 % hObject    handle to Menu_help_instructions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer v2.5';
+msgbox({'HDF5Viewer v2.6';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 'To Load a File:';
@@ -988,7 +1007,14 @@ if ~isempty(handles.tags)
         end
     else
         if ~isempty(tagsselected.tagtable)
-            starttimes = datestr(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start')));
+            tagstarts = tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'));
+            negstarts = tagstarts<0; % tag starts before time zero
+            daytodisp = day(tagstarts);
+            negstartvals = -day(-tagstarts);
+            daytodisp(negstarts) = negstartvals(negstarts);
+            
+            formatOut = 'HH:MM:SS';
+            starttimes = [repmat('Day: ',length(daytodisp),1) num2str(daytodisp) repmat('   ',length(daytodisp),1)   datestr(tagstarts,formatOut) repmat('   ',length(daytodisp),1)];
             duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration')))); % seconds
         else
             starttimes = [];
@@ -1056,7 +1082,7 @@ function run_tagging_algorithms_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.tagalgstextbox,'string','Running...');
 drawnow
-run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.vdata,handles.vname,handles.vt,handles.wdata,handles.wname,handles.wt)
+run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.vdata,handles.vname,handles.vt,handles.wdata,handles.wname,handles.wt,[])
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
 if isempty(handles.rdata)
     set(handles.tagalgstextbox,'string','File lacks variables needed to generate results file');

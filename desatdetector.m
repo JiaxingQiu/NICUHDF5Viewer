@@ -34,6 +34,11 @@ spo2data(spo2data<=1) = nan;
 % period = median(diff(vt/1000));
 % fs = 1/period;
 
+isutc = strcmp(h5readatt(filename,'/','Timezone'),'UTC');
+if ~isutc % The time is already in datenum format, so we need to convert the milliseconds to d
+    tmin = datenum(duration(0,0,0,tmin));
+end
+
 % Tag desaturation events
 [tag,tagname]=threshtags(spo2data,vt,threshold,ceil(pmin*fs),tmin,1);
 

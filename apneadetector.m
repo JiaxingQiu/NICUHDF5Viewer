@@ -1,4 +1,4 @@
-function [results,pt,tag,tagname] = apneadetector(filename,lead,wdata,wname,wt)
+function [results,pt,tag,tagname,qrs] = apneadetector(filename,lead,wdata,wname,wt)
 % apneadetector uses the resp waveform to calculate the probability of apnea.
 % If an EKG sig is selected & available, it uses the signal to filter out
 % heartbeats from the chest impedance waveform.
@@ -28,6 +28,7 @@ results = [];
 pt = [];
 tag = [];
 tagname = [];
+qrs = [];
     
 % Make sure the filename field is in the right format
 if iscell(filename)
@@ -41,35 +42,64 @@ if isempty(respt) % if there is no chest impedance signal, give up
     return
 end
 
-% Load in the EKG signal
-if lead == 1
-    [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGI');
-elseif lead == 2
-    [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGII');
-elseif lead == 3
-    [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGIII');
-elseif lead == 0 
-    ecg = [];
-    ecgt = [];
-    qt = [];
-    qb = [];
-    qgood =[];
-end
-if isempty(ecgt) && lead>0
-    return
+% Find the name of the result file
+if contains(filename,'.hdf5')
+    resultfilename = strrep(filename,'.hdf5','_results.mat');
+else
+    resultfilename = strrep(filename,'.mat','_results.mat');
 end
 
-% Some bits of old code
-% [resp,xt,fs,start,data,name,fac]=getwavedata(filename,varname);
-% respt = (start+xt/fs)*1000;
-% [ecg,xt,fs,start,data,name,fac]=getwavedata(filename,varname);
-% ecgt = (start+xt/fs)*1000;
-% [ecg,~,~]=calwavedata(ecg,filename,varname);
+% Check to see if we already did QRS detection
+if exist(resultfilename,'file') && lead>0
+    varinfo = who('-file',resultfilename);
+    if ismember('result_qrs',varinfo)
+        load(resultfilename,'result_qrs')
+        if size(result_qrs,2)>=lead
+            if ~isempty(result_qrs(lead).qrs)
+                qt = result_qrs(lead).qrs.qt;
+                qb = result_qrs(lead).qrs.qb;
+                qgood = result_qrs(lead).qrs.qgood;
+            end
+        end
+    end
+end
 
-% QRS Detection
-gain = 1; % 400;
-if lead~=0
-    [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs);
+% If we haven't already done QRS detection, load the ECG signal and run QRS detection
+if ~exist('qt')
+    % Load in the EKG signal
+    if lead == 1
+        [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGI');
+    elseif lead == 2
+        [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGII');
+    elseif lead == 3
+        [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGIII');
+    elseif lead == 0 
+        ecg = [];
+        ecgt = [];
+        qt = [];
+        qb = [];
+        qgood =[];
+    end
+    if isempty(ecgt) && lead>0
+        return
+    end
+
+    % Some bits of old code
+    % [resp,xt,fs,start,data,name,fac]=getwavedata(filename,varname);
+    % respt = (start+xt/fs)*1000;
+    % [ecg,xt,fs,start,data,name,fac]=getwavedata(filename,varname);
+    % ecgt = (start+xt/fs)*1000;
+    % [ecg,~,~]=calwavedata(ecg,filename,varname);
+
+    % QRS Detection
+    gain = 1; % 400;
+    if lead~=0
+        [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs);
+    end
+    qrs.lead = lead;
+    qrs.qt = qt;
+    qrs.qb = qb;
+    qrs.qgood = qgood;
 end
 
 % Eliminate nans from resp waveform

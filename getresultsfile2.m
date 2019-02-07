@@ -26,7 +26,7 @@ if exist(resultsfilename, 'file') == 2
         nv = length(result_data);
         while i<=nv
             n=length(result_data(j).time);
-            if n==0,continue,end
+%             if n==0,continue,end
             x=[x;result_data(j).data];    
             t=[t;result_data(j).time];
             v=[v;i*ones(n,1)];
