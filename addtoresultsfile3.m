@@ -30,8 +30,8 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
 
 % Handle Timestamps that are not UTC (were originally seconds from event, now in double(datenum(duration)) format)
 isutc = strcmp(h5readatt(filename,'/','Timezone'),'UTC');
-if ~isutc
-    tag(:,3) = datenum(tag(:,3))*86400; % convert to seconds
+if ~isutc && ~isempty(tag)
+	tag(:,3) = datenum(tag(:,3))*86400; % convert to seconds
 end
 
 % If the file does not already exist, create a file
