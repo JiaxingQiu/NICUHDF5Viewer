@@ -1,4 +1,4 @@
-function [data,name,time,tagtitles,tagcolumns,tags] = getresultsfile2(fullfilename)
+function [data,name,time,tagtitles,tagcolumns,tags,result_data,result_qrs] = getresultsfile2(fullfilename)
 if contains(fullfilename,'.hdf5')
     resultsfilename = strrep(fullfilename,'.hdf5','_results.mat');
 else
@@ -49,6 +49,9 @@ if exist(resultsfilename, 'file') == 2
         tagcolumns = result_tagcolumns;
         tags = result_tags;
     end
+    if ~exist('result_qrs','var') % if it is an old version of the results file
+        result_qrs = struct;
+    end
 else
     data = [];
     name = [];
@@ -56,4 +59,5 @@ else
     tagtitles = [];
     tagcolumns = [];
     tags = [];
+    result_data = [];
 end

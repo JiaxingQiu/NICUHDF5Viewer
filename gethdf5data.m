@@ -256,6 +256,7 @@ for i=1:n
     
 end
 
+
 end
 
 function [t,d,st]=fixjitter(t,dt)
@@ -274,5 +275,12 @@ nt=length(t);
 st=(1:nt)'*dt;
 d=cummin(t-st,'reverse');
 t=st+d;
+
+%Force timestamps to be muliples of dt
+
+ if dt~=1
+     t=ceil(t/dt)*dt;
+ end
+    
 
 end

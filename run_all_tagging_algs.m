@@ -1,11 +1,11 @@
 function run_all_tagging_algs(filename,vdata,vname,vt,wdata,wname,wt,algstorun)
-% This runs through 
 nalgs = 21;
 if isempty(algstorun)
     algstorun = ones(nalgs,1);
 end
 
 firstindex = find(algstorun,1);
+
 % This isn't initializing the results file values in any way - it is just
 % filling a place in the initial run of the algorithm
 result_name = [];

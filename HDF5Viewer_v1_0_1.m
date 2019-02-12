@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 19-Sep-2018 09:13:30
+% Last Modified by GUIDE v2.5 12-Feb-2019 11:46:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -336,10 +336,13 @@ for s=1:numsigs
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
     if isempty(I) || sum(I)==0
         handles.plothandle(s) = plot(0,0);
+        handles.plothandleI(s).I = I;
         ylabel({'No data for time period:'; strrep(varname,'_',' ')});
     else
 %         handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
         handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I),plotcolor);
+        handles.plothandleI(s).I = I;
+%         handles.plothandle(s) = plot(handles.localtime,handles.sig,plotcolor);
         ylabel(strrep(varname,'_',' '));
     end
     if ~isdeployed
@@ -527,7 +530,7 @@ handles.nextfiledisplay.String = '';
     set(handles.loadedfile,'string','Loading Results...');
     waitfor(handles.loadedfile,'string','Loading Results...');
     % The results file time stamps have already been converted to the appropriate time zone
-    [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
+    [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
     if ~isempty(handles.rdata)
         if isstring(handles.rdata) % an old results file is associated with this file type
             handles.rdata = [];
@@ -545,6 +548,8 @@ handles.nextfiledisplay.String = '';
     else
         set(handles.TagCategoryListbox,'string','');
     end
+    set(handles.TagCategoryListbox,'Value',1);
+    
     set(handles.TagListbox,'string','')
     if corrupt == 1
         handles.loadedfile.String = [fullfile(handles.filename) " WARNING: File may be corrupt!!!"]; % Show the name of the loaded file
@@ -556,6 +561,7 @@ handles.nextfiledisplay.String = '';
 % catch e
 %     handles.loadedfile.String = e.message;
 % end
+
 set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
 set(handles.overlay_checkbox,'value',0); % Uncheck the overlay checkbox
 set(handles.show_all_avail_fields_checkbox,'value',0);
@@ -1083,7 +1089,7 @@ function run_tagging_algorithms_Callback(hObject, eventdata, handles)
 set(handles.tagalgstextbox,'string','Running...');
 drawnow
 run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.vdata,handles.vname,handles.vt,handles.wdata,handles.wname,handles.wt,[])
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
 if isempty(handles.rdata)
     set(handles.tagalgstextbox,'string','File lacks variables needed to generate results file');
 else
@@ -1140,9 +1146,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in SaveTag.
-function SaveTag_Callback(hObject, eventdata, handles)
-% hObject    handle to SaveTag (see GCBO)
+% --- Executes on button press in AcceptTagButton.
+function AcceptTagButton_Callback(hObject, eventdata, handles)
+% hObject    handle to AcceptTagButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -1155,32 +1161,74 @@ s = 1;
 while notfoundyet && s<=length(handles.plothandle)
     brushedIdx = logical(handles.plothandle(s).BrushData)'; % This gives the indices of the highlighted data within the plotted window, but not within the whole dataset
     if sum(brushedIdx)>0
-        handles.plothandle(s).BrushData = []; %zeros(size(handles.plothandle(s).BrushData)); % Remove the brushing
+        I = handles.plothandleI(s).I;
+        handles.plothandle(s).BrushData = []; % Remove the brushing
         notfoundyet=0;
     end
     s=1+s;
 end
+
+brushedIdxWithNans = zeros(length(I),1);
+brushedIdxWithNans(I) = brushedIdx;
+
+% Put the brushed data from the window into the context of the full dataset
 fulldataset = zeros(length(handles.vt),1);
-brushedindices = handles.startindex:handles.endindex;
-brushedindices = brushedindices(~isnan(handles.sig));
-fulldataset(brushedindices(1:end),1) = brushedIdx; % This puts the brushed data in the context of the full dataset
+% [~,brushedindices] = ismember(handles.plothandle(s-1).XData,handles.vt);
+% fulldataset(brushedindices,1) = brushedIdx;
+fulldataset(handles.startindex:handles.endindex) = brushedIdxWithNans;
 
 % Turn this into tags
 pmin = 1; % minimum number of points below threshold (default one) - only applies to tags!!
 tmin = 0; % time gap between crossings to join (default zero) - only applies to tags!!
-[tag,tagname]=threshtags(~fulldataset,handles.vt,0.5,pmin,tmin);
+[tag,tagcol]=threshtags(~fulldataset,handles.vt,0.5,pmin,tmin);
 
-% Add tags to results file
-addtoresultsfile2(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vt,tag,tagname);
+% Add custom tags to local results data
+[result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,~] = addtoresultsfile3(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vt,tag,tagcol,[],handles.rname,handles.rdatastruct,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
 
 % Show the custom tag in the tag category listbox
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
+    %Put all data into long vectors 
+    t=[];
+    x=[];
+    v=[];
+    i = 1; % this counts the index of the original result_data
+    j = 1; % this counts the index of the new data vectors when SIQ is added
+
+    nv = length(result_data);
+    while i<=nv
+        n=length(result_data(j).time);
+        x=[x;result_data(j).data];    
+        t=[t;result_data(j).time];
+        v=[v;i*ones(n,1)];
+        i = i+1;
+        j = j+1;
+    end
+    
+    %Matrix output
+    [vt,~,r]=unique(t);
+    nt=length(vt);
+    matrixformat=NaN*ones(nt,nv);
+    for i=1:nv
+        j=v==i;
+        matrixformat(r(j),i)=x(j);
+    end
+    
+    handles.rt = vt;
+    handles.rdatastruct = result_data;
+    handles.rdata = matrixformat;
+    handles.rname = result_name;
+    handles.tagtitles = result_tagtitle;
+    handles.tagcolumns = result_tagcolumns;
+    handles.tags = result_tags;
+
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
 set(handles.TagCategoryListbox,'string',handles.tagtitles);
 
 % Update which tagged events are shown
 categorychoice = get(handles.TagCategoryListbox, 'Value'); 
 set(handles.TagCategoryListbox, 'Value', categorychoice);
+if ~isfield(handles,'tagtitlechosen')
+    handles.tagtitlechosen = categorychoice;
+end
 UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 
 % Update the plots
@@ -1193,8 +1241,13 @@ function RemoveTag_Callback(hObject, eventdata, handles)
 % hObject    handle to RemoveTag (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-removefromresultsfile2(fullfile(handles.pathname, handles.filename),handles.TagCategoryListbox.String(handles.TagCategoryListbox.Value),handles.TagCategoryListbox.Value,handles.tagchosen);
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags]=getresultsfile2(fullfile(handles.pathname, handles.filename));
+tagcategoryname = handles.TagCategoryListbox.String(handles.TagCategoryListbox.Value);
+tagnumber = handles.TagCategoryListbox.Value;
+
+[handles.rdatastruct,handles.tags] = removefromresultsfile2(tagcategoryname,tagcategorynum,tagnumber,handles.rname,handles.rdatastruct,handles.tags);
+
+% removefromresultsfile2(fullfile(handles.pathname, handles.filename),handles.TagCategoryListbox.String(handles.TagCategoryListbox.Value),handles.TagCategoryListbox.Value,handles.tagchosen);
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
 UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite)
@@ -1229,3 +1282,39 @@ for n=1:length(namesofinterest)
     end
     data(:,n) = data(:,n)/scalematrix(n);
 end
+
+
+% --- Executes on button press in SaveAllCustomTagsButton.
+function SaveAllCustomTagsButton_Callback(hObject, eventdata, handles)
+% hObject    handle to SaveAllCustomTagsButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Find the Result Filename
+if contains(fullfile(handles.pathname, handles.filename),'.hdf5')
+    resultfilename = strrep(fullfile(handles.pathname, handles.filename),'.hdf5','_results.mat');
+else
+    resultfilename = strrep(fullfile(handles.pathname, handles.filename),'.mat','_results.mat');
+end
+
+% Name the data we are saving
+result_data = handles.rdatastruct;
+result_name = handles.rname;
+result_tags = handles.tags;
+result_tagcolumns = handles.tagcolumns;
+result_tagtitle = handles.tagtitles;
+
+% Tell the user we are in the process of saving the results file
+set(handles.tagalgstextbox,'string','Saving custom tags...');
+drawnow
+set(handles.SaveAllCustomTagsButton,'string','Saving...','enable','off');
+drawnow
+
+% Save the results file
+save(resultfilename,'result_data','result_name','result_tags','result_tagcolumns','result_tagtitle','-append');
+
+% Tell the user we are done saving the results file
+set(handles.tagalgstextbox,'string','Done Saving Custom Tags');
+drawnow
+set(handles.SaveAllCustomTagsButton,'string','Save All Custom Tags','enable','on');
+drawnow
