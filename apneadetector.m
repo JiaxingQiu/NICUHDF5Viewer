@@ -42,6 +42,10 @@ if isempty(respt) % if there is no chest impedance signal, give up
     return
 end
 
+if round(CIfs)~=CIfs
+    CIfs = 1/round(1/CIfs,3);
+end
+
 % Find the name of the result file
 if contains(filename,'.hdf5')
     resultfilename = strrep(filename,'.hdf5','_results.mat');

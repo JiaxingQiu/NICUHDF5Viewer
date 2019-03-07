@@ -928,7 +928,7 @@ function Menu_help_instructions_Callback(hObject, eventdata, handles)
 % hObject    handle to Menu_help_instructions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer v2.7Beta';
+msgbox({'HDF5Viewer v2.7';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 'To Load a File:';
@@ -1250,11 +1250,8 @@ tmin = 0; % time gap between crossings to join (default zero) - only applies to 
     handles.tags = result_tags;
 
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
-if size(handles.tagtitles,2)>1
-    set(handles.TagCategoryListbox,'string',[handles.tagtitles(:,1) ' v' handles.tagtitles(:,2)]);
-else
-    set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
-end
+set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
+
 % Update which tagged events are shown
 categorychoice = get(handles.TagCategoryListbox, 'Value'); 
 set(handles.TagCategoryListbox, 'Value', categorychoice);

@@ -42,14 +42,14 @@ else
 end
 
 % Find the apnea probability data
-if sum(contains(result_name,'/Results/Apnea-III'))
-    dataindex = ismember(result_name,'/Results/Apnea-III');
-elseif sum(contains(result_name,'/Results/Apnea-II'))
-    dataindex = ismember(result_name,'/Results/Apnea-II');
-elseif sum(contains(result_name,'/Results/Apnea-I'))
-    dataindex = ismember(result_name,'/Results/Apnea-I');
-elseif sum(contains(result_name,'/Results/Apnea-NoECG'))
-    dataindex = ismember(result_name,'/Results/Apnea-NoECG');
+if sum(contains(result_name(:,1),'/Results/Apnea-III'))
+    dataindex = ismember(result_name(:,1),'/Results/Apnea-III');
+elseif sum(contains(result_name(:,1),'/Results/Apnea-II'))
+    dataindex = ismember(result_name(:,1),'/Results/Apnea-II');
+elseif sum(contains(result_name(:,1),'/Results/Apnea-I'))
+    dataindex = ismember(result_name(:,1),'/Results/Apnea-I');
+elseif sum(contains(result_name(:,1),'/Results/Apnea-NoECG'))
+    dataindex = ismember(result_name(:,1),'/Results/Apnea-NoECG');
 else
     return
 end

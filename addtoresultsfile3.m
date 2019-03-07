@@ -67,25 +67,36 @@ if isempty(result_name)
     end
     
 else
- 
+    if size(name,2)==2 % if this is a name/version pairing, just grab the name. Otherwise, keep the whole name
+        tagname = name(1);
+    else
+        tagname = name;
+    end
     if ~isempty(tagcol)
-        if sum(contains(result_tagtitle(:,1),name(1))) % any(strcmp(result_tagtitle,name))
-            tagindex = find(strcmp(result_tagtitle(:,1), name(1)));
+        if sum(contains(result_tagtitle(:,1),tagname)) % any(strcmp(result_tagtitle,name))
+            tagindex = find(strcmp(result_tagtitle(:,1), tagname));
         else
             tagindex = size(result_tagtitle,1)+1;
         end
     end
     
     if ~isempty(result)
-        if sum(contains(result_name(:,1),name(1))) %any(strcmp(result_name,name))
-            dataindex = find(strcmp(result_name(:,1), name(1)));
+        if sum(contains(result_name(:,1),tagname)) %any(strcmp(result_name,name))
+            dataindex = find(strcmp(result_name(:,1), tagname));
         else
             dataindex = size(result_name,1)+1;
         end
     end
     
-    if contains(name(1),'CustomTag')
-        result_name(dataindex,:) = name;
+    if size(result_tagtitle,2)==1 % if this is an old results file which does not contain a version number, add in a 1 for the version number
+        result_tagtitle = horzcat(result_tagtitle,ones(size(result_tagtitle,1),1));
+    end
+    if size(result_name,2)==1 % if this is an old results file which does not contain a version number, add in a 1 for the version number
+        result_name = horzcat(result_name,ones(size(result_name,1),1)); 
+    end
+    
+    if contains(tagname,'CustomTag')
+        result_name(dataindex,:) = {tagname 1};
         if dataindex>length(result_data)
             result_data(dataindex).data = result;
             result_tags(tagindex).tagtable = tag;
@@ -96,7 +107,7 @@ else
         end
         result_data(dataindex).time = time;
         result_tagcolumns(tagindex).tagname = tagcol;
-        result_tagtitle(tagindex,:) = name;
+        result_tagtitle(tagindex,:) = {tagname 1};
     else
         if exist('dataindex')
             result_name(dataindex,:) = name;

@@ -33,12 +33,16 @@ if contains(algdispname(algnum),'QRS Detection')
         lead = 1;
     end
     if ~isempty(result_qrs)
-        if size(result_qrs,2)>=lead
-            if ~isempty(result_qrs(lead).qrs)
-                if isfield(result_qrs(lead).qrs,'version')
-                    oldversion = result_qrs(lead).qrs.version;
+        if length(fieldnames(result_qrs))>0 %#ok<ISMT> % must do this length command because structs with no fields do not show up as empty! CRAZY TALK!
+            if size(result_qrs,2)>=lead
+                if ~isempty(result_qrs(lead).qrs)
+                    if isfield(result_qrs(lead).qrs,'version')
+                        oldversion = result_qrs(lead).qrs.version;
+                    else
+                        oldversion = 1; % If it was run before versions were begun, it is version 1
+                    end
                 else
-                    oldversion = 1; % If it was run before versions were begun, it is version 1
+                    oldversion = [];
                 end
             else
                 oldversion = [];

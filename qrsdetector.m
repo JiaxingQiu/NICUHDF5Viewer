@@ -40,6 +40,9 @@ if isempty(ecgt) && lead>0
     return
 end
 
+if round(fs)~=fs
+    fs = round(1/median(diff(ecgt)),1)*1000; % This is for Northwestern data which has a sampling frequency of 488.2813
+end
 % QRS Detection
 gain = 1; % 400;
 if lead~=0
