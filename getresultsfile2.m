@@ -1,8 +1,18 @@
 function [data,name,time,tagtitles,tagcolumns,tags,result_data,result_qrs] = getresultsfile2(fullfilename)
 if contains(fullfilename,'.hdf5')
     resultsfilename = strrep(fullfilename,'.hdf5','_results.mat');
-else
+elseif contains(fullfilename,'.mat')
     resultsfilename = strrep(fullfilename,'.mat','_results.mat');
+else
+    data = [];
+    name = [];
+    time = [];
+    tagtitles = [];
+    tagcolumns = [];
+    tags = [];
+    result_data = [];
+    result_qrs = [];
+    return
 end
 
 % resultsfilename = [erase(fullfilename,".hdf5") '_results.mat'];
@@ -60,4 +70,5 @@ else
     tagcolumns = [];
     tags = [];
     result_data = [];
+    result_qrs = [];
 end

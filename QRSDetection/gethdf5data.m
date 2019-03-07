@@ -79,7 +79,8 @@ else
     name=name(good);
 end
 
-n=length(name);    
+
+n=length(name);
 for i=1:n    
     dataset=name{i};    
     data(i,:).name=dataset;    

@@ -1,4 +1,4 @@
-function qrs = qrsdetector(filename,lead,wdata,wname,wt)
+function qrs = qrsdetector(filename,lead,wdata,wname,wt,version)
 % qrsdetector runs qrs detection on the indicated lead
 %
 % INPUT:
@@ -50,3 +50,4 @@ qrs.lead = lead;
 qrs.qt = qt;
 qrs.qb = qb;
 qrs.qgood = qgood;
+qrs.version = version;

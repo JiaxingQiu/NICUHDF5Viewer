@@ -161,6 +161,7 @@ for i=1:n
 
 %Find increasing time samples with no jitter if requested
     dt=floor(T);
+%     dt = T;
     if nojitter
         t=fixjitter(t,dt);
     end

@@ -94,6 +94,8 @@ if ~exist('qt')
     % QRS Detection
     gain = 1; % 400;
     if lead~=0
+        ecgt = ecgt(~isnan(ecg));
+        ecg = ecg(~isnan(ecg));
         [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs);
     end
     qrs.lead = lead;

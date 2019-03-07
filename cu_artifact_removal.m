@@ -30,7 +30,7 @@ results = [];
 % Load in the pulse rate and heart rate signals
 [spo2rdata,~,~,~] = grabneededdata(filename,vdata,vname,t,'Pulse');
 [hrdata,vt,~,fs] = grabneededdata(filename,vdata,vname,t,'HR');
-if isempty(vt)
+if isempty(vt) || isempty(spo2rdata)
     return
 end
 

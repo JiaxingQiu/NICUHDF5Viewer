@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 12-Feb-2019 11:46:53
+% Last Modified by GUIDE v2.5 18-Feb-2019 11:37:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -182,11 +182,22 @@ for s=1:numsigs
                 isSIQ = 1;
             end
             try
-                handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
+                try
+                    handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
+                catch
+                    rps = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Readings Per Sample'));
+                    samp_pd = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Period (ms)'))/1000;
+                    handles.fs = rps/samp_pd;
+    %                 if strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Source Reader'),'TDMS')
+    %                     info = h5info(fullfile(handles.pathname, handles.filename),[varname '/data']);
+    %                     datasize = info.Datasets.Dataspace.Size(2);
+    %                     info = h5info(fullfile(handles.pathname, handles.filename),[varname '/time']);
+    %                     timesize = info.Datasets.Dataspace.Size(2);
+    %                     handles.fs = round(datasize/timesize);
+    %                 end
+                end
             catch
-                rps = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Readings Per Sample'));
-                samp_pd = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Period (ms)'))/1000;
-                handles.fs = rps/samp_pd;
+                handles.fs = 1;
             end
             try
                 handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
@@ -271,7 +282,7 @@ for s=1:numsigs
     if handles.ishdf5 && handles.isutc % UTC time
         handles.windowsize = handles.windowsizeuserinput*60*1000; % 20 min in milliseconds is default
     else % Matlab local time
-        handles.windowsize = datenum(seconds(handles.windowsizeuserinput*60)); 
+        handles.windowsize = handles.windowsizeuserinput*60/86400; 
     end
     if handles.dataindex<=length(handles.vname) % Vital Signs
         if ~isfield(handles,'startindex')
@@ -319,6 +330,7 @@ for s=1:numsigs
         handles.sig = handles.rdata(handles.startindexr:handles.endindexr,handles.dataindex-length(handles.vname)-length(handles.wname));
         handles.utctime = handles.rt(handles.startindexr:handles.endindexr);
     end
+    handles.sig(handles.sig==-32768) = nan;
 %     handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Timezone'),'UTC');
 %     handles.isutc = handles.isutc && median(handles.utctime)>800000; % if the time is in UTC time (this code will work until the year 2190) as opposed to localtime, this will catch the localtime that WUSTL's format uses
     if handles.isutc
@@ -366,7 +378,12 @@ function [plotcolor] = customplotcolors(varname)
 plotcolor = 'k';
 
 % Get the list of all possible variable strings that go with the desired signame
-load('X:\Amanda\NICUHDF5Viewer\VariableNames','VariableNames')
+if ~isdeployed
+    load('X:\Amanda\NICUHDF5Viewer\VariableNames','VariableNames')
+else
+    loadfilename = which(fullfile('VariableNames.mat'));
+    load(loadfilename,'VariableNames')
+end
 
 % Find out if varname matches with any of the signal names in the varnamestruct
 varnamestruct = getfield(VariableNames,'HR');
@@ -468,13 +485,17 @@ handles.nextfiledisplay.String = '';
     end
     % Load data from HDF5 File
     corrupt = 0;
-    if contains(handles.filename,'.hdf5')
+%     if contains(handles.filename,'.hdf5')
         handles.ishdf5 = 1;
         try
             set(handles.loadedfile,'string','Loading Vital Signs...');
             waitfor(handles.loadedfile,'string','Loading Vital Signs...');
             [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
-            handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+            try
+                handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+            catch
+                handles.isutc = 0;
+            end
 %             if ~handles.isutc
 %                 handles.vt = datenum(duration(0,0,0,handles.vt));
 %             end
@@ -494,7 +515,11 @@ handles.nextfiledisplay.String = '';
             set(handles.loadedfile,'string','Loading Waveforms...');
             waitfor(handles.loadedfile,'string','Loading Waveforms...');
             [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
-            handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+            try
+                handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+            catch
+                handles.isutc = 0;
+            end
 %             if ~handles.isutc
 %                 handles.wt = datenum(duration(0,0,0,handles.wt));
 %             end
@@ -513,20 +538,20 @@ handles.nextfiledisplay.String = '';
             handles.loadedfile.String = "Waveforms could not load.";
             corrupt = 0;
         end
-    else % Load data from WashU
-        handles.ishdf5 = 0;
-        try
-            load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
-            handles.vuom = vuom;
-            [handles.vdata,handles.vname,handles.vt]=getWUSTLvital2(values,vt,vlabel);
-        catch
-            handles.loadedfile.String = ".mat file could not load";
-            corrupt = 1;
-        end
-        handles.wdata = [];
-        handles.wname = [];
-        handles.wt = [];
-    end
+%     else % Load data from WashU
+%         handles.ishdf5 = 0;
+%         try
+%             load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
+%             handles.vuom = vuom;
+%             [handles.vdata,handles.vname,handles.vt]=getWUSTLvital2(values,vt,vlabel);
+%         catch
+%             handles.loadedfile.String = ".mat file could not load";
+%             corrupt = 1;
+%         end
+%         handles.wdata = [];
+%         handles.wname = [];
+%         handles.wt = [];
+%     end
     set(handles.loadedfile,'string','Loading Results...');
     waitfor(handles.loadedfile,'string','Loading Results...');
     % The results file time stamps have already been converted to the appropriate time zone
@@ -537,14 +562,18 @@ handles.nextfiledisplay.String = '';
             corrupt = 2;
         end
     end
-    handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
+    if isempty(handles.rname)
+        handles.alldatasetnames = vertcat(handles.vname,handles.wname);
+    else
+        handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
+    end
     % Show only the most useful signals as a default
     usefulfields = ["/VitalSigns/HR","VitalSigns/SPO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR"];
     usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
     handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
     set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
     if ~isempty(handles.tagtitles)
-        set(handles.TagCategoryListbox,'string',handles.tagtitles);
+        set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
     else
         set(handles.TagCategoryListbox,'string','');
     end
@@ -899,7 +928,7 @@ function Menu_help_instructions_Callback(hObject, eventdata, handles)
 % hObject    handle to Menu_help_instructions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer v2.6';
+msgbox({'HDF5Viewer v2.7Beta';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 'To Load a File:';
@@ -1095,7 +1124,7 @@ if isempty(handles.rdata)
 else
     set(handles.tagalgstextbox,'string','');
 end
-handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
+handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
 if get(handles.show_all_avail_fields_checkbox,'Value')
     for i=1:length(handles.alldatasetnames)
         set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
@@ -1105,7 +1134,7 @@ else
         set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
     end
 end
-set(handles.TagCategoryListbox,'string',handles.tagtitles);
+set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
 set(handles.TagCategoryListbox,'Value',1)
 set(handles.TagListbox,'string','')
 set(handles.TagListbox,'Value',1)
@@ -1220,9 +1249,12 @@ tmin = 0; % time gap between crossings to join (default zero) - only applies to 
     handles.tagcolumns = result_tagcolumns;
     handles.tags = result_tags;
 
-handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname);
-set(handles.TagCategoryListbox,'string',handles.tagtitles);
-
+handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
+if size(handles.tagtitles,2)>1
+    set(handles.TagCategoryListbox,'string',[handles.tagtitles(:,1) ' v' handles.tagtitles(:,2)]);
+else
+    set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
+end
 % Update which tagged events are shown
 categorychoice = get(handles.TagCategoryListbox, 'Value'); 
 set(handles.TagCategoryListbox, 'Value', categorychoice);
@@ -1318,3 +1350,18 @@ set(handles.tagalgstextbox,'string','Done Saving Custom Tags');
 drawnow
 set(handles.SaveAllCustomTagsButton,'string','Save All Custom Tags','enable','on');
 drawnow
+
+
+% --- Executes on button press in back_window.
+function back_window_Callback(hObject, eventdata, handles)
+% hObject    handle to back_window (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scrolldata(hObject,eventdata,handles,-handles.windowsizeuserinput)
+
+% --- Executes on button press in forward_window.
+function forward_window_Callback(hObject, eventdata, handles)
+% hObject    handle to forward_window (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scrolldata(hObject,eventdata,handles,handles.windowsizeuserinput)

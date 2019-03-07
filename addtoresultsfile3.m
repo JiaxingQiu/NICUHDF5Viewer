@@ -39,7 +39,7 @@ if isempty(result_name)
     
     % Store Results Data
     if ~isempty(result)
-        result_name{1,1} = name;
+        result_name = name;
         result_data(1).data = result;
         result_data(1).time = time;
     elseif ~exist('result_name')
@@ -52,7 +52,7 @@ if isempty(result_name)
     if ~isempty(tagcol)
         result_tags(1).tagtable = tag;
         result_tagcolumns(1).tagname = tagcol;
-        result_tagtitle{1,1} = name;
+        result_tagtitle = name;
     elseif ~exist('result_tags')
         result_tags.tagtable = [];
         result_tagcolumns.tagname = [];
@@ -69,23 +69,23 @@ if isempty(result_name)
 else
  
     if ~isempty(tagcol)
-        if any(strcmp(result_tagtitle,name))
-            tagindex = find(strcmp(result_tagtitle, name));
+        if sum(contains(result_tagtitle(:,1),name(1))) % any(strcmp(result_tagtitle,name))
+            tagindex = find(strcmp(result_tagtitle(:,1), name(1)));
         else
             tagindex = size(result_tagtitle,1)+1;
         end
     end
     
     if ~isempty(result)
-        if any(strcmp(result_name,name))
-            dataindex = find(strcmp(result_name, name));
+        if sum(contains(result_name(:,1),name(1))) %any(strcmp(result_name,name))
+            dataindex = find(strcmp(result_name(:,1), name(1)));
         else
-            dataindex = length(result_name)+1;
+            dataindex = size(result_name,1)+1;
         end
     end
     
-    if contains(name,'CustomTag')
-        result_name{dataindex,1} = name;
+    if contains(name(1),'CustomTag')
+        result_name(dataindex,:) = name;
         if dataindex>length(result_data)
             result_data(dataindex).data = result;
             result_tags(tagindex).tagtable = tag;
@@ -96,15 +96,15 @@ else
         end
         result_data(dataindex).time = time;
         result_tagcolumns(tagindex).tagname = tagcol;
-        result_tagtitle{tagindex,1} = name;
+        result_tagtitle(tagindex,:) = name;
     else
         if exist('dataindex')
-            result_name{dataindex,1} = name;
+            result_name(dataindex,:) = name;
             result_data(dataindex).data = result;
             result_data(dataindex).time = time;
         end
         if exist('tagindex')
-            result_tagtitle{tagindex,1} = name;
+            result_tagtitle(tagindex,:) = name;
             result_tags(tagindex).tagtable = tag;
             result_tagcolumns(tagindex).tagname = tagcol;
         end
