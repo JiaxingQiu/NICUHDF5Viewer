@@ -77,19 +77,6 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
     
     % Find out if this algorithm has already been run. If it has, but this is the first alg on the list, load in the data that the program expects
     shouldrun = shouldrunalgorithm(filename,algnum,resultname,algdispname,result_tagtitle,result_qrs);
-%     if ~shouldrun && isfirst
-%         load(resultfilename,'result_name','result_data','result_tags','result_tagcolumns','result_tagtitle');
-%         % Load qrs separately because old versions of the results files don't have it
-%         varinfo = who('-file',resultfilename);
-%         if ismember('result_qrs',varinfo)
-%             load(resultfilename,'result_qrs')
-%         else
-%             result_qrs = struct;
-%         end
-%         return
-%     elseif ~shouldrun
-%         return
-%     end
     if ~shouldrun
         return
     end

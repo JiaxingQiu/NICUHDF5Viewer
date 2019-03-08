@@ -12,10 +12,6 @@ function [vdata,vname,vt,info]=gethdf5vital(hdf5file,vname,vformat)
 %vt - time stamps for row of the matrix for vformat=0
 %info - information about entire HDF5 file
 
-% vdata=[];
-% vt=[];
-% info=[];
-% siq = [];
 if ~exist('vname','var'),vname='/VitalSigns';end
 if ~exist('vformat','var'),vformat=0;end
 
@@ -24,56 +20,3 @@ if ~exist('vformat','var'),vformat=0;end
 [vdata,t,vname]=vdataformat(data,vformat);
 vt = t*1000; % convert to ms
 
-% if allvital
-%     vname=Name;
-% end
-
-% %Stucture output
-% if vformat==1
-%     vt=unique(cat(1,vdata.t));
-%     return
-% end
-% nv=length(vdata);
-% if nv==0,return,end
-% 
-% %Put all data into long vectors 
-% t=[];
-% x=[];
-% v=[];
-% i = 1; % this counts the index of the original vdata
-% j = 1; % this counts the index of the new data vectors when SIQ is added
-% while i<=nv
-%     n=length(vdata(j).t);
-%     if n==0
-%         i = i+1;
-%         j = j+1;
-%         continue
-%     end
-%     x=[x;vdata(j).x(:,1)];    
-%     t=[t;vdata(j).t];
-%     v=[v;i*ones(n,1)];
-%     if size(vdata(j).x,2)>1 % If there is an SIQ signal present
-%         x=[x;vdata(j).x(:,2)];
-%         t=[t;vdata(j).t];
-%         vname = [vname(1:i,1);'/VitalSigns/SIQ';vname(i+1:end,1)];
-%         i = i+1;
-%         v=[v;i*ones(n,1)];
-%         nv = nv+1;
-%     end
-%     i = i+1;
-%     j = j+1;
-% end
-% %Long matrix output
-% if vformat==2
-%     vdata=[v x];
-%     vt=t;
-%     return
-% end
-% %Matrix output
-% [vt,~,r]=unique(t);
-% nt=length(vt);
-% vdata=NaN*ones(nt,nv);
-% for i=1:nv
-%     j=v==i;
-%     vdata(r(j),i)=x(j);
-% end

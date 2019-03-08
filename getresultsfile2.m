@@ -15,7 +15,6 @@ else
     return
 end
 
-% resultsfilename = [erase(fullfilename,".hdf5") '_results.mat'];
 if exist(resultsfilename, 'file') == 2
     load(resultsfilename,'result_*');
     if ~exist('result_data','var') % if it is an old version of the results file

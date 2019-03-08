@@ -9,8 +9,6 @@ function [wdata,wname,wt,info]=gethdf5wave(hdf5file,wname,wformat)
 %wname - waveform names retrieved
 %info - information about entire HDF5 file
 
-% wdata=[];
-% info=[];
 if ~exist('wname','var'),wname='/Waveforms';end
 if ~exist('wformat','var'),wformat=0;end
 
@@ -37,33 +35,3 @@ end
 
 [wdata,wt,wname]=vdataformat(wdata,wformat); % Convert to matrix format
 wt = wt*1000; % convert to ms
-
-% nv=length(wdata);
-% if nv==0,return,end
-% %Put all data into long vectors 
-% t=[];
-% x=[];
-% w=[];
-% for i=1:nv
-%     n=length(wdata(i).T);
-%     if n==0,continue,end
-%     x=[x;wdata(i).x];    
-%     t=[t;wdata(i).T];
-%     w=[w;i*ones(n,1)];
-% end
-% %Long matrix output
-% if wformat==2
-%     wdata=[w x];
-%     wt=t;
-%     return
-% end
-% 
-% %Matrix output
-% [wt,~,r]=unique(t);
-% 
-% nt=length(wt);
-% wdata=NaN*ones(nt,nv);
-% for i=1:nv
-%     j=w==i;
-%     wdata(r(j),i)=x(j);
-% end

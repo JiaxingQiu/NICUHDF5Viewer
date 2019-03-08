@@ -41,7 +41,6 @@ for j=1:length(jumps)
     roundedendtime = datenum_round_off(vtin(jumps(j)),'second');
     consecutivetimearray = vertcat(consecutivetimearray,(roundedstarttime:datenum(seconds(1)):roundedendtime)');
     consecutivedataarray = vertcat(consecutivedataarray,vdata(startindex:jumps(j),:));
-%     size(consecutivetimearray,1)-size(consecutivedataarray,1)
     minlength = min(size(consecutivetimearray,1),size(consecutivedataarray,1));
     consecutivetimearray = consecutivetimearray(1:minlength,:);
     consecutivedataarray = consecutivedataarray(1:minlength,:);

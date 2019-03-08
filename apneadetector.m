@@ -42,7 +42,7 @@ if isempty(respt) % if there is no chest impedance signal, give up
     return
 end
 
-if round(CIfs)~=CIfs
+if round(CIfs,1)~=CIfs
     CIfs = 1/round(1/CIfs,3);
 end
 
@@ -87,13 +87,6 @@ if ~exist('qt')
     if isempty(ecgt) && lead>0
         return
     end
-
-    % Some bits of old code
-    % [resp,xt,fs,start,data,name,fac]=getwavedata(filename,varname);
-    % respt = (start+xt/fs)*1000;
-    % [ecg,xt,fs,start,data,name,fac]=getwavedata(filename,varname);
-    % ecgt = (start+xt/fs)*1000;
-    % [ecg,~,~]=calwavedata(ecg,filename,varname);
 
     % QRS Detection
     gain = 1; % 400;

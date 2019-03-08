@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 18-Feb-2019 11:37:17
+% Last Modified by GUIDE v2.5 08-Mar-2019 13:34:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -88,12 +88,9 @@ end
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes HDF5Viewer_v1_0_1 wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
 
 % Called when a user clicks on a tab
 function tabChangedCB(src, eventdata)
-
 disp(['Changing tab from ' eventdata.OldValue.Title ' to ' eventdata.NewValue.Title ] );
 
 
@@ -201,7 +198,6 @@ for s=1:numsigs
                     handles.scale = 10^handles.scale;
                 end
             end
-
         else
             handles.scale = 1;
         end
@@ -530,7 +526,7 @@ end
 
 set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
 set(handles.overlay_checkbox,'value',0); % Uncheck the overlay checkbox
-set(handles.show_all_avail_fields_checkbox,'value',0);
+% set(handles.show_all_avail_fields_checkbox,'value',0);
 handles.overlayon = 0;
 
 % Update handles structure
@@ -666,6 +662,22 @@ function backward_fast_Callback(hObject, eventdata, handles)
 scrolldata(hObject,eventdata,handles,-10)
 
 
+% --- Executes on button press in forward_hour.
+function forward_hour_Callback(hObject, eventdata, handles)
+% hObject    handle to forward_hour (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scrolldata(hObject,eventdata,handles,60)
+
+
+% --- Executes on button press in back_hour.
+function back_hour_Callback(hObject, eventdata, handles)
+% hObject    handle to back_hour (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scrolldata(hObject,eventdata,handles,-60)
+
+
 % This function is called when the user selects the >, <, >>, or << buttons
 function scrolldata(hObject,eventdata,handles,jumptime_minutes)
 overwrite = 0;
@@ -701,82 +713,6 @@ if isfield(handles,'startindexr')
     [~,handles.startindexr] = min(abs(handles.rt-handles.windowstarttime));
 end
 plotdata(hObject, eventdata, handles, overwrite)
-
-
-% --- Executes on button press in forward_hour.
-function forward_hour_Callback(hObject, eventdata, handles)
-% hObject    handle to forward_hour (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-scrolldata(hObject,eventdata,handles,60)
-
-
-% --- Executes on button press in back_hour.
-function back_hour_Callback(hObject, eventdata, handles)
-% hObject    handle to back_hour (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-scrolldata(hObject,eventdata,handles,-60)
-
-
-% --------------------------------------------------------------------
-function Help_menu_Callback(hObject, eventdata, handles)
-% hObject    handle to Help_menu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
-function Menu_help_instructions_Callback(hObject, eventdata, handles)
-% hObject    handle to Menu_help_instructions (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-msgbox({'HDF5Viewer v2.7';
-'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
-'';
-'To Load a File:';
-'Load in an hdf5 file by clicking the "Load HDF5" button on the left side of the screen. A "Loading..." message will appear below the Load button. Once loading completes, the name of the file will appear where the "Loading..." message previously was. A small list of the most important variable names should populate in the white box.';
-'';
-'To Display All of the Data in the File:';
-'To see all of the variables in the file click the "Show All Available Fields" checkbox at the bottom of the screen. To display data from one of the variables, click the variable name in the white box. Twenty minutes of data will display on the screen.'; 
-''
-'To Display Multiple Datasets at Once:';
-'- To display multiple variables at once, with each on its own plot, select multiple variables in the left menu by using the SHIFT or CTRL keys.';
-'- To overlay multiple variables on the same plot, click the "Overlay" checkbox at the bottom of the screen, then select (using the SHIFT or CTRL keys) the different variables you want to overlay.';
-'';
-'To Browse Through the Data:';
-'To browse through the data, click the buttons at the bottom of the screen to move through the file. To zoom in on the data, click and drag a box around the desired portion of the image you want to zoom in on, or use the mouse scroll wheel.';
-'';
-'Using QRS Detection to Compute Heart Rate:';
-'- First select a good EKG signal lead to display. Make sure the signal displayed in the window does not start with an empty signal. If it does, scroll (using the buttons at the bottom of the screen) to a part of the signal which does not begin with missing data.';
-'- Go to the "Run Algorithms" tab.'; 
-'- In the Dropdown menu, select the QRS Detection algorithm.';
-'- Hit Run.' 
-'- A pink and a blue scatter plot should appear. The blue scatter plot shows the signal taken from the signal labeled "HR." The magenta scatter plot shows the heart rate calculated from the QRS detection algorithm.'; 
-'- If you want to see the QRS detection for other parts of the data, you can scroll through the data by using the buttons at the bottom of the screen. When you see data where you want to run the QRS detection, simply click the "Run" button again.';
-'';
-'To Tag Bradycardias, Desats, Apneas, and Other Events';
-'- Select the Tagged Events Tab';
-'- Click the Run Tagging Algorithms Button';
-'- Wait until the white listboxes on that page populate';
-'- Select in the top box what category of events you want to look at';
-'- The tagged events should populate in the lower white box';
-'- You can click on one of these tagged events to show the event in the viewer';
-'- The first timestamp of that tagged event will be shown on the leftmost edge of the viewer window';
-'- If you want to see details about the tag, go back to the Main tab and toggle the "Show All Available Fields" checkbox once or twice. Then you should see the result vector pop up in the bottom of the list. You can highlight the name of the tag to plot it along with the other signals you want to plot.';
-'';
-'To Custom Tag Events:';
-'- Go to the Tagged Events Tab';
-'- Click the Start Tag Button';
-'- Enter a custom tag name in the small white box';
-'- Click and drag in the figure window to highlight a portion of the data';
-'- Hit the Save Tag button';
-'- The tag should show up in the large white boxes above';
-'- The tag should also show up in the Main Tab under the list of signals';
-'- You can tag multiple instances within the file with the same name and they will all be conglomerated under a single tag category with separate tags';
-'';
-},'Help')
-
 
 
 function WindowSize_Callback(hObject, eventdata, handles)
@@ -1156,3 +1092,123 @@ function forward_window_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 scrolldata(hObject,eventdata,handles,handles.windowsizeuserinput)
+
+% --------------------------------------------------------------------
+function help_menu_top_level_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_top_level (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% --------------------------------------------------------------------
+function help_menu_load_file_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_load_file (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+    'To Load a File:';
+    'Load in an hdf5 file by clicking the "Load HDF5" button on the left side of the screen. Choose the hdf5 file of interest. A "Loading..." message will appear below the Load button. Once loading completes, the name of the file will appear where the "Loading..." message previously was.';
+    '';
+},'Help')
+
+% --------------------------------------------------------------------
+function help_menu_display_data_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_display_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+    'To Display Data in the File:';
+    'To display data from one of the variables, click the variable name in the white box. Twenty minutes of data will display on the screen.'; 
+    '';
+},'Help')
+
+% --------------------------------------------------------------------
+function help_menu_display_multiple_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_display_multiple (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+    'To Display Multiple Datasets at Once:';
+    '- To display multiple variables at once, with each on its own plot, select multiple variables in the left menu by using the SHIFT or CTRL keys.';
+    '- To overlay multiple variables on the same plot, click the "Overlay" checkbox at the bottom of the screen, then select (using the SHIFT or CTRL keys) the different variables you want to overlay.';
+    '';
+},'Help')
+
+% --------------------------------------------------------------------
+function help_menu_browse_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_browse (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+    'To Browse Through the Data:';
+    'To browse through the data, click the buttons at the bottom of the screen to move through the file. To zoom in on the data, click and drag a box around the desired portion of the image you want to zoom in on, or use the mouse scroll wheel.';
+    '';
+},'Help')
+
+% --------------------------------------------------------------------
+function help_menu_run_algs_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_run_algs (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+    'To Run Algorithms';
+    '- Select the Tagged Events Tab';
+    '- Click the Run Tagging Algorithms Button';
+    '- Wait until the white listboxes on that page populate';
+    '';
+},'Help')
+
+% --------------------------------------------------------------------
+function help_menu_alg_results_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_alg_results (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+    'To Look at Algorithm Results';
+    '- Select the Tagged Events Tab';
+    '- Select in the top box what category of events you want to look at';
+    '- The tagged events should populate in the lower white box';
+    '- You can click on one of these tagged events to show the event in the viewer';
+    '- If you want to see details about the tag, go back to the Main tab. Then you should see the result names pop up in the bottom of the list. Some algorithms such as QRS detection and Data Available do not create plottable results, so you will not see an entry in the list for them. You can highlight the name of the tag to plot it along with the other signals you want to plot.';
+    '';
+},'Help')
+
+% --------------------------------------------------------------------
+function help_menu_custom_tags_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_custom_tags (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+    'To Custom Tag Events:';
+    '- Go to the Tagged Events Tab';
+    '- Enter a custom tag name in the small white box';
+    '- Click the Start Tag Button';
+    '- Click and drag in the figure window to highlight a portion of the data';
+    '- Hit the Accept Tag button';
+    '- The tag should show up in the large white boxes above';
+    '- The tag should also show up in the Main Tab under the list of signals';
+    '- You can tag multiple instances within the file with the same name and they will all be conglomerated under a single tag category with separate tags';
+    '- When you are finished adding tags, hit the Save All Custom Tags Button';
+    '';
+},'Help')
+
+% --------------------------------------------------------------------
+function help_menu_sparse_timestamps_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_sparse_timestamps (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+    'If the timestamps become sparse on the x-axis:';
+    '- If the x-axis timestamps become very sparse, hit the Update button to increase the number of points displayed.';
+    '';
+},'Help')
+
+% --------------------------------------------------------------------
+function help_menu_about_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu_about (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox({
+'HDF5Viewer v2.7';
+'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
+'';
+},'Help')
