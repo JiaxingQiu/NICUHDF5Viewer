@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 08-Mar-2019 13:34:02
+% Last Modified by GUIDE v2.5 08-Mar-2019 15:59:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -404,9 +404,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in pushbutton1: LOAD HDF5.
-function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
+% --- Executes on button press in loadhdf5button: LOAD HDF5.
+function loadhdf5button_Callback(hObject, eventdata, handles)
+% hObject    handle to loadhdf5button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [handles.filename, handles.pathname] = uigetfile({'*.hdf5';'*.mat'}, 'Select an hdf5 file');
@@ -678,6 +678,22 @@ function back_hour_Callback(hObject, eventdata, handles)
 scrolldata(hObject,eventdata,handles,-60)
 
 
+% --- Executes on button press in back_window.
+function back_window_Callback(hObject, eventdata, handles)
+% hObject    handle to back_window (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scrolldata(hObject,eventdata,handles,-handles.windowsizeuserinput)
+
+
+% --- Executes on button press in forward_window.
+function forward_window_Callback(hObject, eventdata, handles)
+% hObject    handle to forward_window (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+scrolldata(hObject,eventdata,handles,handles.windowsizeuserinput)
+
+
 % This function is called when the user selects the >, <, >>, or << buttons
 function scrolldata(hObject,eventdata,handles,jumptime_minutes)
 overwrite = 0;
@@ -771,7 +787,7 @@ if ~isempty(handles.tags)
         msgbox('Please select a signal to plot from the main tab');
         return
     end
-    if median(handles.utctime)>800000 % if the time is in UTC time (this code will work until the year 2190)
+    if handles.isutc
         if ~isempty(tagsselected.tagtable)
             starttimes = datestr(utc2localwrapper(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'))/1000,handles.timezone));
             duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
@@ -995,22 +1011,6 @@ overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite)
 
 
-% --- Executes on button press in RemoveTag.
-function RemoveTag_Callback(hObject, eventdata, handles)
-% hObject    handle to RemoveTag (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-tagcategoryname = handles.TagCategoryListbox.String(handles.TagCategoryListbox.Value);
-tagnumber = handles.TagCategoryListbox.Value;
-
-[handles.rdatastruct,handles.tags] = removefromresultsfile2(tagcategoryname,tagcategorynum,tagnumber,handles.rname,handles.rdatastruct,handles.tags);
-
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
-UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
-overwrite = 1;
-plotdata(hObject, eventdata, handles, overwrite)
-
-
 function data = scaledata(hObject, eventdata, handles, namesofinterest, data)
 % hObject    handle to RemoveTag (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1078,20 +1078,6 @@ set(handles.SaveAllCustomTagsButton,'string','Save All Custom Tags','enable','on
 drawnow
 
 
-% --- Executes on button press in back_window.
-function back_window_Callback(hObject, eventdata, handles)
-% hObject    handle to back_window (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-scrolldata(hObject,eventdata,handles,-handles.windowsizeuserinput)
-
-
-% --- Executes on button press in forward_window.
-function forward_window_Callback(hObject, eventdata, handles)
-% hObject    handle to forward_window (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-scrolldata(hObject,eventdata,handles,handles.windowsizeuserinput)
 
 % --------------------------------------------------------------------
 function help_menu_top_level_Callback(hObject, eventdata, handles)
