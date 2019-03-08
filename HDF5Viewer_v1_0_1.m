@@ -511,10 +511,10 @@ else
 end
 
 % Show only the most useful signals as a default
-usefulfields = ["/VitalSigns/HR","VitalSigns/SPO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR"];
-usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
-handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
-set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
+% usefulfields = ["/VitalSigns/HR","VitalSigns/SPO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR"];
+% usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
+% handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
+set(handles.listbox_avail_signals,'string',handles.alldatasetnames);%usefuldatasetnames);
 if ~isempty(handles.tagtitles)
     set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
 else
@@ -601,30 +601,6 @@ function edit1_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes on button press in show_all_avail_fields_checkbox.
-function show_all_avail_fields_checkbox_Callback(hObject, eventdata, handles)
-% hObject    handle to show_all_avail_fields_checkbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of show_all_avail_fields_checkbox
-handles = guidata(hObject);
-set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
-if ~isfield(handles,'alldatasetnames')
-    readhdf5file(hObject,eventdata,handles);
-end
-handles = guidata(hObject);
-if get(hObject,'Value')
-    for i=1:length(handles.alldatasetnames)
-        set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
-    end
-else
-    for i=1:length(handles.usefuldatasetnames)
-        set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
-    end
 end
 
 
@@ -986,15 +962,8 @@ else
     set(handles.tagalgstextbox,'string','');
 end
 handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
-if get(handles.show_all_avail_fields_checkbox,'Value')
-    for i=1:length(handles.alldatasetnames)
-        set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
-    end
-else
-    for i=1:length(handles.usefuldatasetnames)
-        set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
-    end
-end
+set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
+
 set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
 set(handles.TagCategoryListbox,'Value',1)
 set(handles.TagListbox,'string','')
