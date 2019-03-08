@@ -142,7 +142,6 @@ contents = cellstr(get(hObject,'String'));
 if isfield(handles,'overlayon')
     if handles.overlayon
         handles.value = {contents{get(hObject,'Value')}};
-%         handles.value = get(hObject,'Value');
     else
         handles.value = {contents{get(hObject,'Value')}};
     end
@@ -182,29 +181,6 @@ for s=1:numsigs
                 isSIQ = 1;
             end
             try
-                try
-                    handles.fs = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Frequency (Hz)'));
-                catch
-                    rps = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Readings Per Sample'));
-                    samp_pd = double(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Sample Period (ms)'))/1000;
-                    handles.fs = rps/samp_pd;
-    %                 if strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Source Reader'),'TDMS')
-    %                     info = h5info(fullfile(handles.pathname, handles.filename),[varname '/data']);
-    %                     datasize = info.Datasets.Dataspace.Size(2);
-    %                     info = h5info(fullfile(handles.pathname, handles.filename),[varname '/time']);
-    %                     timesize = info.Datasets.Dataspace.Size(2);
-    %                     handles.fs = round(datasize/timesize);
-    %                 end
-                end
-            catch
-                handles.fs = 1;
-            end
-            try
-                handles.unitofmeasure = cellstr(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Unit of Measure'));
-            catch
-                handles.unitofmeasure = "Unit of measure not recorded";
-            end
-            try
                 handles.layoutversion = h5readatt(fullfile(handles.pathname, handles.filename),'/','Layout Version');
             catch
                 handles.layoutversion = "Doug's Layout";
@@ -225,15 +201,8 @@ for s=1:numsigs
                     handles.scale = 10^handles.scale;
                 end
             end
-            % For Philips IX monitors, the waveform sampling frequency is listed as either 4,8, or 16, but it should be 256.
-            if handles.fs <=16
-                if contains(varname,'Waveform')
-                    handles.fs = 256;
-                end
-            end
+
         else
-            handles.fs = 1; % For WUSTL at least, I am just hard-coding this
-            handles.unitofmeasure = handles.vuom(s);
             handles.scale = 1;
         end
     else % We are plotting a results file
@@ -268,8 +237,7 @@ for s=1:numsigs
             ylim([ylimmin ylimmax]);
         end
     end
-    % Clear the axes unless Overlay Checkbox is checked or unless we are
-    % not on overwrite
+    % Clear the axes unless Overlay Checkbox is checked or unless we are not on overwrite
     if isfield(handles,'overlayon')
         if ~handles.overlayon && overwrite
             cla;
@@ -331,8 +299,6 @@ for s=1:numsigs
         handles.utctime = handles.rt(handles.startindexr:handles.endindexr);
     end
     handles.sig(handles.sig==-32768) = nan;
-%     handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),varname,'Timezone'),'UTC');
-%     handles.isutc = handles.isutc && median(handles.utctime)>800000; % if the time is in UTC time (this code will work until the year 2190) as opposed to localtime, this will catch the localtime that WUSTL's format uses
     if handles.isutc
         handles.localtime = utc2localwrapper(handles.utctime/1000,handles.timezone);
         set(handles.DayTextBox,'string','');
@@ -351,10 +317,8 @@ for s=1:numsigs
         handles.plothandleI(s).I = I;
         ylabel({'No data for time period:'; strrep(varname,'_',' ')});
     else
-%         handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I)/handles.scale,plotcolor);
         handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I),plotcolor);
         handles.plothandleI(s).I = I;
-%         handles.plothandle(s) = plot(handles.localtime,handles.sig,plotcolor);
         ylabel(strrep(varname,'_',' '));
     end
     if ~isdeployed
@@ -362,7 +326,7 @@ for s=1:numsigs
     end
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
-    if handles.isutc % if the time is in UTC time (this code will work until the year 2190), convert to local time
+    if handles.isutc
         xlim([utc2localwrapper(handles.windowstarttime/1000,handles.timezone) utc2localwrapper(handles.windowendtime/1000,handles.timezone)])
     else
         xlim([handles.windowstarttime handles.windowendtime])
@@ -451,16 +415,12 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 [handles.filename, handles.pathname] = uigetfile({'*.hdf5';'*.mat'}, 'Select an hdf5 file');
 if isequal(handles.filename,0)
-   disp('User selected Cancel')
-   set(handles.loadedfile,'string','No file selected');
+	disp('User selected Cancel')
+	set(handles.loadedfile,'string','No file selected');
 else
-   disp(['User selected ', fullfile(handles.pathname, handles.filename)])
-   handles.nomorefiles = 0;
-%    try
-       loaddata(hObject, eventdata, handles);
-%    catch
-%        handles.loadedfile.String = "Data loading failed";
-%    end
+    disp(['User selected ', fullfile(handles.pathname, handles.filename)])
+	handles.nomorefiles = 0;
+    loaddata(hObject, eventdata, handles);
 end
 
 
@@ -471,130 +431,111 @@ set(handles.loadedfile,'string','Loading...');
 handles.tagalgstextbox.String = "";
 waitfor(handles.loadedfile,'string','Loading...');
 handles.nextfiledisplay.String = '';
-% try
-    % Remove startindex field from previous file
-    if isfield(handles,'startindex')
-        handles = rmfield(handles,'startindex');
-        handles = rmfield(handles,'windowstarttime');
+
+% Remove startindex field from previous file
+if isfield(handles,'startindex')
+    handles = rmfield(handles,'startindex');
+    handles = rmfield(handles,'windowstarttime');
+end
+
+% Remove plots from previous signal
+if isfield(handles,'h')
+    for i=1:length(handles.h)
+        cla(handles.h(i))
     end
-    % Remove plots from previous signal
-    if isfield(handles,'h')
-        for i=1:length(handles.h)
-            cla(handles.h(i))
-        end
+end
+
+% Load data from HDF5 File
+corrupt = 0;
+handles.ishdf5 = 1;
+try
+    set(handles.loadedfile,'string','Loading Vital Signs...');
+    waitfor(handles.loadedfile,'string','Loading Vital Signs...');
+    [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
+    try
+        handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+    catch
+        handles.isutc = 0;
     end
-    % Load data from HDF5 File
+    try
+        handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
+        handles.timezone = handles.timezone{1}; % switch cell array to string
+    catch
+        handles.timezone = '';
+        handles.loadedfile.String = "Time zone not specified. Using ET.";
+    end
+    handles.vdata = scaledata(hObject, eventdata, handles, handles.vname, handles.vdata);
+catch
+    handles.loadedfile.String = "Vitals could not load.";
+    corrupt = 1;
+end
+try
+    set(handles.loadedfile,'string','Loading Waveforms...');
+    waitfor(handles.loadedfile,'string','Loading Waveforms...');
+    [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
+    try
+        handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+    catch
+        handles.isutc = 0;
+    end
+    try
+        handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
+        handles.timezone = handles.timezone{1}; % switch cell array to string
+    catch
+        handles.timezone = '';
+        handles.loadedfile.String = "Time zone not specified. Using ET.";
+    end
+    handles.wdata = scaledata(hObject, eventdata, handles, handles.wname, handles.wdata);
+catch
+    handles.wdata = [];
+    handles.wname = [];
+    handles.wt = [];
+    handles.loadedfile.String = "Waveforms could not load.";
     corrupt = 0;
-%     if contains(handles.filename,'.hdf5')
-        handles.ishdf5 = 1;
-        try
-            set(handles.loadedfile,'string','Loading Vital Signs...');
-            waitfor(handles.loadedfile,'string','Loading Vital Signs...');
-            [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
-            try
-                handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
-            catch
-                handles.isutc = 0;
-            end
-%             if ~handles.isutc
-%                 handles.vt = datenum(duration(0,0,0,handles.vt));
-%             end
-            try
-                handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
-                handles.timezone = handles.timezone{1}; % switch cell array to string
-            catch
-                handles.timezone = '';
-                handles.loadedfile.String = "Time zone not specified. Using ET.";
-            end
-            handles.vdata = scaledata(hObject, eventdata, handles, handles.vname, handles.vdata);
-        catch
-            handles.loadedfile.String = "Vitals could not load.";
-            corrupt = 1;
-        end
-        try
-            set(handles.loadedfile,'string','Loading Waveforms...');
-            waitfor(handles.loadedfile,'string','Loading Waveforms...');
-            [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
-            try
-                handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
-            catch
-                handles.isutc = 0;
-            end
-%             if ~handles.isutc
-%                 handles.wt = datenum(duration(0,0,0,handles.wt));
-%             end
-            try
-                handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
-                handles.timezone = handles.timezone{1}; % switch cell array to string
-            catch
-                handles.timezone = '';
-                handles.loadedfile.String = "Time zone not specified. Using ET.";
-            end
-            handles.wdata = scaledata(hObject, eventdata, handles, handles.wname, handles.wdata);
-        catch
-            handles.wdata = [];
-            handles.wname = [];
-            handles.wt = [];
-            handles.loadedfile.String = "Waveforms could not load.";
-            corrupt = 0;
-        end
-%     else % Load data from WashU
-%         handles.ishdf5 = 0;
-%         try
-%             load(fullfile(handles.pathname, handles.filename),'values','vlabel','vt','vuom')
-%             handles.vuom = vuom;
-%             [handles.vdata,handles.vname,handles.vt]=getWUSTLvital2(values,vt,vlabel);
-%         catch
-%             handles.loadedfile.String = ".mat file could not load";
-%             corrupt = 1;
-%         end
-%         handles.wdata = [];
-%         handles.wname = [];
-%         handles.wt = [];
-%     end
-    set(handles.loadedfile,'string','Loading Results...');
-    waitfor(handles.loadedfile,'string','Loading Results...');
-    % The results file time stamps have already been converted to the appropriate time zone
-    [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
-    if ~isempty(handles.rdata)
-        if isstring(handles.rdata) % an old results file is associated with this file type
-            handles.rdata = [];
-            corrupt = 2;
-        end
+end
+set(handles.loadedfile,'string','Loading Results...');
+waitfor(handles.loadedfile,'string','Loading Results...');
+
+% The results file time stamps have already been converted to the appropriate time zone
+[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
+if ~isempty(handles.rdata)
+    if isstring(handles.rdata) % an old results file is associated with this file type
+        handles.rdata = [];
+        corrupt = 2;
     end
-    if isempty(handles.rname)
-        handles.alldatasetnames = vertcat(handles.vname,handles.wname);
-    else
-        handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
-    end
-    % Show only the most useful signals as a default
-    usefulfields = ["/VitalSigns/HR","VitalSigns/SPO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR"];
-    usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
-    handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
-    set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
-    if ~isempty(handles.tagtitles)
-        set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
-    else
-        set(handles.TagCategoryListbox,'string','');
-    end
-    set(handles.TagCategoryListbox,'Value',1);
-    
-    set(handles.TagListbox,'string','')
-    if corrupt == 1
-        handles.loadedfile.String = [fullfile(handles.filename) " WARNING: File may be corrupt!!!"]; % Show the name of the loaded file
-    elseif corrupt == 2
-        handles.loadedfile.String = 'URGENT: Delete old result file before continuing';
-    else
-        handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
-    end
-% catch e
-%     handles.loadedfile.String = e.message;
-% end
+end
+if isempty(handles.rname)
+    handles.alldatasetnames = vertcat(handles.vname,handles.wname);
+else
+    handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
+end
+
+% Show only the most useful signals as a default
+usefulfields = ["/VitalSigns/HR","VitalSigns/SPO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR"];
+usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
+handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
+set(handles.listbox_avail_signals,'string',handles.usefuldatasetnames);
+if ~isempty(handles.tagtitles)
+    set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
+else
+    set(handles.TagCategoryListbox,'string','');
+end
+set(handles.TagCategoryListbox,'Value',1);
+
+set(handles.TagListbox,'string','')
+if corrupt == 1
+    handles.loadedfile.String = [fullfile(handles.filename) " WARNING: File may be corrupt!!!"]; % Show the name of the loaded file
+elseif corrupt == 2
+    handles.loadedfile.String = 'URGENT: Delete old result file before continuing';
+else
+    handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
+end
 
 set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
 set(handles.overlay_checkbox,'value',0); % Uncheck the overlay checkbox
 set(handles.show_all_avail_fields_checkbox,'value',0);
 handles.overlayon = 0;
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -608,13 +549,6 @@ zoom off
 brush on
 fighandle = gcf;
 bO = brush(fighandle);
-% set(bO,'Enable','on');
-% set(bO,'ActionPostCallback',@GetSelectedData);
-% 
-% function GetSelectedData
-% hB = findobj(gcf,'-property','BrushData');
-% data = get(hB,'BrushData');
-% brushObj = hB(find(cellfun(@(x) sum(x),data)))
 
 
 % --- Executes on selection change in AlgorithmSelectorPopUpMenu.
@@ -628,6 +562,7 @@ function AlgorithmSelectorPopUpMenu_Callback(hObject, eventdata, handles)
 
 contents = cellstr(get(hObject,'String')); %returns popupmenu1 contents as cell array
 handles.algchoice = contents{get(hObject,'Value')}; % returns selected item from popupmenu1
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -665,6 +600,7 @@ linkaxes(handles.h,'x')
 % Update handles structure
 guidata(hObject, handles);
 
+
 function callFFT(hObject,eventdata,handles)
 [f,P1] = plotAmandafft(handles.sig,handles.utctime);
 handles.h(1) = subplot(2,1,1,'Parent',handles.PlotPanel); 
@@ -674,6 +610,7 @@ zoomAdaptiveDateTicks('off')
 title('Single-Sided Amplitude Spectrum of X(t)')
 xlabel('f (Hz)')
 ylabel('|P1(f)|')
+
 
 % --- Executes during object creation, after setting all properties.
 function AlgorithmSelectorPopUpMenu_CreateFcn(hObject, eventdata, handles)
@@ -722,7 +659,6 @@ function show_all_avail_fields_checkbox_Callback(hObject, eventdata, handles)
 handles = guidata(hObject);
 set(handles.listbox_avail_signals, 'Value', []); % This removes the selection highlighting from the listbox (this is important in case, for example, you have selected item 8 and then you load another file with only 5 items)
 if ~isfield(handles,'alldatasetnames')
-%     findtimegroupanddatasetnames(hObject, eventdata, handles);
     readhdf5file(hObject,eventdata,handles);
 end
 handles = guidata(hObject);
@@ -851,25 +787,12 @@ end
 if isfield(handles,'startindexr')
     [~,handles.startindexr] = min(abs(handles.rt-handles.windowstarttime));
 end
-% if handles.dataindex<=length(handles.vname) % Vital Signs
-%     [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
-% elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
-%     [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
-% else % Results
-%     [~,handles.startindex] = min(abs(handles.rt-handles.windowstarttime));
-% end
+
 plotdata(hObject, eventdata, handles, overwrite)
 
 function jumpintodata(hObject,eventdata,handles,userselectedstart)
 overwrite = 0;
 handles.windowstarttime = userselectedstart;
-% if handles.dataindex<=length(handles.vname) % Vital Signs
-%     [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
-% elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
-%     [~,handles.startindex] = min(abs(handles.wt-handles.windowstarttime));
-% else % Results
-%     [~,handles.startindex] = min(abs(handles.rt-handles.windowstarttime));
-% end
 if isfield(handles,'startindexw')
     [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
 end
@@ -888,6 +811,7 @@ function forward_hour_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 scrolldata(hObject,eventdata,handles,60)
+
 
 % --- Executes on button press in back_hour.
 function back_hour_Callback(hObject, eventdata, handles)
@@ -1202,8 +1126,6 @@ brushedIdxWithNans(I) = brushedIdx;
 
 % Put the brushed data from the window into the context of the full dataset
 fulldataset = zeros(length(handles.vt),1);
-% [~,brushedindices] = ismember(handles.plothandle(s-1).XData,handles.vt);
-% fulldataset(brushedindices,1) = brushedIdx;
 fulldataset(handles.startindex:handles.endindex) = brushedIdxWithNans;
 
 % Turn this into tags
