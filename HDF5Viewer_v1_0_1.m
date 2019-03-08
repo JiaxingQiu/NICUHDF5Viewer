@@ -504,17 +504,14 @@ if ~isempty(handles.rdata)
         corrupt = 2;
     end
 end
+
 if isempty(handles.rname)
     handles.alldatasetnames = vertcat(handles.vname,handles.wname);
 else
     handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
 end
+set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
 
-% Show only the most useful signals as a default
-% usefulfields = ["/VitalSigns/HR","VitalSigns/SPO2","SPO2-R","Waveforms/I","Waveforms/II","Waveforms/III","Waveforms/RR"];
-% usefulfieldindices = contains(string(handles.alldatasetnames),usefulfields);
-% handles.usefuldatasetnames = handles.alldatasetnames(usefulfieldindices);
-set(handles.listbox_avail_signals,'string',handles.alldatasetnames);%usefuldatasetnames);
 if ~isempty(handles.tagtitles)
     set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
 else
@@ -549,37 +546,6 @@ zoom off
 brush on
 fighandle = gcf;
 bO = brush(fighandle);
-
-
-% --- Executes on selection change in AlgorithmSelectorPopUpMenu.
-function AlgorithmSelectorPopUpMenu_Callback(hObject, eventdata, handles)
-% hObject    handle to AlgorithmSelectorPopUpMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns AlgorithmSelectorPopUpMenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from AlgorithmSelectorPopUpMenu
-
-contents = cellstr(get(hObject,'String')); %returns popupmenu1 contents as cell array
-handles.algchoice = contents{get(hObject,'Value')}; % returns selected item from popupmenu1
-
-% Update handles structure
-guidata(hObject, handles);
-
-
-% --- Executes during object creation, after setting all properties.
-function AlgorithmSelectorPopUpMenu_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to AlgorithmSelectorPopUpMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-menuoptions = {'';'QRS Detection (MUST SELECT EKG LEAD!)';'Rough Fourier Transform';'Placeholder for Algorithm'};
-set(hObject,'String',menuoptions);
 
 
 function edit1_Callback(hObject, eventdata, handles)
