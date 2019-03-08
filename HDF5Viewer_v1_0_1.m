@@ -567,51 +567,6 @@ handles.algchoice = contents{get(hObject,'Value')}; % returns selected item from
 guidata(hObject, handles);
 
 
-function callqrsdetection(hObject,eventdata,handles)
-% run QRS detection on the selected signal with the designated lead, clear
-% all current plots, and plot the results of the QRS detection in
-% comparison to the heart rate plot
-[hrt,hr,rrt,rr,ecgt,ecg,qrs] = runQRSDetection2(hObject,eventdata,handles);
-handles.h(1) = subplot(2,1,1,'Parent',handles.PlotPanel); 
-cla
-if ~isempty(hr)
-    plot(hrt,hr,'.b')
-end
-hold on
-plot(rrt,rr,'.m')
-if ~isdeployed
-    addpath('zoomAdaptiveDateTicks');
-end
-ylim auto
-zoomAdaptiveDateTicks('on')
-datetick('x',13)
-xlim([utc2localwrapper(min(ecgt)/1000,handles.timezone) utc2localwrapper(max(ecgt)/1000,handles.timezone)])
-
-handles.h(2) = subplot(2,1,2,'Parent',handles.PlotPanel);
-[ecgt_local,~,~] = utc2localwrapper(ecgt/1000,handles.timezone);
-plot(ecgt_local,ecg,'k');
-hold on
-ylim auto
-zoomAdaptiveDateTicks('on')
-datetick('x',13)
-plot(ecgt_local(qrs),ecg(qrs),'*')
-xlim([utc2localwrapper(min(ecgt)/1000,handles.timezone) utc2localwrapper(max(ecgt)/1000,handles.timezone)])
-linkaxes(handles.h,'x')
-% Update handles structure
-guidata(hObject, handles);
-
-
-function callFFT(hObject,eventdata,handles)
-[f,P1] = plotAmandafft(handles.sig,handles.utctime);
-handles.h(1) = subplot(2,1,1,'Parent',handles.PlotPanel); 
-cla
-plot(f,P1) 
-zoomAdaptiveDateTicks('off')
-title('Single-Sided Amplitude Spectrum of X(t)')
-xlabel('f (Hz)')
-ylabel('|P1(f)|')
-
-
 % --- Executes during object creation, after setting all properties.
 function AlgorithmSelectorPopUpMenu_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to AlgorithmSelectorPopUpMenu (see GCBO)
@@ -790,6 +745,7 @@ end
 
 plotdata(hObject, eventdata, handles, overwrite)
 
+
 function jumpintodata(hObject,eventdata,handles,userselectedstart)
 overwrite = 0;
 handles.windowstarttime = userselectedstart;
@@ -819,25 +775,6 @@ function back_hour_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 scrolldata(hObject,eventdata,handles,-60)
-
-
-% --- Executes on button press in RunAlgorithmButton.
-function RunAlgorithmButton_Callback(hObject, eventdata, handles)
-% hObject    handle to RunAlgorithmButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-if strcmp(handles.algchoice,'QRS Detection (MUST SELECT EKG LEAD!)')
-    if ~isdeployed
-        addpath('QRSDetection');
-    end
-    callqrsdetection(hObject,eventdata,handles);
-end
-if strcmp(handles.algchoice,'Rough Fourier Transform')
-    if ~isdeployed
-        addpath('FFT');
-    end
-    callFFT(hObject,eventdata,handles);
-end
 
 
 % --------------------------------------------------------------------
@@ -1197,7 +1134,6 @@ tagnumber = handles.TagCategoryListbox.Value;
 
 [handles.rdatastruct,handles.tags] = removefromresultsfile2(tagcategoryname,tagcategorynum,tagnumber,handles.rname,handles.rdatastruct,handles.tags);
 
-% removefromresultsfile2(fullfile(handles.pathname, handles.filename),handles.TagCategoryListbox.String(handles.TagCategoryListbox.Value),handles.TagCategoryListbox.Value,handles.tagchosen);
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
 UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 overwrite = 1;
@@ -1277,6 +1213,7 @@ function back_window_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 scrolldata(hObject,eventdata,handles,-handles.windowsizeuserinput)
+
 
 % --- Executes on button press in forward_window.
 function forward_window_Callback(hObject, eventdata, handles)
