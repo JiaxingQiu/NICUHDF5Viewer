@@ -1,12 +1,10 @@
-function [data,name,info]=getfiledata(info,name,alldata,rawflag)
+function [data,name,info]=getfiledata(info,name,alldata)
 %function [data,info,name]=getdata(file,name)
 %
 %info       structure with file name and all dataset attributes/names
 %           or just file name to retrieve data from
 %name       name of datasets to retrieve (empty=default => all) 
 %alldata    dataset structure with all data if previously retrieved
-%rawflag    flag to get raw data in original type (e.g. short)
-%           default=0/false => get double precision and scale
 %
 %data       dataset structure with requested data, time stamps and attributes
 %name       name of datasets
@@ -14,8 +12,6 @@ function [data,name,info]=getfiledata(info,name,alldata,rawflag)
 
 if ~exist('name','var'),name=cell(0,1);end
 if ~exist('alldata','var'),alldata=[];end
-if ~exist('rawflag','var'),rawflag=0;end
-rawflag=rawflag>0;
 
 if ischar(name),name={name};end
 
@@ -70,21 +66,24 @@ end
 
 n=length(data);    
 
+%Add raw and data fields if not present
+
+% if ~isfield(data,'x')
+%     for i=1:n
+%         data(i).x=[];
+%     end
+% end
+% if ~isfield(data,'raw')
+%     for i=1:n
+%         data(i).raw=NaN;
+%     end
+% end
+
 %See if new data needed or data needs to be scaled
 
 if ~newdata    
     for i=1:n
-        x=[];
-        if ~isfield(data,'x')
-            x=data(i).x;
-        end
-        if ~isempty(x)
-            raw=NaN;
-            if isfield(data,'raw')
-                raw=data(i).raw;
-            end
-            if raw==rawflag,continue,end
-        end
+        if ~isempty(data(i).x),continue,end
         newdata=true;
         break
     end
@@ -101,13 +100,7 @@ end
 %Read in requested data from HDF5 file if doesn't exist
 n=length(data);    
 for i=1:n
-    x=[];
-    if ~isfield(data,'x')
-        x=data(i).x;
-    end
-    if ~isfield(data,'raw')
-        data(i).raw=true;
-    end    
+    x=data(i).x;
 %Convert to row vector if necessary    
     if isempty(x)
         try
@@ -122,21 +115,21 @@ for i=1:n
         data(i).x=x;
     end
     x=data(i).x;
-    if ~rawflag&&data(i).raw
-        x=double(x);
-        scale=data(i).scale;
-        if ~isnan(scale)        
-            x=x/double(scale);
-        end
-        offset=data(i).offset;
-        if ~isnan(offset)
-            x=x-double(offset);
-        end
-        data(i).raw=false;
-        data(i).x=x;
-    end
     nx=length(x);
-    data(i).nx=nx;    
+    data(i).nx=nx;
+%     if rawflag,continue,end    
+%     if data(i).raw==0,continue,end
+%     x=double(x);
+%     scale=data(i).scale;
+%     if ~isnan(scale)        
+%         x=x/double(scale);
+%     end
+%     offset=data(i).offset;
+%     if ~isnan(offset)
+%         x=x-double(offset);
+%     end
+%     data(i).raw=false;
+%     data(i).x=x;
 end
 
 end

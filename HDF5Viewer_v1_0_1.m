@@ -108,28 +108,6 @@ function varargout = HDF5Viewer_v1_0_1_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% function edit1_Callback(hObject, eventdata, handles) % This keeps the background of the GUI from showing a figure
-% % hObject    handle to edit1 (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % handles    structure with handles and user data (see GUIDATA)
-% 
-% % Hints: get(hObject,'String') returns contents of edit1 as text
-% %        str2double(get(hObject,'String')) returns contents of edit1 as a double
-% 
-% 
-% % --- Executes during object creation, after setting all properties.
-% function edit1_CreateFcn(hObject, eventdata, handles)  % This keeps the background of the GUI from showing a figure
-% % hObject    handle to edit1 (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % handles    empty - handles not created until after all CreateFcns called
-% 
-% % Hint: edit controls usually have a white background on Windows.
-% %       See ISPC and COMPUTER.
-% if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-%     set(hObject,'BackgroundColor','white');
-% end
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN CODE %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -182,54 +160,7 @@ end
 
 % Load data from HDF5 File
 corrupt = 0;
-% try
-%     % Set the text below the Load HDF5 button to indicate that the vital signs are loading
-%     set(handles.loadedfile,'string','Loading Vital Signs...');
-%     waitfor(handles.loadedfile,'string','Loading Vital Signs...');
-%     [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
-%     try
-%         handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
-%     catch
-%         handles.isutc = 0;
-%     end
-%     try
-%         handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
-%         handles.timezone = handles.timezone{1}; % switch cell array to string
-%     catch
-%         handles.timezone = '';
-%         handles.loadedfile.String = "Time zone not specified. Using ET.";
-%     end
-%     handles.vdata = scaledata(hObject, eventdata, handles, handles.vname, handles.vdata);
-% catch
-%     handles.loadedfile.String = "Vitals could not load.";
-%     corrupt = 1;
-% end
-% try
-%     % Set the text below the Load HDF5 button to indicate that the Waveforms are loading
-%     set(handles.loadedfile,'string','Loading Waveforms...');
-%     waitfor(handles.loadedfile,'string','Loading Waveforms...');
-%     [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
-%     try
-%         handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
-%     catch
-%         handles.isutc = 0;
-%     end
-%     try
-%         handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
-%         handles.timezone = handles.timezone{1}; % switch cell array to string
-%     catch
-%         handles.timezone = '';
-%         handles.loadedfile.String = "Time zone not specified. Using ET.";
-%     end
-%     handles.wdata = scaledata(hObject, eventdata, handles, handles.wname, handles.wdata);
-% catch
-%     handles.wdata = [];
-%     handles.wname = [];
-%     handles.wt = [];
-%     handles.loadedfile.String = "Waveforms could not load.";
-%     corrupt = 0;
-% end
-% 
+
 % Set the text below the Load HDF5 button to indicate that the results are loading
 set(handles.loadedfile,'string','Loading Results...');
 waitfor(handles.loadedfile,'string','Loading Results...');
@@ -290,15 +221,7 @@ function listbox_avail_signals_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns listbox_avail_signals contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listbox_avail_signals
 contents = cellstr(get(hObject,'String'));
-if isfield(handles,'overlayon')
-    if handles.overlayon
-        handles.value = {contents{get(hObject,'Value')}};
-    else
-        handles.value = {contents{get(hObject,'Value')}};
-    end
-else
-    handles.value = {contents{get(hObject,'Value')}};
-end
+handles.value = {contents{get(hObject,'Value')}};
 overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite);
 
@@ -340,9 +263,9 @@ for s=1:numsigs
     if handles.dataindex<=length(handles.info.name) % Determine if we are plotting a results file - here we are not plotting a results file
         [data,~,~]=getfiledata(handles.info,varname);
         if handles.tstampchoice==1 % Time to Event
-            [handles.vdata,handles.vname,handles.vt]=formatdata(data,handles.info,1,0);
+            [handles.vdata,handles.vt,handles.vname]=formatdata(data,handles.info,1,0);
         elseif handles.tstampchoice==2 % Local Date
-            [handles.vdata,handles.vname,handles.vt]=formatdata(data,handles.info,3,0);
+            [handles.vdata,handles.vt,handles.vname]=formatdata(data,handles.info,3,0);
         end
         handles.vdataindex = find(ismember(handles.vname,varname));
     else

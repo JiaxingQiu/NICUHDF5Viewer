@@ -15,6 +15,22 @@ info.name=name;
 
 %Find fixed names for all all datasets
 info.fixedname=fixedname(name);
+n=length(name);
+
+%Create data structure shell
+data=[];
+for i=1:n    
+    data(i,:).name=name{i};
+    data(i).fixedname=info.fixedname{i};    
+    data(i).x=[];
+    data(i).nx=0;
+    data(i).fs=[];    
+    data(i).raw=true;    
+    data(i).t=[];
+    data(i).nt=0;    
+    data(i).index=[];   
+    data(i).T=NaN;
+end
 
 %Timestamps and sample period assumed in ms for now
 timeunit='ms';
@@ -63,12 +79,11 @@ if isutc
 end
 
 %Get timestamps for all datasets and correct global times
-
-[data,t,T]=geth5time(file,name,T);
+[data,t,T]=geth5time(file,data,T);
 
 info.originaltimes=t(:,2);
 t=t(:,1);
-local=t;
+local=[];
 if isutc
     if isnan(dayzero)
         utczero=double(startutc/tunit);
@@ -78,10 +93,12 @@ if isutc
     d=utc2local(t/tunit)-dayzero;
     t=t-utczero;    
     local=round(86400*tunit*d);
-end    
-if isnan(dayzero)
-    dayzero=0;
+    if local==t
+        local=[];
+    end
 end
+
+if isnan(dayzero),dayzero=0;end
 info.dayzero=dayzero;
 info.utczero=utczero;
 info.times=t;
@@ -132,10 +149,12 @@ try
     source=h5readatt(file,'/','Source Reader');
 end
 
+hours=(stoputc-startutc)/(3600*tunit);
 info.startutc=startutc;
 info.stoputc=stoputc;
 info.start=start;
 info.stop=stop;
+info.hours=hours;
 info.layout=layout;
 info.source=source;
 
@@ -147,6 +166,7 @@ for i=1:n
     
 %Set default values    
     x=[];
+    raw=true;
     fs=[];
     block=[];
     xsize=[0 0];
@@ -182,10 +202,11 @@ for i=1:n
     
     [scale,offset]=scalefactor(file,dataset,layout);
     
-    data(i).xsize=xsize;        
+%    data(i).xsize=xsize;        
     data(i).x=x;    
     data(i).nx=nx;
-    data(i).fs=fs;
+    data(i).raw=raw;
+    data(i).fs=fs;    
     data(i).block=block;
     data(i).scale=scale;
     data(i).offset=offset;    
@@ -291,7 +312,7 @@ if ~isfield(info,'Datasets'),return,end
 Datasets=info.Datasets;
 if isfield(Datasets,'Name')
     n=0;
-    for i=1:length(Datasets);
+    for i=1:length(Datasets)
         Name=Datasets(i).Name;
         if isempty(Name),continue,end
         Name=[group,'/',Name];        

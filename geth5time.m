@@ -1,8 +1,8 @@
-function [data,t,T]=geth5time(file,name,T)
+function [data,t,T]=geth5time(file,data,T)
 %function [data,t,T]=geth5time(file,name,T)
 %
 %file       hdf5 file
-%name       name of datasets
+%data       srtucture with name of datasets
 %T          block period in milliseconds
 %
 %data       dataset structure with requested time stamps and attributes
@@ -11,18 +11,14 @@ function [data,t,T]=geth5time(file,name,T)
 
 if ~exist('T','var'),T=NaN;end
 
-data=[];
 t=zeros(0,2);
-n=length(name);
-
+n=length(data);
+name=cell(n,1);
 if n==0,return,end
 
 for i=1:n    
-    dataset=name{i};    
-    data(i,:).name=dataset;
-    data(i).x=[];
-    data(i).t=[];    
-    data(i).fs=[];
+    dataset=data(i).name;    
+    name{i}=dataset;
     
     tgroup=[dataset,'/time'];
     tsize=[0 0];
@@ -30,18 +26,17 @@ for i=1:n
         tinfo=h5info(file,tgroup);
         tsize=tinfo.Dataspace.Size;
     end
-    data(i).tsize=tsize;
-    if min(tsize)==0,continue,end
+%    data(i).tsize=tsize;
     t=[];
     try
         t=h5read(file,[dataset,'/time']);
     end
-    t = double(t);
+    t=double(t);
     if size(t,2)>size(t,1)
         t=t';
         t=t(:,1);
     end
-    nt=length(t);
+    nt=length(t);   
     data(i).t=t;
     data(i).nt=nt;
     data(i).T=T;
