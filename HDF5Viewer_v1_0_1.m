@@ -152,8 +152,8 @@ end
 [~,~,ext]=fileparts(fullfile(handles.pathname, handles.filename));
 handles.ishdf5=strcmp(ext,'.hdf5');
 
-if handles.ishdf5
-%Get timestamps,names and attributes for all signals    
+%Get timestamps, names and attributes for all signals
+if handles.ishdf5  
     set(handles.loadedfile,'string','Loading File Info...');
 	handles.info=geth5info(fullfile(handles.pathname, handles.filename));
 end
@@ -181,7 +181,6 @@ else
     handles.alldatasetnames = vertcat(handles.info.name,handles.rname(:,1));
 end
 set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
-
 
 % Populate the Tag Category listbox with the tag categories, if they exist
 if ~isempty(handles.tagtitles)
@@ -268,37 +267,39 @@ for s=1:numsigs
             [handles.vdata,handles.vt,handles.vname]=formatdata(data,handles.info,3,0);
         end
         handles.vdataindex = find(ismember(handles.vname,varname));
+        handles.isutc = 0;
     else
         handles.rdataindex = find(ismember(handles.rname(:,1),varname));
+        handles.isutc = strcmp(handles.info.timezone,'UTC');
     end
     
+    % Check to see if pre-defined limits exist for the signal of interest
+    [plotcolor,ylimmin,ylimmax] = customplotcolors(varname);
     
+    % Set up the figure window where the signal will be plotted
     if handles.overlayon
         handles.h(s) = subplot(handles.numplots,1,1,'Parent',handles.PlotPanel);
-        y1 = ylim;
+        if ~isnan(ylimmin)
+            ylim([ylimmin ylimmax])
+        end
         hold on
-        y2 = ylim;
         ylim auto;
-        y3 = ylim;
-        ylimmin = min([y1(1),y2(1),y3(1)]);
-        ylimmax = max([y1(2),y2(2),y3(2)]);
+        y2 = ylim;
+        ylimmin = min([ylimmin,y2(1)]);
+        ylimmax = max([ylimmax,y2(2)]);
         ylim([ylimmin ylimmax]);
     else
         handles.h(s) = subplot(numsigs,1,s,'Parent',handles.PlotPanel);
-        y1 = ylim;
-        ylim auto
+        if ~isnan(ylimmin)
+            ylim([ylimmin ylimmax])
+        end
         hold on
         if overwrite % If we overwrite==1 and overlayon==0, clear the axes
             cla;
         end
     end
     
-    [plotcolor] = customplotcolors(varname);
-    
-%     handles.isutc = strcmp(handles.info.timezone,'UTC');
-    handles.isutc = 0;
-    
-    if handles.ishdf5 && handles.isutc % UTC time
+    if handles.isutc % UTC time
         handles.windowsize = handles.windowsizeuserinput*60*1000; % 20 min in milliseconds is default
     else % Matlab local time
         handles.windowsize = handles.windowsizeuserinput*60/86400; 
@@ -355,7 +356,6 @@ for s=1:numsigs
             daytodisp = datestr(handles.windowstarttime,formatOut);
             set(handles.DayTextBox,'string',daytodisp);
         end
-        
     end
     
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
@@ -391,8 +391,10 @@ zoom on
 guidata(hObject, handles);
 
 
-function [plotcolor] = customplotcolors(varname)
+function [plotcolor,ylimmin,ylimmax] = customplotcolors(varname)
 plotcolor = 'k';
+ylimmin = nan;
+ylimmax = nan;
 
 % Get the list of all possible variable strings that go with the desired signame
 if ~isdeployed
@@ -407,7 +409,8 @@ varnamestruct = getfield(VariableNames,'HR');
 for i = 1:length(varnamestruct)
     if strcmp(varname,varnamestruct(i).Name)
         plotcolor = 'r';
-        ylim([0 250])
+        ylimmin = 0;
+        ylimmax = 250;
     end
 end
 
@@ -415,7 +418,8 @@ varnamestruct = getfield(VariableNames,'SPO2_pct');
 for i = 1:length(varnamestruct)
     if strcmp(varname,varnamestruct(i).Name)
         plotcolor = 'b';
-        ylim([0 100])
+        ylimmin = 0;
+        ylimmax = 100;
     end
 end
 
@@ -423,7 +427,8 @@ varnamestruct = getfield(VariableNames,'Pulse');
 for i = 1:length(varnamestruct)
     if strcmp(varname,varnamestruct(i).Name)
         plotcolor = 'm';
-        ylim([0 250])
+        ylimmin = 0;
+        ylimmax = 250;
     end
 end
 
@@ -436,7 +441,8 @@ end
 
 if contains(varname,'SIQ')
     plotcolor = 'k';
-    ylim([0 3])
+    ylimmin = 0;
+    ylimmax = 3;
 elseif contains(varname,'Waveforms/SPO2')
     plotcolor = 'b';
 elseif contains(varname,'Results/CUartifact')
@@ -444,7 +450,8 @@ elseif contains(varname,'Results/CUartifact')
 end
 
 if contains(varname,'Results')
-    ylim([0 1])
+    ylimmin = 0;
+    ylimmax = 1;
 end
 
 
