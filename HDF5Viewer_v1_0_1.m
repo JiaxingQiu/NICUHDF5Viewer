@@ -170,57 +170,66 @@ if isfield(handles,'h')
     end
 end
 
-% Load data from HDF5 File
-corrupt = 0;
-handles.ishdf5 = 1;
-try
-    % Set the text below the Load HDF5 button to indicate that the vital signs are loading
-    set(handles.loadedfile,'string','Loading Vital Signs...');
-    waitfor(handles.loadedfile,'string','Loading Vital Signs...');
-    [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
-    try
-        handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
-    catch
-        handles.isutc = 0;
-    end
-    try
-        handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
-        handles.timezone = handles.timezone{1}; % switch cell array to string
-    catch
-        handles.timezone = '';
-        handles.loadedfile.String = "Time zone not specified. Using ET.";
-    end
-    handles.vdata = scaledata(hObject, eventdata, handles, handles.vname, handles.vdata);
-catch
-    handles.loadedfile.String = "Vitals could not load.";
-    corrupt = 1;
-end
-try
-    % Set the text below the Load HDF5 button to indicate that the Waveforms are loading
-    set(handles.loadedfile,'string','Loading Waveforms...');
-    waitfor(handles.loadedfile,'string','Loading Waveforms...');
-    [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
-    try
-        handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
-    catch
-        handles.isutc = 0;
-    end
-    try
-        handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
-        handles.timezone = handles.timezone{1}; % switch cell array to string
-    catch
-        handles.timezone = '';
-        handles.loadedfile.String = "Time zone not specified. Using ET.";
-    end
-    handles.wdata = scaledata(hObject, eventdata, handles, handles.wname, handles.wdata);
-catch
-    handles.wdata = [];
-    handles.wname = [];
-    handles.wt = [];
-    handles.loadedfile.String = "Waveforms could not load.";
-    corrupt = 0;
+% Check the file type
+[~,~,ext]=fileparts(fullfile(handles.pathname, handles.filename));
+handles.ishdf5=strcmp(ext,'.hdf5');
+
+if handles.ishdf5
+%Get timestamps,names and attributes for all signals    
+    set(handles.loadedfile,'string','Loading File Info...');
+	handles.info=geth5info(fullfile(handles.pathname, handles.filename));
 end
 
+% Load data from HDF5 File
+corrupt = 0;
+% try
+%     % Set the text below the Load HDF5 button to indicate that the vital signs are loading
+%     set(handles.loadedfile,'string','Loading Vital Signs...');
+%     waitfor(handles.loadedfile,'string','Loading Vital Signs...');
+%     [handles.vdata,handles.vname,handles.vt,~]=gethdf5vital(fullfile(handles.pathname, handles.filename));
+%     try
+%         handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+%     catch
+%         handles.isutc = 0;
+%     end
+%     try
+%         handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
+%         handles.timezone = handles.timezone{1}; % switch cell array to string
+%     catch
+%         handles.timezone = '';
+%         handles.loadedfile.String = "Time zone not specified. Using ET.";
+%     end
+%     handles.vdata = scaledata(hObject, eventdata, handles, handles.vname, handles.vdata);
+% catch
+%     handles.loadedfile.String = "Vitals could not load.";
+%     corrupt = 1;
+% end
+% try
+%     % Set the text below the Load HDF5 button to indicate that the Waveforms are loading
+%     set(handles.loadedfile,'string','Loading Waveforms...');
+%     waitfor(handles.loadedfile,'string','Loading Waveforms...');
+%     [handles.wdata,handles.wname,handles.wt,~]=gethdf5wave(fullfile(handles.pathname, handles.filename));
+%     try
+%         handles.isutc = strcmp(h5readatt(fullfile(handles.pathname, handles.filename),'/','Timezone'),'UTC');
+%     catch
+%         handles.isutc = 0;
+%     end
+%     try
+%         handles.timezone = h5readatt(fullfile(handles.pathname, handles.filename),'/','Collection Timezone');
+%         handles.timezone = handles.timezone{1}; % switch cell array to string
+%     catch
+%         handles.timezone = '';
+%         handles.loadedfile.String = "Time zone not specified. Using ET.";
+%     end
+%     handles.wdata = scaledata(hObject, eventdata, handles, handles.wname, handles.wdata);
+% catch
+%     handles.wdata = [];
+%     handles.wname = [];
+%     handles.wt = [];
+%     handles.loadedfile.String = "Waveforms could not load.";
+%     corrupt = 0;
+% end
+% 
 % Set the text below the Load HDF5 button to indicate that the results are loading
 set(handles.loadedfile,'string','Loading Results...');
 waitfor(handles.loadedfile,'string','Loading Results...');
@@ -236,11 +245,12 @@ end
 
 % Populate the Available Signals listbox with the signal names
 if isempty(handles.rname)
-    handles.alldatasetnames = vertcat(handles.vname,handles.wname);
+    handles.alldatasetnames = handles.info.name;
 else
-    handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
+    handles.alldatasetnames = vertcat(handles.info.name,handles.rname(:,1));
 end
 set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
+
 
 % Populate the Tag Category listbox with the tag categories, if they exist
 if ~isempty(handles.tagtitles)
@@ -319,45 +329,14 @@ handles.h = zeros(handles.numplots,1);
 
 % Loop through all of the selected items in Available Signals listbox
 for s=1:numsigs
-    isSIQ = 0; % This is set to 1 if it is SIQ
     varname = handles.value{1,s}; % Find the name of the chosen signal
     handles.dataindex = find(ismember(handles.alldatasetnames,varname));
-    if handles.dataindex<=length(handles.vname)+length(handles.wname) % Determine if we are plotting a results file - here we are not plotting a results file
-        if handles.ishdf5
-            if strcmp(varname,'/VitalSigns/SIQ') % Because SIQ is not a root field, we need to get data from the corresponding signal
-                varname = '/VitalSigns/SPO2-perc'; % Get the sample frequency from the corresponding signal
-                isSIQ = 1;
-            end
-            try
-                handles.layoutversion = h5readatt(fullfile(handles.pathname, handles.filename),'/','Layout Version');
-            catch
-                handles.layoutversion = "Doug's Layout";
-            end
-            try
-                handles.scale = double(h5readatt(fullfile(handles.pathname, handles.filename),[varname '/data'],'Scale'));
-            catch
-                handles.scale = 0;
-            end
-            % For layout version 3, scale is simply a multiplicative factor for the original value. To get the real value, you divide by scale. For layout version 4.0, a real value of 1.2 is stored as 12 with a scale of 1, where scale is stored as the power of 10, so to convert from 12 back to 1.2, you need to divide by 10^scale. Later in this code, when we are actually plotting the data, we divide by scale
-            if ischar(handles.layoutversion)
-                majorversion = str2num(handles.layoutversion(1));
-                if majorversion~=3
-                    handles.scale = 10^handles.scale;
-                end
-            else
-                if str2double(handles.layoutversion{1}(1)) ~= 3 
-                    handles.scale = 10^handles.scale;
-                end
-            end
-        else
-            handles.scale = 1;
-        end
-    else % We are plotting a results file
-        handles.scale = 1;
-    end
-    
-    if isSIQ
-        varname = '/VitalSigns/SIQ';
+    if handles.dataindex<=length(handles.info.name) % Determine if we are plotting a results file - here we are not plotting a results file
+        [data,~,~]=getfiledata(handles.info,varname);
+        [handles.vdata,handles.vname,handles.vt]=formatdata(data,handles.info,2,0);
+        handles.vdataindex = find(ismember(handles.vname,varname));
+    else
+        handles.rdataindex = find(ismember(handles.rname(:,1),varname));
     end
     
     [plotcolor] = customplotcolors(varname);
@@ -382,16 +361,18 @@ for s=1:numsigs
         end
     end
     
+    handles.isutc = strcmp(handles.info.timezone,'UTC');
+    
     if handles.ishdf5 && handles.isutc % UTC time
         handles.windowsize = handles.windowsizeuserinput*60*1000; % 20 min in milliseconds is default
     else % Matlab local time
         handles.windowsize = handles.windowsizeuserinput*60/86400; 
     end
     
-    if handles.dataindex<=length(handles.vname) % Vital Signs
+    if handles.dataindex<=length(handles.info.name) % Vital Signs/Waveforms
         if ~isfield(handles,'startindex')
             handles.startindex = 1;
-            handles.startindex = find(~isnan(handles.vdata(:,handles.dataindex)),1);
+            handles.startindex = find(~isnan(handles.vdata(:,handles.vdataindex)),1);
         end
         if ~isfield(handles,'windowstarttime')
             handles.windowstarttime = handles.vt(handles.startindex);
@@ -400,28 +381,12 @@ for s=1:numsigs
         end
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
         [~,handles.endindex] = min(abs(handles.vt-handles.windowendtime));
-        handles.sig = handles.vdata(handles.startindex:handles.endindex,handles.dataindex);
+        handles.sig = handles.vdata(handles.startindex:handles.endindex,handles.vdataindex);
         handles.utctime = handles.vt(handles.startindex:handles.endindex);
-    elseif handles.dataindex<=length(handles.vname)+length(handles.wname) % Waveforms
-        if ~isfield(handles,'startindexw')
-            handles.startindexw = 1;
-            handles.startindexw = find(~isnan(handles.wdata(:,handles.dataindex-length(handles.vname))),1);
-        end
-        if ~isfield(handles,'windowstarttime')
-            handles.windowstarttime = handles.wt(handles.startindexw);
-        else
-            [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
-        end
-        [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
-        handles.windowstarttime = handles.wt(handles.startindexw);
-        handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
-        [~,handles.endindexw] = min(abs(handles.wt-handles.windowendtime));
-        handles.sig = handles.wdata(handles.startindexw:handles.endindexw,handles.dataindex-length(handles.vname));
-        handles.utctime = handles.wt(handles.startindexw:handles.endindexw);
     else % Results 
         if ~isfield(handles,'startindexr')
             handles.startindexr = 1;
-            handles.startindexr = find(~isnan(handles.rdata(:,handles.dataindex-length(handles.vname)-length(handles.wname))),1);
+            handles.startindexr = find(~isnan(handles.rdata(:,handles.rdataindex)),1);
         end
         if ~isfield(handles,'windowstarttime')
             handles.windowstarttime = handles.rt(handles.startindexr);
@@ -431,12 +396,12 @@ for s=1:numsigs
         handles.windowstarttime = handles.rt(handles.startindexr);
         handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
         [~,handles.endindexr] = min(abs(handles.rt-handles.windowendtime));
-        handles.sig = handles.rdata(handles.startindexr:handles.endindexr,handles.dataindex-length(handles.vname)-length(handles.wname));
+        handles.sig = handles.rdata(handles.startindexr:handles.endindexr,handles.rdataindex);
         handles.utctime = handles.rt(handles.startindexr:handles.endindexr);
     end
     handles.sig(handles.sig==-32768) = nan;
     if handles.isutc
-        handles.localtime = utc2localwrapper(handles.utctime/1000,handles.timezone);
+        handles.localtime = utc2localwrapper(handles.utctime/1000,handles.info.timezone);
         set(handles.DayTextBox,'string','');
     else % the time is in matlab time
         handles.localtime = handles.utctime; % WUSTL data is in datenum format already
@@ -463,7 +428,7 @@ for s=1:numsigs
     zoomAdaptiveDateTicks('on')
     datetick('x',13)
     if handles.isutc
-        xlim([utc2localwrapper(handles.windowstarttime/1000,handles.timezone) utc2localwrapper(handles.windowendtime/1000,handles.timezone)])
+        xlim([utc2localwrapper(handles.windowstarttime/1000,handles.info.timezone) utc2localwrapper(handles.windowendtime/1000,handles.info.timezone)])
     else
         xlim([handles.windowstarttime handles.windowendtime])
     end
