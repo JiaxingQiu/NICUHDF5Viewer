@@ -63,6 +63,9 @@ end
 % End initialization code - DO NOT EDIT
 
 
+%%%%%%%%%%%%%%%%%%%% BASIC GUI BACKGROUND CODE %%%%%%%%%%%%%%%%%%%%%
+
+
 % --- Executes just before HDF5Viewer_v1_0_1 is made visible.
 function HDF5Viewer_v1_0_1_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -103,6 +106,31 @@ function varargout = HDF5Viewer_v1_0_1_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+
+
+function edit1_Callback(hObject, eventdata, handles) % This keeps the background of the GUI from showing a figure
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit1 as text
+%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit1_CreateFcn(hObject, eventdata, handles)  % This keeps the background of the GUI from showing a figure
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN CODE %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % --- Executes on button press in loadhdf5button: LOAD HDF5.
@@ -547,39 +575,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in ButtonTagNewEvent.
-function ButtonTagNewEvent_Callback(hObject, eventdata, handles)
-% hObject    handle to ButtonTagNewEvent (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-zoom off
-brush on
-fighandle = gcf;
-bO = brush(fighandle);
-
-
-function edit1_Callback(hObject, eventdata, handles) % This keeps the background of the GUI from showing a figure
-% hObject    handle to edit1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit1 as text
-%        str2double(get(hObject,'String')) returns contents of edit1 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit1_CreateFcn(hObject, eventdata, handles)  % This keeps the background of the GUI from showing a figure
-% hObject    handle to edit1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
 % --- Executes on button press in nextfilebutton.
 function nextfilebutton_Callback(hObject, eventdata, handles)
 % hObject    handle to nextfilebutton (see GCBO)
@@ -909,7 +904,19 @@ if isfield(handles,'startindexr')
 end
 plotdata(hObject, eventdata, handles, overwrite)
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% CUSTOM TAGGING %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% --- Executes on button press in ButtonTagNewEvent.
+function ButtonTagNewEvent_Callback(hObject, eventdata, handles)
+% hObject    handle to ButtonTagNewEvent (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+zoom off
+brush on
+fighandle = gcf;
+bO = brush(fighandle);
 
 
 % --- Executes on button press in CustomTag.
