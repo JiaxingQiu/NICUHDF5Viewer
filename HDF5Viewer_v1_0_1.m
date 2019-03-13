@@ -239,7 +239,6 @@ plotdata(hObject, eventdata, handles, overwrite);
 
 function plotdata(hObject, eventdata, handles,overwrite)
 % value = number(s) of the signal(s) chosen in Available Signals listbox
-
 if isfield(handles,'value')
     numsigs = length(handles.value);
     set(handles.tagalgstextbox,'string','')
@@ -275,9 +274,9 @@ for s=1:numsigs
         [data,~,handles.info]=getfiledata(handles.info,varname);
         
         if handles.tstampchoice==1 % Time to Event
-            [handles.vdata,handles.t,handles.vname]=formatdata(data,handles.info,1,0);
+            [handles.vdata,~,handles.vname]=formatdata(data,handles.info,1,1);
         elseif handles.tstampchoice==2 % Local Date
-            [handles.vdata,handles.t,handles.vname]=formatdata(data,handles.info,3,0);
+            [handles.vdata,~,handles.vname]=formatdata(data,handles.info,3,1);
         end
         
         handles.datasubindex = find(ismember(handles.vname,varname));
@@ -285,9 +284,9 @@ for s=1:numsigs
     else
         if handles.tstampchoice==1 % Time to Event
             tz = handles.info.dayzero;
-            handles.t = handles.rtmaster-tz;
+            handles.vdata.t = handles.rtmaster-tz;
         elseif handles.tstampchoice==2 % Local Date
-            handles.t = handles.rtmaster;
+            handles.vdata.t = handles.rtmaster;
         end
         handles.datasubindex = find(ismember(handles.rname(:,1),varname));
         handles.isutc = 0;
@@ -343,16 +342,16 @@ for s=1:numsigs
     handles.windowendtime = handles.windowstarttime+handles.windowsize;
     
     % Find start and end indices for signal
-    [~,handles.startindex(s,1)] = min(abs(handles.t-handles.windowstarttime));
-    [~,handles.endindex(s,1)] = min(abs(handles.t-handles.windowendtime));
+    [~,handles.startindex(s,1)] = min(abs(handles.vdata.t-handles.windowstarttime));
+    [~,handles.endindex(s,1)] = min(abs(handles.vdata.t-handles.windowendtime));
     
     % Pull the data and timestamps we want to plot
     if handles.dataindex<=length(handles.info.name) % Vital Signs/Waveforms
-        handles.sig = handles.vdata(handles.startindex(s,1):handles.endindex(s,1),handles.datasubindex);
+        handles.sig = handles.vdata.x(handles.startindex(s,1):handles.endindex(s,1),handles.datasubindex);
     else % Results 
         handles.sig = handles.rdata(handles.startindex(s,1):handles.endindex(s,1),handles.datasubindex);
     end
-    handles.tplot = handles.t(handles.startindex(s,1):handles.endindex(s,1));
+    handles.tplot = handles.vdata.t(handles.startindex(s,1):handles.endindex(s,1));
     handles.sig(handles.sig==-32768) = nan;
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
     
@@ -367,11 +366,11 @@ for s=1:numsigs
         ylabel(strrep(varname,'_',' '));
     end
     
-    % Handle the ability to zoom in and out while maintaining reasonable timestamps
+    % Handle the ability to zoom in and out while maintaining reasonable-looking timestamps
     if ~isdeployed
         addpath('zoomAdaptiveDateTicks');
     end
-    zoomAdaptiveDateTicks('on') % Updates date timestamps when the user zooms in and out
+    zoomAdaptiveDateTicks('on')
     datetick('x',13) % Plots in HH:MM:SS
     
     % Set the x-axis limits
@@ -526,6 +525,59 @@ overwrite = 1;
 plotdata(hObject, eventdata, handles,overwrite);
 
 
+%%%%%%%%%%%%%%%%%%%%% CHANGING THE TIME AXIS %%%%%%%%%%%%%%%%%%%%%%
+
+
+% --- Executes on selection change in TimestampMenu.
+function TimestampMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to TimestampMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns TimestampMenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from TimestampMenu
+
+% Using the old tstampchoice, convert to time since event
+if handles.tstampchoice == 1 % Time to Event
+    neutralstartt = handles.windowstarttime;
+    neutralendt = handles.windowendtime;
+elseif handles.tstampchoice == 2 % Local Date
+    neutralstartt = handles.windowstarttime-handles.info.dayzero;
+    neutralendt = handles.windowendtime-handles.info.dayzero;
+end
+
+% Get the new value of tstampchoice in the dropdown menu
+contents = cellstr(get(hObject,'String'));
+tstampchoice = contents{get(hObject,'Value')};
+
+% Update the window start and end times to match the new time format
+if strcmp(tstampchoice,'Time to Event')
+    handles.tstampchoice = 1;
+    handles.windowstarttime = neutralstartt;
+    handles.windowendtime = neutralendt;
+elseif strcmp(tstampchoice,'Local Date')
+    handles.tstampchoice = 2;
+    handles.windowstarttime = neutralstartt+handles.info.dayzero;
+    handles.windowendtime = neutralendt+handles.info.dayzero;
+end
+guidata(hObject, handles);
+overwrite = 1;
+plotdata(hObject, eventdata, handles, overwrite);
+
+
+% --- Executes during object creation, after setting all properties.
+function TimestampMenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to TimestampMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% SCROLLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -662,7 +714,7 @@ UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
 function UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles)
 if ~isempty(handles.tags)
     tagsselected = handles.tags(handles.tagtitlechosen);
-    if ~isfield(handles,'utctime')
+    if ~isfield(handles,'t')
         msgbox('Please select a signal to plot from the main tab');
         return
     end
@@ -1078,52 +1130,3 @@ msgbox({
 '';
 },'Help')
 
-
-% --- Executes on selection change in TimestampMenu.
-function TimestampMenu_Callback(hObject, eventdata, handles)
-% hObject    handle to TimestampMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns TimestampMenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from TimestampMenu
-
-% Using the old tstampchoice, convert to time since event
-if handles.tstampchoice == 1 % Time to Event
-    neutralstartt = handles.windowstarttime;
-    neutralendt = handles.windowendtime;
-elseif handles.tstampchoice == 2 % Local Date
-    neutralstartt = handles.windowstarttime-handles.info.dayzero;
-    neutralendt = handles.windowendtime-handles.info.dayzero;
-end
-
-% Get the new value of tstampchoice in the dropdown menu
-contents = cellstr(get(hObject,'String'));
-tstampchoice = contents{get(hObject,'Value')};
-
-% Update the window start and end times to match the new time format
-if strcmp(tstampchoice,'Time to Event')
-    handles.tstampchoice = 1;
-    handles.windowstarttime = neutralstartt;
-    handles.windowendtime = neutralendt;
-elseif strcmp(tstampchoice,'Local Date')
-    handles.tstampchoice = 2;
-    handles.windowstarttime = neutralstartt+handles.info.dayzero;
-    handles.windowendtime = neutralendt+handles.info.dayzero;
-end
-guidata(hObject, handles);
-overwrite = 1;
-plotdata(hObject, eventdata, handles, overwrite);
-
-
-% --- Executes during object creation, after setting all properties.
-function TimestampMenu_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to TimestampMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
