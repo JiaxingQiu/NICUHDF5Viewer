@@ -145,6 +145,8 @@ end
 if isfield(handles,'h')
     for i=1:length(handles.h)
         cla(handles.h(i))
+        zoom out
+        zoom reset
     end
 end
 
@@ -158,7 +160,9 @@ if handles.ishdf5
 	handles.info=geth5info(fullfile(handles.pathname, handles.filename));
 end
 
-% Load data from HDF5 File
+handles.globalzeroms = handles.info.times(1); % ms to/from timezero/eventtime
+handles.globalzerolocaldate = handles.globalzeroms/1000/86400 + handles.info.dayzero; % matlab date of the first time stamp
+handles.globalzerodaystozero = handles.globalzeroms/1000/86400; % days between first data point and time zero/event time
 corrupt = 0;
 
 % Set the text below the Load HDF5 button to indicate that the results are loading
@@ -167,6 +171,14 @@ waitfor(handles.loadedfile,'string','Loading Results...');
 
 % Load in the results file. The results file time stamps have already been converted to the appropriate time zone
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
+
+handles.isutc = strcmp(handles.info.timezone,'UTC');
+if handles.isutc
+    handles.rt = utc2local(handles.rt/1000);
+%     handles.rt = utc2localwrapper(handles.rt/1000,handles.info.timezone);
+end
+handles.rtmaster = handles.rt;
+
 if ~isempty(handles.rdata)
     if isstring(handles.rdata) % an old results file is associated with this file type
         handles.rdata = [];
@@ -260,23 +272,31 @@ for s=1:numsigs
     varname = handles.value{1,s}; % Find the name of the chosen signal
     handles.dataindex = find(ismember(handles.alldatasetnames,varname));
     if handles.dataindex<=length(handles.info.name) % Determine if we are plotting a results file - here we are not plotting a results file
-        [data,~,~]=getfiledata(handles.info,varname);
+        [data,~,handles.info]=getfiledata(handles.info,varname);
+        
         if handles.tstampchoice==1 % Time to Event
-            [handles.vdata,handles.vt,handles.vname]=formatdata(data,handles.info,1,0);
+            [handles.vdata,handles.t,handles.vname]=formatdata(data,handles.info,1,0);
         elseif handles.tstampchoice==2 % Local Date
-            [handles.vdata,handles.vt,handles.vname]=formatdata(data,handles.info,3,0);
+            [handles.vdata,handles.t,handles.vname]=formatdata(data,handles.info,3,0);
         end
-        handles.vdataindex = find(ismember(handles.vname,varname));
+        
+        handles.datasubindex = find(ismember(handles.vname,varname));
         handles.isutc = 0;
     else
-        handles.rdataindex = find(ismember(handles.rname(:,1),varname));
-        handles.isutc = strcmp(handles.info.timezone,'UTC');
+        if handles.tstampchoice==1 % Time to Event
+            tz = handles.info.dayzero;
+            handles.t = handles.rtmaster-tz;
+        elseif handles.tstampchoice==2 % Local Date
+            handles.t = handles.rtmaster;
+        end
+        handles.datasubindex = find(ismember(handles.rname(:,1),varname));
+        handles.isutc = 0;
     end
     
     % Check to see if pre-defined limits exist for the signal of interest
     [plotcolor,ylimmin,ylimmax] = customplotcolors(varname);
     
-    % Set up the figure window where the signal will be plotted
+    % Set up the figure window(s) where the signal(s) will be plotted
     if handles.overlayon
         handles.h(s) = subplot(handles.numplots,1,1,'Parent',handles.PlotPanel);
         if ~isnan(ylimmin)
@@ -292,6 +312,8 @@ for s=1:numsigs
         handles.h(s) = subplot(numsigs,1,s,'Parent',handles.PlotPanel);
         if ~isnan(ylimmin)
             ylim([ylimmin ylimmax])
+        else
+            ylim auto;
         end
         hold on
         if overwrite % If we overwrite==1 and overlayon==0, clear the axes
@@ -299,65 +321,39 @@ for s=1:numsigs
         end
     end
     
-    if handles.isutc % UTC time
-        handles.windowsize = handles.windowsizeuserinput*60*1000; % 20 min in milliseconds is default
-    else % Matlab local time
-        handles.windowsize = handles.windowsizeuserinput*60/86400; 
+    % Set the Window Start and End Time AND Create the Day/Date Title Bar
+    handles.windowsize = handles.windowsizeuserinput*60/86400; 
+    if handles.tstampchoice==1
+        if ~isfield(handles,'windowstarttime')
+            handles.windowstarttime = handles.globalzerodaystozero;
+        end
+        if handles.windowstarttime<0
+            daytodisp = -day(-handles.windowstarttime);
+        else
+            daytodisp = day(handles.windowstarttime);
+        end
+        daytodisp = ['Day: ' num2str(daytodisp)];
+    elseif handles.tstampchoice==2
+        if ~isfield(handles,'windowstarttime')
+            handles.windowstarttime = handles.globalzerolocaldate;
+        end
+        daytodisp = datestr(handles.windowstarttime,'mm/dd/yy');
     end
+    set(handles.DayTextBox,'string',daytodisp);
+    handles.windowendtime = handles.windowstarttime+handles.windowsize;
+    
+    % Find start and end indices for signal
+    [~,handles.startindex(s,1)] = min(abs(handles.t-handles.windowstarttime));
+    [~,handles.endindex(s,1)] = min(abs(handles.t-handles.windowendtime));
     
     % Pull the data and timestamps we want to plot
     if handles.dataindex<=length(handles.info.name) % Vital Signs/Waveforms
-        if ~isfield(handles,'startindex')
-            handles.startindex = 1;
-            handles.startindex = find(~isnan(handles.vdata(:,handles.vdataindex)),1);
-        end
-        if ~isfield(handles,'windowstarttime')
-            handles.windowstarttime = handles.vt(handles.startindex);
-        else
-            [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
-        end
-        handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
-        [~,handles.endindex] = min(abs(handles.vt-handles.windowendtime));
-        handles.sig = handles.vdata(handles.startindex:handles.endindex,handles.vdataindex);
-        handles.utctime = handles.vt(handles.startindex:handles.endindex);
+        handles.sig = handles.vdata(handles.startindex(s,1):handles.endindex(s,1),handles.datasubindex);
     else % Results 
-        if ~isfield(handles,'startindexr')
-            handles.startindexr = 1;
-            handles.startindexr = find(~isnan(handles.rdata(:,handles.rdataindex)),1);
-        end
-        if ~isfield(handles,'windowstarttime')
-            handles.windowstarttime = handles.rt(handles.startindexr);
-        else
-            [~,handles.startindexr] = min(abs(handles.rt-handles.windowstarttime));
-        end
-        handles.windowstarttime = handles.rt(handles.startindexr);
-        handles.windowendtime = handles.windowstarttime+handles.windowsize; % default is 20 min from start time in utc in ms
-        [~,handles.endindexr] = min(abs(handles.rt-handles.windowendtime));
-        handles.sig = handles.rdata(handles.startindexr:handles.endindexr,handles.rdataindex);
-        handles.utctime = handles.rt(handles.startindexr:handles.endindexr);
+        handles.sig = handles.rdata(handles.startindex(s,1):handles.endindex(s,1),handles.datasubindex);
     end
+    handles.tplot = handles.t(handles.startindex(s,1):handles.endindex(s,1));
     handles.sig(handles.sig==-32768) = nan;
-    
-    % UTC Date vs Days Since Time 0
-    if handles.isutc
-        handles.localtime = utc2localwrapper(handles.utctime/1000,handles.info.timezone);
-        set(handles.DayTextBox,'string','');
-    else % the time is in matlab time
-        handles.localtime = handles.utctime; % Data is in datenum (days) format already
-        if handles.tstampchoice==1
-            if handles.windowstarttime<0
-                daytodisp = -day(-handles.windowstarttime);
-            else
-                daytodisp = day(handles.windowstarttime);
-            end
-            set(handles.DayTextBox,'string',['Day: ' num2str(daytodisp)]);
-        elseif handles.tstampchoice==2
-            formatOut = 'mm/dd/yy';
-            daytodisp = datestr(handles.windowstarttime,formatOut);
-            set(handles.DayTextBox,'string',daytodisp);
-        end
-    end
-    
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
     
     % Actually plot the data
@@ -366,7 +362,7 @@ for s=1:numsigs
         handles.plothandleI(s).I = I;
         ylabel({'No data for time period:'; strrep(varname,'_',' ')});
     else
-        handles.plothandle(s) = plot(handles.localtime(I),handles.sig(I),plotcolor);
+        handles.plothandle(s) = plot(handles.tplot(I),handles.sig(I),plotcolor);
         handles.plothandleI(s).I = I;
         ylabel(strrep(varname,'_',' '));
     end
@@ -375,17 +371,15 @@ for s=1:numsigs
     if ~isdeployed
         addpath('zoomAdaptiveDateTicks');
     end
-    zoomAdaptiveDateTicks('on')
-    datetick('x',13)
+    zoomAdaptiveDateTicks('on') % Updates date timestamps when the user zooms in and out
+    datetick('x',13) % Plots in HH:MM:SS
     
     % Set the x-axis limits
-    if handles.isutc
-        xlim([utc2localwrapper(handles.windowstarttime/1000,handles.info.timezone) utc2localwrapper(handles.windowendtime/1000,handles.info.timezone)])
-    else
-        xlim([handles.windowstarttime handles.windowendtime])
-    end
+    xlim([handles.windowstarttime handles.windowendtime])
+    zoom reset % This holds the zoom baseline to what has just been set. That way, if the user double clicks, it will bounce back to this state
+    datetick('x',13,'keeplimits') % 'keeplimits' keeps the window limits at windowstarttime and windowendtime, otherwise,it would autoscale the axis
 end
-linkaxes(handles.h,'x')
+linkaxes(handles.h,'x') % This keeps the axes of all the subplots in line when zooming in and out
 zoom on
 % Update handles structure
 guidata(hObject, handles);
@@ -601,24 +595,16 @@ scrolldata(hObject,eventdata,handles,handles.windowsizeuserinput)
 
 % This function is called when the user selects the >, <, >>, or << buttons
 function scrolldata(hObject,eventdata,handles,jumptime_minutes)
-overwrite = 0;
-if handles.ishdf5 && handles.isutc
-    jumptime = jumptime_minutes*60*1000; % convert minutes to milliseconds
-else % for WUSTL data
-    jumptime = datenum(seconds*jumptime_minutes*60); % convert minutes to seconds
-end
+jumptime = datenum(seconds*jumptime_minutes*60); % convert minutes to seconds
 handles.windowstarttime = handles.windowstarttime+jumptime;
-if isfield(handles,'startindexw')
-    [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
-end
-if isfield(handles,'startindex')
-    [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
-end
-if isfield(handles,'startindexr')
-    [~,handles.startindexr] = min(abs(handles.rt-handles.windowstarttime));
-end
-
-plotdata(hObject, eventdata, handles, overwrite)
+handles.windowendtime = handles.windowstarttime + handles.windowsize;
+% % Find start and end indices for signal
+% for s=1:length(handles.value)
+%     set(handles.h(s),'xlim',[handles.windowstarttime handles.windowendtime])
+% end
+guidata(hObject, handles);
+overwrite = 1;
+plotdata(hObject, eventdata, handles,overwrite);
 
 
 function WindowSize_Callback(hObject, eventdata, handles)
@@ -1101,15 +1087,31 @@ function TimestampMenu_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns TimestampMenu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from TimestampMenu
+
+% Using the old tstampchoice, convert to time since event
+if handles.tstampchoice == 1 % Time to Event
+    neutralstartt = handles.windowstarttime;
+    neutralendt = handles.windowendtime;
+elseif handles.tstampchoice == 2 % Local Date
+    neutralstartt = handles.windowstarttime-handles.info.dayzero;
+    neutralendt = handles.windowendtime-handles.info.dayzero;
+end
+
+% Get the new value of tstampchoice in the dropdown menu
 contents = cellstr(get(hObject,'String'));
 tstampchoice = contents{get(hObject,'Value')};
-if strcmp(tstampchoice,'Local Date')
-    handles.tstampchoice = 2;
-elseif strcmp(tstampchoice,'Time to Event')
+
+% Update the window start and end times to match the new time format
+if strcmp(tstampchoice,'Time to Event')
     handles.tstampchoice = 1;
+    handles.windowstarttime = neutralstartt;
+    handles.windowendtime = neutralendt;
+elseif strcmp(tstampchoice,'Local Date')
+    handles.tstampchoice = 2;
+    handles.windowstarttime = neutralstartt+handles.info.dayzero;
+    handles.windowendtime = neutralendt+handles.info.dayzero;
 end
-handles = rmfield(handles,'windowstarttime');
-handles = rmfield(handles,'windowendtime');
+guidata(hObject, handles);
 overwrite = 1;
 plotdata(hObject, eventdata, handles, overwrite);
 

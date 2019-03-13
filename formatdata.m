@@ -53,11 +53,14 @@ if length(tformat)>1
     tformat=NaN;    
 end
 
+toffset=0;
+tscale=1;
+
 %In day units
 d=double(t)/(86400*tunit);
 
 if tformat==1
-    t=d;
+    tscale=86400*tunit;    
 end
 
 if tformat==2
@@ -69,7 +72,8 @@ if tformat==2
 end
 
 if tformat==3    
-    t=dayzero+d;
+    tscale=86400*tunit;        
+    toffset=dayzero;
 end
 
 if tformat==4
@@ -80,6 +84,8 @@ if tformat==4
     if ~isempty(local)
         d=double(local)/(86400*tunit);
     end
+    tscale=86400*tunit;        
+    toffset=dayzero;    
     t=dayzero+d;    
 end
 
@@ -165,6 +171,12 @@ for i=1:n
             tt=tt(:);
         end
     end
+    if tscale~=1
+        tt=tt/tscale;
+    end
+    if toffset~=0
+        tt=toffset+tt;
+    end    
     data(i).t=tt;
 end
 
