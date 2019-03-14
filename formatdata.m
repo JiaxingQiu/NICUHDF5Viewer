@@ -6,10 +6,8 @@ function [xdata,xt,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
 %tformat    format/units of timestamps 
 %           0=> milliseconds since day zero (default)
 %           1=> days since day zero
-%           2=> UTC in miiliseconds
-%           3=> date in Matlab format
-%           4=> local date in Matlab format (corrected for timechanges)
-%           vector => global timestamps
+%           2=> date in Matlab format
+%           3=> date in UTC milliseconds format
 %dformat    format of data output 
 %           0=> single vector and time stamps (default)
 %               or matrix with unique time stamps 
@@ -26,7 +24,6 @@ function [xdata,xt,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
 %t          global timestamps
 
 if ~exist('info','var'),info=[];end
-%if ~exist('tunit','var'),tunit=1000;end
 if ~exist('tformat','var'),tformat=0;end
 if ~exist('dformat','var'),dformat=0;end
 if ~exist('rawflag','var'),rawflag=0;end
@@ -35,6 +32,7 @@ rawflag=rawflag>0;
 %Default values
 tunit=1000;
 dayzero=0;
+utczero=0;
 t=[];
 
 if isfield(info,'times')
@@ -46,47 +44,8 @@ end
 if isfield(info,'dayzero')
     dayzero=info.dayzero;
 end
-
-%Find global timestamps for requested format
-if length(tformat)>1
-    t=tformat;
-    tformat=NaN;    
-end
-
-toffset=0;
-tscale=1;
-
-%In day units
-d=double(t)/(86400*tunit);
-
-if tformat==1
-    tscale=86400*tunit;    
-end
-
-if tformat==2
-    utczero=0;
-    if isfield(info,'utczero')
-        utczero=info.utczero;
-    end    
-    t=utczero+t;
-end
-
-if tformat==3    
-    tscale=86400*tunit;        
-    toffset=dayzero;
-end
-
-if tformat==4
-    local=[];
-    if isfield(info,'local')
-        local=info.local;
-    end        
-    if ~isempty(local)
-        d=double(local)/(86400*tunit);
-    end
-    tscale=86400*tunit;        
-    toffset=dayzero;    
-    t=dayzero+d;    
+if isfield(info,'utczero')
+    utczero=info.utczero;
 end
 
 xdata=data;
@@ -103,29 +62,20 @@ for i=1:n
     end
 end
 
-%Add raw and data fields if not present
-
-% if ~isfield(data,'x')
-%     for i=1:n
-%         data(i).x=[];
-%     end
-% end
-% if ~isfield(data,'raw')
-%     for i=1:n
-%         data(i).raw=NaN;
-%     end
-% end
-
 %Put global time stamps for each data point into structure
 
 for i=1:n
     tt=data(i).t;
     seq=[];
+    index=[];
 %     if isfield(data,'seq')
 %         seq=data(i).seq;
-%     end       
+%     end
+
     if isfield(data,'index')
         index=data(i).index;
+    end
+    if size(index,2)>1    
         j1=index(:,1);
         j2=j1+index(:,2)-1;
         for k=1:length(j1)
@@ -171,57 +121,92 @@ for i=1:n
             tt=tt(:);
         end
     end
-    if tscale~=1
-        tt=tt/tscale;
-    end
-    if toffset~=0
-        tt=toffset+tt;
-    end    
     data(i).t=tt;
 end
 
 %Structure output
-if dformat==1
-    xdata=data;
-    xt=t;
-    return
-end
+xdata=data;
+xt=t;
 
-%Single signal format
-if dformat==0
-    if n==1       
-        xdata=data.x;
-        xt=data.t;
-        return
+if dformat~=1
+    x=[];
+    xt=[];
+    c=[];        
+    for i=1:n
+        nx=length(data(i).x);    
+        if nx==0,continue,end            
+        xx=data(i).x;
+        tt=data(i).t;    
+        nt=length(tt);    
+        if nt~=nx,continue,end
+        c=[c;i*ones(nx,1)];
+        x=[x;xx];    
+        xt=[xt;tt];
     end
 end
 
-%Put all data into long vectors 
-x=[];
-c=[];
-xt=[];
-for i=1:n
-    nx=length(data(i).x);    
-    if nx==0,continue,end            
-    xx=data(i).x;
-    tt=data(i).t;    
-    nt=length(tt);    
-    if nt~=nx,continue,end
-    c=[c;i*ones(nx,1)];
-    x=[x;xx];    
-    xt=[xt;tt];
+%Matrix output
+if dformat==0
+    if n==1
+        xdata=x;
+    else        
+        [xt,~,r]=unique(xt);
+        nt=length(xt);
+        xdata=NaN*ones(nt,n);
+        for i=1:n
+            j=c==i;
+            xdata(r(j),i)=x(j);
+        end
+    end
 end
 
 %Long matrix output
 if dformat==2
     xdata=[c x];    
-    return
 end
-%Matrix output
-[xt,~,r]=unique(xt);
-nt=length(xt);
-xdata=NaN*ones(nt,n);
-for i=1:n
-    j=c==i;
-    xdata(r(j),i)=x(j);
+
+%Format timestamps
+
+if length(tformat)==2
+    tscale=tformat(1);
+    toffset=tformat(2);
+    tformat=NaN;
+else
+    tscale=1;    
+    toffset=0;
 end
+
+%Day units
+day=86400*tunit;
+
+if tformat==1
+    tscale=day;
+end
+
+if tformat==2    
+    tscale=day;        
+    toffset=dayzero;
+end
+
+if tformat==3    
+    toffset=utczero;
+end
+
+if tscale~=1
+    t=t/tscale;
+    xt=xt/tscale;
+    if isstruct(xdata)
+        for i=1:n
+            xdata(i).t=xdata(i).t/tscale;
+        end
+    end
+end
+if toffset~=0
+    t=toffset+t;    
+    xt=toffset+xt;
+    if isstruct(xdata)
+        for i=1:n
+            xdata(i).t=toffset+xdata(i).t;
+        end
+    end    
+end    

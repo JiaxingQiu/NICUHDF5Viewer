@@ -14,7 +14,9 @@ if ~exist('name','var'),name=cell(0,1);end
 if ~exist('alldata','var'),alldata=[];end
 
 if ischar(name),name={name};end
-
+if length(name)==1
+    onlyinfo=strcmp(name{1},'info');
+end
 data=[];
 file='';
 t=[];
@@ -29,18 +31,13 @@ else
     info=[];
 end
 
-[~,~,ext]=fileparts(file);
-ishdf5=strcmp(ext,'.hdf5');
-
-if ishdf5
-%Get timestamps,names and attributes for all signals    
+%Get information about file if new data
+if newdata
     if isempty(info)
-        info=geth5info(file);
+        info=getfileinfo(file);
     end
-    if newdata
-        if isfield(info,'datasets')
-            alldata=info.datasets;
-        end
+    if isfield(info,'alldata')
+        alldata=info.alldata;
     end    
 end
 
@@ -64,72 +61,27 @@ else
     end
 end
 
-n=length(data);    
+ishdf5=endsWith(file,'.hdf5');
+if ~ishdf5,return,end
 
-%Add raw and data fields if not present
-
-% if ~isfield(data,'x')
-%     for i=1:n
-%         data(i).x=[];
-%     end
-% end
-% if ~isfield(data,'raw')
-%     for i=1:n
-%         data(i).raw=NaN;
-%     end
-% end
-
-%See if new data needed or data needs to be scaled
-
-if ~newdata    
-    for i=1:n
-        if ~isempty(data(i).x),continue,end
-        newdata=true;
-        break
-    end
-end
-
-if ~newdata,return,end
-
-%Case Western dat file format
-if strcmp(ext,'.dat')
-    [data,name,info]=datfiledata(file,name);
-    return
-end
-
-%Read in requested data from HDF5 file if doesn't exist
+%Read in requested data from HDF5 file if doesn't exist already
 n=length(data);    
 for i=1:n
     x=data(i).x;
 %Convert to row vector if necessary    
-    if isempty(x)
-        try
-            x=h5read(file,[data(i).name,'/data']);         
-        end
-        xsize=size(x);
-        if xsize(2)>xsize(1)
-            x=x';
-            x=x(:,1);
-        end
-        data(i).raw=true;
-        data(i).x=x;
+    if ~isempty(x),continue,end    
+    try
+        x=h5read(file,[data(i).name,'/data']);         
     end
-    x=data(i).x;
+    xsize=size(x);
+    if xsize(2)>xsize(1)
+        x=x';
+        x=x(:,1);
+    end
+    data(i).raw=true;
+    data(i).x=x;
     nx=length(x);
     data(i).nx=nx;
-%     if rawflag,continue,end    
-%     if data(i).raw==0,continue,end
-%     x=double(x);
-%     scale=data(i).scale;
-%     if ~isnan(scale)        
-%         x=x/double(scale);
-%     end
-%     offset=data(i).offset;
-%     if ~isnan(offset)
-%         x=x-double(offset);
-%     end
-%     data(i).raw=false;
-%     data(i).x=x;
 end
 
 end

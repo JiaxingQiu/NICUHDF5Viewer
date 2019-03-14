@@ -88,6 +88,9 @@ for tgi=1:length(tabGroups)
     set(tabGroups(tgi),'SelectionChangedFcn',@tabChangedCB)
 end
 
+% Initialize Variables
+handles.overlayon = 0; % Set the default to not overlay signals
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -154,11 +157,10 @@ end
 [~,~,ext]=fileparts(fullfile(handles.pathname, handles.filename));
 handles.ishdf5=strcmp(ext,'.hdf5');
 
-%Get timestamps, names and attributes for all signals
-if handles.ishdf5  
-    set(handles.loadedfile,'string','Loading File Info...');
-	handles.info=geth5info(fullfile(handles.pathname, handles.filename));
-end
+set(handles.loadedfile,'string','Loading File Info...');
+
+% Get the info structure - this gets file attributes, loads result data and loads .dat file data
+handles.info = getfileinfo(fullfile(handles.pathname, handles.filename));
 
 handles.globalzeroms = handles.info.times(1); % ms to/from timezero/eventtime
 handles.globalzerolocaldate = handles.globalzeroms/1000/86400 + handles.info.dayzero; % matlab date of the first time stamp
@@ -166,32 +168,12 @@ handles.globalzerodaystozero = handles.globalzeroms/1000/86400; % days between f
 corrupt = 0;
 
 % Set the text below the Load HDF5 button to indicate that the results are loading
-set(handles.loadedfile,'string','Loading Results...');
-waitfor(handles.loadedfile,'string','Loading Results...');
-
-% Load in the results file. The results file time stamps have already been converted to the appropriate time zone
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
-
-handles.isutc = strcmp(handles.info.timezone,'UTC');
-if handles.isutc
-    handles.rt = utc2local(handles.rt/1000);
-%     handles.rt = utc2localwrapper(handles.rt/1000,handles.info.timezone);
-end
-handles.rtmaster = handles.rt;
-
-if ~isempty(handles.rdata)
-    if isstring(handles.rdata) % an old results file is associated with this file type
-        handles.rdata = [];
-        corrupt = 2;
-    end
-end
+set(handles.loadedfile,'string','Loading Tags...');
+waitfor(handles.loadedfile,'string','Loading Tags...');
+[handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile);
 
 % Populate the Available Signals listbox with the signal names
-if isempty(handles.rname)
-    handles.alldatasetnames = handles.info.name;
-else
-    handles.alldatasetnames = vertcat(handles.info.name,handles.rname(:,1));
-end
+handles.alldatasetnames = handles.info.name;
 set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
 
 % Populate the Tag Category listbox with the tag categories, if they exist
@@ -239,73 +221,40 @@ plotdata(hObject, eventdata, handles, overwrite);
 
 function plotdata(hObject, eventdata, handles,overwrite)
 % value = number(s) of the signal(s) chosen in Available Signals listbox
-if isfield(handles,'value')
-    numsigs = length(handles.value);
-    set(handles.tagalgstextbox,'string','')
-else
+if ~isfield(handles,'value')
     set(handles.tagalgstextbox,'string','Please select a signal to plot in the Main tab')
     return
 end
+numsigs = length(handles.value);
+set(handles.tagalgstextbox,'string','')
 
-% Deal with Plot Overlay Option
-if ~isfield(handles,'overlayon')
-    handles.overlayon = 0;
-end
-
-% Figure out how many plot windows the user wants
+% Preallocate handles to the number of plot windows the user wants
 if handles.overlayon
-    handles.numplots = 1;
+    handles.h = zeros(1,1);
 else
-    handles.numplots = numsigs;
+    handles.h = zeros(numsigs,1);
 end
-
-% Deal with the Timestamp Dropdown Menu
-if ~isfield(handles,'tstampchoice')
-    handles.tstampchoice = 1;
-end
-
-handles.h = zeros(handles.numplots,1);
 
 % Loop through all of the selected items in Available Signals listbox
 for s=1:numsigs
+    % Load the data for the desired signal
     varname = handles.value{1,s}; % Find the name of the chosen signal
     handles.dataindex = find(ismember(handles.alldatasetnames,varname));
-    if handles.dataindex<=length(handles.info.name) % Determine if we are plotting a results file - here we are not plotting a results file
-        [data,~,handles.info]=getfiledata(handles.info,varname);
-        
-        if handles.tstampchoice==1 % Time to Event
-            [handles.vdata,~,handles.vname]=formatdata(data,handles.info,1,1);
-        elseif handles.tstampchoice==2 % Local Date
-            [handles.vdata,~,handles.vname]=formatdata(data,handles.info,3,1);
-        end
-        
-        handles.datasubindex = find(ismember(handles.vname,varname));
-        handles.isutc = 0;
-    else
-        if handles.tstampchoice==1 % Time to Event
-            tz = handles.info.dayzero;
-            handles.vdata.t = handles.rtmaster-tz;
-        elseif handles.tstampchoice==2 % Local Date
-            handles.vdata.t = handles.rtmaster;
-        end
-        handles.datasubindex = find(ismember(handles.rname(:,1),varname));
-        handles.isutc = 0;
-    end
+    [data,~,handles.info] = getfiledata(handles.info,varname);
+    [handles.vdata,handles.t,handles.vname] = formatdata(data,handles.info,handles.tstampchoice,1);
     
-    % Check to see if pre-defined limits exist for the signal of interest
+    % Check to see if pre-defined limits/colors exist for the signal of interest
     [plotcolor,ylimmin,ylimmax] = customplotcolors(varname);
     
     % Set up the figure window(s) where the signal(s) will be plotted
     if handles.overlayon
-        handles.h(s) = subplot(handles.numplots,1,1,'Parent',handles.PlotPanel);
-        if ~isnan(ylimmin)
-            ylim([ylimmin ylimmax])
-        end
+        handles.h(s) = subplot(1,1,1,'Parent',handles.PlotPanel);
+        y1 = ylim;
         hold on
         ylim auto;
         y2 = ylim;
-        ylimmin = min([ylimmin,y2(1)]);
-        ylimmax = max([ylimmax,y2(2)]);
+        ylimmin = min([y1(1),ylimmin,y2(1)]);
+        ylimmax = max([y1(2),ylimmax,y2(2)]);
         ylim([ylimmin ylimmax]);
     else
         handles.h(s) = subplot(numsigs,1,s,'Parent',handles.PlotPanel);
@@ -345,14 +294,9 @@ for s=1:numsigs
     [~,handles.startindex(s,1)] = min(abs(handles.vdata.t-handles.windowstarttime));
     [~,handles.endindex(s,1)] = min(abs(handles.vdata.t-handles.windowendtime));
     
-    % Pull the data and timestamps we want to plot
-    if handles.dataindex<=length(handles.info.name) % Vital Signs/Waveforms
-        handles.sig = handles.vdata.x(handles.startindex(s,1):handles.endindex(s,1),handles.datasubindex);
-    else % Results 
-        handles.sig = handles.rdata(handles.startindex(s,1):handles.endindex(s,1),handles.datasubindex);
-    end
+    % Pull the data and timestamps for the window we want to plot
+    handles.sig = handles.vdata.x(handles.startindex(s,1):handles.endindex(s,1));
     handles.tplot = handles.vdata.t(handles.startindex(s,1):handles.endindex(s,1));
-    handles.sig(handles.sig==-32768) = nan;
     I = ~isnan(handles.sig); % Don't try to plot the NaN values
     
     % Actually plot the data
@@ -474,26 +418,25 @@ function nextfilebutton_Callback(hObject, eventdata, handles)
 masterfolder = pwd; 
 % Go to the directory the user selected (we have to go here to use the dir command)
 cd(handles.pathname); 
-% Find all the hdf5 files in this directory
-if handles.ishdf5
-    hdf5files = dir('*.hdf5'); 
-else
-    hdf5files = dir('*.mat');
-end
-filenames = strings(length(hdf5files),1);
+% Find all the files with the same extension in this directory
+[~,~,ext]=fileparts(fullfile(handles.pathname, handles.filename));
+ext = ['*' ext];
+allfiles = dir(ext); 
+
+filenames = strings(length(allfiles),1);
 set(handles.TagCategoryListbox,'Value',1);
 % Store the filenames as strings
-for i=1:length(hdf5files) 
-    filenames(i) = string(hdf5files(i).name);
+for i=1:length(allfiles) 
+    filenames(i) = string(allfiles(i).name);
 end
 filenames = filenames(~contains(filenames,'results'));
 % Sort the filenames so we are always looking at them in the same order regardless of what order the computer grabs them
-if length(hdf5files)>1 
+if length(allfiles)>1 
     filenames = sort(filenames);
 end
 % Find which file in the directory we are currently looking at
 fileindex = find(filenames==handles.filename); 
-if length(hdf5files)>fileindex 
+if length(allfiles)>fileindex 
     % If there are more files in the directory, get the name of the next file
     handles.filename = char(filenames(fileindex+1));
     % Update handles structure
@@ -576,6 +519,8 @@ function TimestampMenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+handles.tstampchoice = 1;
+guidata(hObject, handles);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% SCROLLING %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -718,37 +663,47 @@ if ~isempty(handles.tags)
         msgbox('Please select a signal to plot from the main tab');
         return
     end
-    if handles.isutc
-        if ~isempty(tagsselected.tagtable)
-            starttimes = datestr(utc2localwrapper(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'))/1000,handles.timezone));
+    if ~isempty(tagsselected.tagtable)
+        starttimes = tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start')); % ms
+        if handles.info.isutc % ms in utc time
+            if handles.tstampchoice==1 % Days since time zero
+                starttimes = starttimes-double(handles.info.utczero); % puts UTC date (ms) into ms since time zero
+                handles.starttimesfigure = starttimes/86400/1000; % convert to days since time zero
+                negstarts = handles.starttimesfigure<0;
+                daytodisp = floor(abs(handles.starttimesfigure)); % convert ms to days
+                daytodisp(negstarts) = -daytodisp(negstarts);
+                daytodisp = [repmat('Day: ',length(daytodisp),1) char(pad(cellstr(num2str(daytodisp)),6,'left')) repmat('   ',length(daytodisp),1)];
+            elseif handles.tstampchoice==2 % Date
+                handles.starttimesfigure = utc2local(starttimes/1000); % convert UTC date (ms) to matlab date format
+                daytodisp = datestr(handles.starttimesfigure,'mm/dd/yy HH:MM:SS');
+            end
             duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
-        else
-            starttimes = [];
-            duration = [];
+        else % ms since time zero
+            if handles.tstampchoice==1 % Days since time zero
+                handles.starttimesfigure = starttimes/86400/1000; % convert to days since time zero
+                negstarts = handles.starttimesfigure<0; % tag starts before time zero
+                daytodisp = floor(abs(handles.starttimesfigure)); % convert ms to days
+                daytodisp(negstarts) = -daytodisp(negstarts);
+                daytodisp = [repmat('Day: ',length(daytodisp),1) char(pad(cellstr(num2str(daytodisp)),6,'left')) repmat('   ',length(daytodisp),1)];
+            elseif handles.tstampchoice==2 % Date
+                handles.starttimesfigure = starttimes/86400/1000+handles.info.dayzero; % convert to days
+                daytodisp = datestr(handles.starttimesfigure,'mm/dd/yy HH:MM:SS');
+            end
+            duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
         end
     else
-        if ~isempty(tagsselected.tagtable)
-            tagstarts = tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start'));
-            negstarts = tagstarts<0; % tag starts before time zero
-            daytodisp = day(tagstarts);
-            negstartvals = -day(-tagstarts);
-            daytodisp(negstarts) = negstartvals(negstarts);
-            
-            formatOut = 'HH:MM:SS';
-            starttimes = [repmat('Day: ',length(daytodisp),1) num2str(daytodisp) repmat('   ',length(daytodisp),1)   datestr(tagstarts,formatOut) repmat('   ',length(daytodisp),1)];
-            duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration')))); % seconds
-        else
-            starttimes = [];
-            duration = [];
-        end
+        handles.starttimesfigure = [];
+        daytodisp = [];
+        duration = [];
     end
+
     try
         minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Minimum')));
     catch
         minimum = zeros(length(duration),1);
     end
     spaces = repmat(' -- ',[size(duration,1),1]);
-    set(handles.TagListbox,'string',[starttimes spaces minimum spaces duration])
+    set(handles.TagListbox,'string',[daytodisp spaces minimum spaces duration])
     set(handles.TagListbox,'Max',2);
     set(handles.TagListbox, 'Value', []); %%% FIX THIS!!!
 end
@@ -778,8 +733,9 @@ function TagListbox_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns TagListbox contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from TagListbox
 handles.tagchosen = get(hObject,'Value');
-startcol = strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start');
-starttimeofchosentag = handles.tags(handles.tagtitlechosen).tagtable(handles.tagchosen,startcol);
+% startcol = strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start');
+% starttimeofchosentag = handles.tags(handles.tagtitlechosen).tagtable(handles.tagchosen,startcol);
+starttimeofchosentag = handles.starttimesfigure(handles.tagchosen);
 jumpintodata(hObject,eventdata,handles,starttimeofchosentag);
 
 
@@ -824,14 +780,8 @@ guidata(hObject, handles);
 function jumpintodata(hObject,eventdata,handles,userselectedstart)
 overwrite = 0;
 handles.windowstarttime = userselectedstart;
-if isfield(handles,'startindexw')
-    [~,handles.startindexw] = min(abs(handles.wt-handles.windowstarttime));
-end
 if isfield(handles,'startindex')
-    [~,handles.startindex] = min(abs(handles.vt-handles.windowstarttime));
-end
-if isfield(handles,'startindexr')
-    [~,handles.startindexr] = min(abs(handles.rt-handles.windowstarttime));
+    [~,handles.startindex] = min(abs(handles.vdata.t-handles.windowstarttime));
 end
 plotdata(hObject, eventdata, handles, overwrite)
 
@@ -909,16 +859,16 @@ brushedIdxWithNans = zeros(length(I),1);
 brushedIdxWithNans(I) = brushedIdx;
 
 % Put the brushed data from the window into the context of the full dataset
-fulldataset = zeros(length(handles.vt),1);
+fulldataset = zeros(length(handles.vdata.t),1);
 fulldataset(handles.startindex:handles.endindex) = brushedIdxWithNans;
 
 % Turn this into tags
 pmin = 1; % minimum number of points below threshold (default one) - only applies to tags!!
 tmin = 0; % time gap between crossings to join (default zero) - only applies to tags!!
-[tag,tagcol]=threshtags(~fulldataset,handles.vt,0.5,pmin,tmin);
+[tag,tagcol]=threshtags(~fulldataset,handles.vdata.t,0.5,pmin,tmin);
 
 % Add custom tags to local results data
-[result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,~] = addtoresultsfile3(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vt,tag,tagcol,[],handles.rname,handles.rdatastruct,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
+[result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,~] = addtoresultsfile3(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vdata.t,tag,tagcol,[],handles.rname,handles.rdatastruct,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
 
 % Show the custom tag in the tag category listbox
     %Put all data into long vectors 
