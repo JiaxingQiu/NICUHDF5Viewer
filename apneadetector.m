@@ -1,14 +1,11 @@
-function [results,pt,tag,tagname,qrs] = apneadetector(filename,lead,wdata,wname,wt)
+function [results,pt,tag,tagname,qrs] = apneadetector(info,lead)
 % apneadetector uses the resp waveform to calculate the probability of apnea.
 % If an EKG sig is selected & available, it uses the signal to filter out
 % heartbeats from the chest impedance waveform.
 %
 % INPUT:
-% filename: char array path to hdf5 file
+% info:     from getfileinfo - if empty, it will go get it
 % lead:     value from 0 to 3 indicating lead of interest. 0 = no lead
-% wdata:    if it is empty, grabneededdata will extract the needed data
-% wname:    if it is empty, grabneededdata will extract the needed data
-% wt:       if it is empty, grabneededdata will extract the needed data
 %
 % OUTPUT:
 % results:  probability of apnea
@@ -29,28 +26,26 @@ pt = [];
 tag = [];
 tagname = [];
 qrs = [];
-    
-% Make sure the filename field is in the right format
-if iscell(filename)
-    filename = char(filename);
-    sprintf('Filename was a cell array. It has been converted to a char array.');
-end
 
 % Load in the respiratory signal
-[resp,respt,~,CIfs] = grabneededdata(filename,wdata,wname,wt,'Resp');
-if isempty(respt) % if there is no chest impedance signal, give up
+[data,~,info] = getfiledata(info,'Resp');
+[data,~,~] = formatdata(data,info,3,1);
+if isempty(data) % if there is no chest impedance signal, give up
     return
 end
+resp = data.x;
+respt = data.t;
+CIfs = data.fs;
 
 if round(CIfs,1)~=CIfs
     CIfs = 1/round(1/CIfs,3);
 end
 
 % Find the name of the result file
-if contains(filename,'.hdf5')
-    resultfilename = strrep(filename,'.hdf5','_results.mat');
+if isfield(info,'resultfile')
+    resultfilename = info.resultfile;
 else
-    resultfilename = strrep(filename,'.mat','_results.mat');
+    resultfilename = [];
 end
 
 % Check to see if we already did QRS detection
@@ -72,25 +67,32 @@ end
 if ~exist('qt')
     % Load in the EKG signal
     if lead == 1
-        [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGI');
+        [data,~,info] = getfiledata(info,'ECGI');
     elseif lead == 2
-        [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGII');
+        [data,~,info] = getfiledata(info,'ECGII');
     elseif lead == 3
-        [ecg,ecgt,~,fs] = grabneededdata(filename,wdata,wname,wt,'ECGIII');
+        [data,~,info] = getfiledata(info,'ECGIII');
     elseif lead == 0 
+        data = [];
         ecg = [];
         ecgt = [];
         qt = [];
         qb = [];
         qgood =[];
     end
-    if isempty(ecgt) && lead>0
-        return
-    end
-
-    % QRS Detection
-    gain = 1; % 400;
-    if lead~=0
+    if lead > 0
+        if isempty(data)
+            return
+        end
+        [data,~,~] = formatdata(data,info,3,1);
+        ecg = data.x;
+        ecgt = data.t;
+        fs = data.fs;
+        if isempty(ecgt)
+            return
+        end
+        % QRS Detection
+        gain = 1; % 400;
         ecgt = ecgt(~isnan(ecg));
         ecg = ecg(~isnan(ecg));
         [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs);

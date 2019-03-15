@@ -1,12 +1,9 @@
-function [results,vt,tag,tagname] = desatdetector(filename,vdata,vname,vt,threshold,pmin,tmin)
+function [results,vt,tag,tagname] = desatdetector(info,threshold,pmin,tmin)
 % This desaturation detection algorithm tags desat events based on the
 % thresholds and joining rules in the input array
 
 % INPUT:
-% filename:  char array path to hdf5 file
-% vdata:     if it is empty, grabneededdata will extract the needed data
-% vname:     if it is empty, grabneededdata will extract the needed data
-% vt:        if it is empty, grabneededdata will extract the needed data
+% info:      from getfileinfo - if empty, it will go get it
 % threshold: hr (<=) threshold for desat event. If you want <80, set to 79.99 or the like
 % pmin:      minimum number of points below threshold (default one)
 % tmin:      time gap between crossings to join (default zero)
@@ -18,26 +15,25 @@ function [results,vt,tag,tagname] = desatdetector(filename,vdata,vname,vt,thresh
 % tagname: tagnames ready to be saved in the results file
 %
 
-% Load in the SPO2% signal
-[spo2data,vt,~,fs] = grabneededdata(filename,vdata,vname,vt,'SPO2_pct');
+% Initialize output variables in case the necessary data isn't available
+results = [];
+vt = [];
+tag = [];
+tagname = [];
 
+% Load in the spo2% signal
+[data,~,info] = getfiledata(info,'SPO2_pct');
+[data,~,~] = formatdata(data,info,3,1);
 % If the necessary data isn't available, return empty matrices & exit
-if isempty(vt)
-    results = [];
-    tag = [];
-    tagname = [];
+if isempty(data)
     return
 end
+spo2data = data.x;
+vt = data.t;
+fs = data.fs;
 
 % Remove negative spo2 values
 spo2data(spo2data<=1) = nan;
-% period = median(diff(vt/1000));
-% fs = 1/period;
-
-isutc = strcmp(h5readatt(filename,'/','Timezone'),'UTC');
-if ~isutc % The time is already in datenum format, so we need to convert the milliseconds to d
-    tmin = datenum(duration(0,0,0,tmin));
-end
 
 % Tag desaturation events
 [tag,tagname]=threshtags(spo2data,vt,threshold,ceil(pmin*fs),tmin,1);

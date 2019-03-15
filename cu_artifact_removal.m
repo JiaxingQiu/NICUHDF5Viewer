@@ -1,4 +1,4 @@
-function [results,vt,tag,tagname] = cu_artifact_removal(filename,vdata,vname,t,pmin,tmin)
+function [results,vt,tag,tagname] = cu_artifact_removal(info,pmin,tmin)
 % Columbia University artifact removal algorithm created by Joe Isler. The
 % algorithm is described here:
 %
@@ -10,10 +10,7 @@ function [results,vt,tag,tagname] = cu_artifact_removal(filename,vdata,vname,t,p
 % here - I talked to Joe and he said it was boxcar smoothing for 1 hr
  
 % INPUT:
-% filename: char array path to hdf5 file
-% vdata:    if it is empty, grabneededdata will extract the needed data
-% vname:    if it is empty, grabneededdata will extract the needed data
-% t:        if it is empty, grabneededdata will extract the needed data
+% info:     from getfileinfo - if empty, it will go get it
 % pmin:     minimum number of points below threshold (default one)
 % tmin:     time gap between crossings to join (default zero)
 
@@ -26,13 +23,21 @@ function [results,vt,tag,tagname] = cu_artifact_removal(filename,vdata,vname,t,p
 
 % Initialize output variables in case the necessary data isn't available
 results = [];
+tag = [];
+tagname = [];
 
 % Load in the pulse rate and heart rate signals
-[spo2rdata,~,~,~] = grabneededdata(filename,vdata,vname,t,'Pulse');
-[hrdata,vt,~,fs] = grabneededdata(filename,vdata,vname,t,'HR');
-if isempty(vt) || isempty(spo2rdata)
+[data,~,info] = getfiledata(info,{'Pulse','HR'});
+spo2index = strcmp({data.fixedname},'Pulse')==1;
+hrindex = strcmp({data.fixedname},'HR')==1;
+if isempty(spo2index) || isempty(hrindex)
     return
 end
+[datamatrix,vt,~,~] = formatdata(data,info,3,0);
+spo2rdata = datamatrix(:,spo2index);
+hrdata = datamatrix(:,hrindex);
+fs = data.fs;
+
 
 % Initialize artifact array
 numsamps = length(spo2rdata);
@@ -53,18 +58,6 @@ for n=1:numsamps
         artifact(n) = 1;
     end
 end
-
-% artifact = abs(hrdata-spo2rdata)>thresh;
-
-% plot(spo2rdata,'Color',[0.5843 0.5157 0.9882])
-% hold on
-% plot(hrdata,'b')
-
-% for q=1:numsamps
-%     if artifact(q)
-%         fillbar(q)
-%     end
-% end
 
 % Tag the Artifacts
 [tag,tagname]=threshtags(~artifact,vt,0.5,pmin,tmin);

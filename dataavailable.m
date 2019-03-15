@@ -1,15 +1,12 @@
-function [results,vt,tag,tagname] = dataavailable(filename,vdata,vname,vt,pmin,tmin,signame,removeneg)
+function [results,vt,tag,tagname] = dataavailable(info,pmin,tmin,signame,removeneg)
 % This identifies periods where there are data present for each vital sign
 % or waveform
 %
 % INPUT:
-% filename:  char array path to hdf5 file
-% vdata:     if it is empty, grabneededdata will extract the needed data
-% vname:     if it is empty, grabneededdata will extract the needed data
-% vt:        if it is empty, grabneededdata will extract the needed data
+% info:      from getfileinfo - if empty, it will go get it
 % pmin:      minimum number of points below threshold (default one)
 % tmin:      time gap between crossings to join (default zero)
-% signame can be any one of the following:
+% signame can be any one of the following (or a specific signal name):
 %    'Pulse'
 %    'HR'
 %    'SPO2_pct'
@@ -19,18 +16,23 @@ function [results,vt,tag,tagname] = dataavailable(filename,vdata,vname,vt,pmin,t
 %    'ECGIII'
 % removeneg: If 1, remove all values <1. If 0, remove all -32768 values
 
+% Initialize output variables in case the necessary data isn't available
+results = [];
+vt = [];
+tag = [];
+tagname = [];
+    
 negthresh = 0; % we want to tag all points with values above a certain threshold
 threshold = 0.5;
 
-[outdata,vt,~,fs] = grabneededdata(filename,vdata,vname,vt,signame);
-
-% If the necessary data isn't available, return empty matrices & exit
-if isempty(vt)
-    results = [];
-    tag = [];
-    tagname = [];
+[data,~,~] = getfiledata(info,signame);
+[data,~,~] = formatdata(data,info,3,1);
+if isempty(data) % If the necessary data isn't available, return empty matrices & exit
     return
 end
+outdata = data.x;
+vt = data.t;
+fs = data.fs;
 
 if removeneg
     outdata(outdata<=1) = nan; % Remove negative values

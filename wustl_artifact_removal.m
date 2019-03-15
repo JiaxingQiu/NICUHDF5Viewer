@@ -1,14 +1,11 @@
-function [results,vt,tag,tagname] = wustl_artifact_removal(filename,thresh,vdata,vname,vt,pmin,tmin)
+function [results,vt,tag,tagname] = wustl_artifact_removal(info,thresh,pmin,tmin)
 % The WUSTL artifact removal algorithm is described here:
 % Epochs with a change greater than 3% between serial data points were 
 % judged to be contaminated with motion artifact and were discarded
 
 % INPUT:
-% filename: char array path to hdf5 file
 % thresh:   threshold for spo2 values to determine if they are non-physiologic. Any spo2 value below this level is determined to be "missing" data
-% vdata:    if it is empty, grabneededdata will extract the needed data
-% vname:    if it is empty, grabneededdata will extract the needed data
-% vt:       if it is empty, grabneededdata will extract the needed data
+% info:     from getfileinfo - if empty, it will go get it
 % pmin:     minimum number of points below threshold (default one)
 % tmin:     time gap between crossings to join (default zero)
 
@@ -19,14 +16,22 @@ function [results,vt,tag,tagname] = wustl_artifact_removal(filename,thresh,vdata
 % tagname: tagnames ready to be saved in the results file
 %
 
+% Initialize output variables in case the necessary data isn't available
+results = [];
+vt = [];
+tag = [];
+tagname = [];
+
 e_size = 30; % epoch size: the number of samples in each epoch
 
 % Load in the spo2% signal
-[spo2data,vt,~] = grabneededdata(filename,vdata,vname,vt,'SPO2_pct');
-if isempty(vt)
-    results = [];
+[data,~,info] = getfiledata(info,'SPO2_pct');
+[data,~,~] = formatdata(data,info,3,1);
+if isempty(data)
     return
 end
+spo2data = data.x;
+vt = data.t;
 
 % Initialize artifact array
 numsamps = length(spo2data);

@@ -1,12 +1,9 @@
-function [results,vt,tag,tagname] = bradydetector(filename,vdata,vname,vt,threshold,pmin,tmin)
+function [results,vt,tag,tagname] = bradydetector(info,threshold,pmin,tmin)
 % This bradycardia detection algorithm tags bradycardia events based on the
 % thresholds and joining rules in the input array
 
 % INPUT:
-% filename:  char array path to hdf5 file
-% vdata:     if it is empty, grabneededdata will extract the needed data
-% vname:     if it is empty, grabneededdata will extract the needed data
-% vt:        if it is empty, grabneededdata will extract the needed data
+% info:      from getfileinfo - if empty, it will go get it
 % threshold: hr (<=) threshold for bradycardia event. If you want <80, set to 79.99 or the like
 % pmin:      minimum number of points below threshold (default one)
 % tmin:      time gap (ms) between crossings to join (default zero)
@@ -18,26 +15,26 @@ function [results,vt,tag,tagname] = bradydetector(filename,vdata,vname,vt,thresh
 % tagname: tagnames ready to be saved in the results file
 %
 
-% Load in the heart rate signal
-[hrdata,vt,~,fs] = grabneededdata(filename,vdata,vname,vt,'HR');
 
+% Initialize output variables in case the necessary data isn't available
+results = [];
+vt = [];
+tag = [];
+tagname = [];
+
+% Load in the hr signal
+[data,~,info] = getfiledata(info,'HR');
+[data,~,~] = formatdata(data,info,3,1);
 % If the necessary data isn't available, return empty matrices & exit
-if isempty(vt)
-    results = [];
-    tag = [];
-    tagname = [];
+if isempty(data)
     return
 end
+hrdata = data.x;
+vt = data.t;
+fs = data.fs;
 
 % Remove negative HR values
 hrdata(hrdata<=1) = nan;
-% period = median(diff(vt/1000));
-% fs = 1/period;
-
-isutc = strcmp(h5readatt(filename,'/','Timezone'),'UTC');
-if ~isutc % The time is already in datenum format, so we need to convert the milliseconds to d
-    tmin = datenum(duration(0,0,0,tmin));
-end
 
 % Tag bradycardia events
 [tag,tagname]=threshtags(hrdata,vt,threshold,ceil(pmin*fs),tmin,1);

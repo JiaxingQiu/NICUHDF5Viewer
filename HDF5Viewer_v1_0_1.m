@@ -759,14 +759,18 @@ function run_tagging_algorithms_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.tagalgstextbox,'string','Running...');
 drawnow
-run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.vdata,handles.vname,handles.vt,handles.wdata,handles.wname,handles.wt,[])
+run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.info,[])%%%%%%%%%%%%%%
+% Get the info structure again now that the results file has been generated
+handles.info = getfileinfo(fullfile(handles.pathname, handles.filename));
+% Load the results data
 [handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
+% [handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile);
 if isempty(handles.rdata)
     set(handles.tagalgstextbox,'string','File lacks variables needed to generate results file');
 else
     set(handles.tagalgstextbox,'string','');
 end
-handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
+handles.alldatasetnames = handles.info.name;
 set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
 
 set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
@@ -780,9 +784,7 @@ guidata(hObject, handles);
 function jumpintodata(hObject,eventdata,handles,userselectedstart)
 overwrite = 0;
 handles.windowstarttime = userselectedstart;
-if isfield(handles,'startindex')
-    [~,handles.startindex] = min(abs(handles.vdata.t-handles.windowstarttime));
-end
+[~,handles.startindex] = min(abs(handles.vdata.t-handles.windowstarttime));
 plotdata(hObject, eventdata, handles, overwrite)
 
 
