@@ -170,7 +170,7 @@ corrupt = 0;
 % Set the text below the Load HDF5 button to indicate that the results are loading
 set(handles.loadedfile,'string','Loading Tags...');
 waitfor(handles.loadedfile,'string','Loading Tags...');
-[handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile);
+[handles.rname,handles.rdata,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile);
 
 % Populate the Available Signals listbox with the signal names
 handles.alldatasetnames = handles.info.name;
@@ -663,7 +663,7 @@ if ~isempty(handles.tags)
         msgbox('Please select a signal to plot from the main tab');
         return
     end
-    if ~isempty(tagsselected.tagtable)
+    if size(tagsselected.tagtable,1)>0 %~isempty(tagsselected)
         starttimes = tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start')); % ms
         if handles.info.isutc % ms in utc time
             if handles.tstampchoice==1 % Days since time zero
@@ -709,6 +709,10 @@ if ~isempty(handles.tags)
 end
 % Update handles structure
 guidata(hObject, handles);
+
+% Update the plots
+overwrite = 1;
+plotdata(hObject, eventdata, handles, overwrite)
 
 
 % --- Executes during object creation, after setting all properties.
@@ -763,13 +767,9 @@ run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.info,[
 % Get the info structure again now that the results file has been generated
 handles.info = getfileinfo(fullfile(handles.pathname, handles.filename));
 % Load the results data
-[handles.rdata,handles.rname,handles.rt,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rdatastruct,handles.rqrs]=getresultsfile2(fullfile(handles.pathname, handles.filename));
-% [handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile);
-if isempty(handles.rdata)
-    set(handles.tagalgstextbox,'string','File lacks variables needed to generate results file');
-else
-    set(handles.tagalgstextbox,'string','');
-end
+[handles.rname,handles.rdata,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile); % need to run this because handles.info doesn't have tagtitles in it
+set(handles.tagalgstextbox,'string','');
+
 handles.alldatasetnames = handles.info.name;
 set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
 
@@ -843,6 +843,7 @@ function AcceptTagButton_Callback(hObject, eventdata, handles)
 
 % Grab the custom tag name from the text box
 customtaglabel = get(handles.customtagtextentry, 'string');
+newtagname = ['/Results/CustomTag/' customtaglabel];
 
 % Grab the brushed data from the window
 notfoundyet = 1;
@@ -850,64 +851,38 @@ s = 1;
 while notfoundyet && s<=length(handles.plothandle)
     brushedIdx = logical(handles.plothandle(s).BrushData)'; % This gives the indices of the highlighted data within the plotted window, but not within the whole dataset
     if sum(brushedIdx)>0
-        I = handles.plothandleI(s).I;
+        windowtimestamps = handles.plothandle(s).XData;
+        taggedtimestamps = windowtimestamps(brushedIdx);
+        if handles.tstampchoice==1
+            taggedtimestampsms = round(taggedtimestamps*86400*1000); % convert from days since time zero to ms since time zero
+        elseif handles.tstampchoice==2
+            taggedtimestampsms = round((taggedtimestamps-handles.info.dayzero)*86400*1000); % convert from matlab date to ms since time zero
+        end
+        [fulldataset,~] = ismember(handles.info.times,taggedtimestampsms); % Put the brushed data from the window into the context of the full dataset and retrieve the indices of the global timestamps which match
+        % Fill in all the timepoints with ones between the first and last selected point
+        firstindex = find(fulldataset==1,1);
+        lastindex = find(fulldataset==1,1,'last');
+        fulldataset(firstindex:lastindex)=1;
         handles.plothandle(s).BrushData = []; % Remove the brushing
         notfoundyet=0;
     end
     s=1+s;
 end
 
-brushedIdxWithNans = zeros(length(I),1);
-brushedIdxWithNans(I) = brushedIdx;
-
-% Put the brushed data from the window into the context of the full dataset
-fulldataset = zeros(length(handles.vdata.t),1);
-fulldataset(handles.startindex:handles.endindex) = brushedIdxWithNans;
-
 % Turn this into tags
 pmin = 1; % minimum number of points below threshold (default one) - only applies to tags!!
 tmin = 0; % time gap between crossings to join (default zero) - only applies to tags!!
-[tag,tagcol]=threshtags(~fulldataset,handles.vdata.t,0.5,pmin,tmin);
+[tag,tagcol]=threshtags(~fulldataset,handles.info.times+handles.info.utczero,0.5,pmin,tmin); % the +handles.info.utczero converts time stamps from (ms from time zero) to (utc ms)
 
-% Add custom tags to local results data
-[result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,~] = addtoresultsfile3(fullfile(handles.pathname, handles.filename),['/Results/CustomTag/' customtaglabel],fulldataset,handles.vdata.t,tag,tagcol,[],handles.rname,handles.rdatastruct,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
+% Load the results data in in the regular results file format
+if ~isfield(handles,'rname')
+    [handles.rname,handles.rdata,handles.tagtitles,handles.tagcolumns,handles.tags,handles.result_qrs] = getresultsfile3(resultsfilename);
+end
 
-% Show the custom tag in the tag category listbox
-    %Put all data into long vectors 
-    t=[];
-    x=[];
-    v=[];
-    i = 1; % this counts the index of the original result_data
-    j = 1; % this counts the index of the new data vectors when SIQ is added
+% Add the custom tags to the results file data in the format expected by the results file
+[handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,~] = addtoresultsfile3(newtagname,fulldataset,handles.info.times+handles.info.utczero,tag,tagcol,[],handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
 
-    nv = length(result_data);
-    while i<=nv
-        n=length(result_data(j).time);
-        x=[x;result_data(j).data];    
-        t=[t;result_data(j).time];
-        v=[v;i*ones(n,1)];
-        i = i+1;
-        j = j+1;
-    end
-    
-    %Matrix output
-    [vt,~,r]=unique(t);
-    nt=length(vt);
-    matrixformat=NaN*ones(nt,nv);
-    for i=1:nv
-        j=v==i;
-        matrixformat(r(j),i)=x(j);
-    end
-    
-    handles.rt = vt;
-    handles.rdatastruct = result_data;
-    handles.rdata = matrixformat;
-    handles.rname = result_name;
-    handles.tagtitles = result_tagtitle;
-    handles.tagcolumns = result_tagcolumns;
-    handles.tags = result_tags;
-
-handles.alldatasetnames = vertcat(handles.vname,handles.wname,handles.rname(:,1));
+handles.alldatasetnames = [handles.info.name; newtagname]; % NOTE: You must save the tags before changing the tag name, otherwise the old tags will no longer be accessible...I think
 set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
 
 % Update which tagged events are shown
@@ -917,10 +892,6 @@ if ~isfield(handles,'tagtitlechosen')
     handles.tagtitlechosen = categorychoice;
 end
 UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
-
-% Update the plots
-overwrite = 1;
-plotdata(hObject, eventdata, handles, overwrite)
 
 
 % --- Executes on button press in SaveAllCustomTagsButton.
@@ -937,7 +908,7 @@ else
 end
 
 % Name the data we are saving
-result_data = handles.rdatastruct;
+result_data = handles.rdata;
 result_name = handles.rname;
 result_tags = handles.tags;
 result_tagcolumns = handles.tagcolumns;

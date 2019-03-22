@@ -169,7 +169,7 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 isfirst = 0;
             else
                 if ~isempty(result)
-                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(filename,resultname(algnum-3,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs); % Must subtract 3 for resultname because qrs detection doesn't have a resultname
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(resultname(algnum-3,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs); % Must subtract 3 for resultname because qrs detection doesn't have a resultname
                 end
             end
         elseif exist('tagcol') % For dataavailable results
@@ -178,7 +178,7 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 isfirst = 0;
             else
                 if ~isempty(tagcol)
-                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(filename,algdispname(algnum,:),[],[],tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(algdispname(algnum,:),[],[],tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
                 end
             end
         end
@@ -188,7 +188,7 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 isfirst = 0;
             else
                 if ~isempty(qrs)
-                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(filename,algdispname(algnum,:),[],[],[],[],qrs,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(algdispname(algnum,:),[],[],[],[],qrs,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
                 end
             end
         end

@@ -1,4 +1,4 @@
-function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(filename,name,result,time,tag,tagcol,qrsinput,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs)
+function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(name,result,time,tag,tagcol,qrsinput,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs)
 % This saves results in a .mat file alongside the original hdf5 file. The
 % results file is named [inputfilename]_results.mat. If the results file
 % already contains an identical tagname, those corresponding prior tags are
@@ -29,10 +29,10 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
 %   pulling from the correct place (_name vs _tagtitle).
 
 % Handle Timestamps that are not UTC (were originally seconds from event, now in double(datenum(duration)) format)
-isutc = strcmp(h5readatt(filename,'/','Timezone'),'UTC');
-if ~isutc && ~isempty(tag)
-	tag(:,3) = datenum(tag(:,3))*86400; % convert to seconds
-end
+% isutc = strcmp(h5readatt(filename,'/','Timezone'),'UTC');
+% if ~isutc && ~isempty(tag)
+% 	tag(:,3) = datenum(tag(:,3))*86400; % convert to seconds
+% end
 
 % If the file does not already exist, create a file
 if isempty(result_name)
