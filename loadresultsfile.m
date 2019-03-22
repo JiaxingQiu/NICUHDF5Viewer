@@ -2,8 +2,10 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
     % Find the Result Filename
     if contains(filename,'.hdf5')
         resultfilename = strrep(filename,'.hdf5','_results.mat');
-    else
+    elseif contains(filename,'.mat')
         resultfilename = strrep(filename,'.mat','_results.mat');
+    elseif contains(filename,'.dat')
+        resultfilename = strrep(filename,'.dat','_results.mat');
     end
     % If the file does not already exist, create a file
     if ~exist(resultfilename,'file')

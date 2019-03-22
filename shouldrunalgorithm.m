@@ -8,8 +8,10 @@ newversion = algdispname(algnum,2);
 % Find the Result Filename
 if contains(filename,'.hdf5')
     resultfilename = strrep(filename,'.hdf5','_results.mat');
-else
+elseif contains(filename,'.mat')
     resultfilename = strrep(filename,'.mat','_results.mat');
+elseif contains(filename,'.dat')
+    resultfilename = strrep(filename,'.dat','_results.mat');
 end
 
 % Load in the oldversion tagtitles even if they are already loaded in
