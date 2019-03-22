@@ -66,14 +66,14 @@ try
     T=h5readatt(file,'/','Sample Period (ms)');
 end
 
-startutc=0;
+start=0;
 try
-    startutc=h5readatt(file,'/','Start Time');
+    start=h5readatt(file,'/','Start Time');
 end
 
 if isutc
     if isnan(dayzero)
-        utczero=double(startutc/tunit);
+        utczero=double(start/tunit);
         dayzero=floor(utc2local(utczero));
     end
 end
@@ -86,7 +86,7 @@ t=t(:,1);
 local=[];
 if isutc
     if isnan(dayzero)
-        utczero=double(startutc/tunit);
+        utczero=double(start/tunit);
         dayzero=floor(utc2local(utczero));
     end    
     utczero=round(tunit*local2utc(dayzero));        
@@ -100,7 +100,8 @@ end
 
 if isnan(dayzero),dayzero=0;end
 info.dayzero=dayzero;
-info.utczero=utczero;
+info.datezero=datestr(dayzero,31);
+info.timezero=utczero;
 info.times=t;
 info.local=local;
 info.sampleperiod=T;
@@ -109,27 +110,27 @@ info.vitalfrequency=vfs;
 
 %Find root attributes for file
 
-stoputc=0;
-start='';
-stop='';
+stop=0;
+startdate='';
+stopdate='';
 
 layout=NaN;
 source='';
 
 try
-    startutc=h5readatt(file,'/','Start Time');
+    start=h5readatt(file,'/','Start Time');
 end
 
 try
-    start=h5readatt(file,'/','Start Date/Time');
+    startdate=h5readatt(file,'/','Start Date/Time');
 end
 
 try
-    stoputc=h5readatt(file,'/','End Time');
+    stop=h5readatt(file,'/','End Time');
 end
 
 try
-    stop=h5readatt(file,'/','End Date/Time');
+    stopdate=h5readatt(file,'/','End Date/Time');
 end
 
 try
@@ -149,11 +150,11 @@ try
     source=h5readatt(file,'/','Source Reader');
 end
 
-hours=(stoputc-startutc)/(3600*tunit);
-info.startutc=startutc;
-info.stoputc=stoputc;
+hours=(stop-start)/(3600*tunit);
 info.start=start;
 info.stop=stop;
+info.startdate=startdate;
+info.stopdate=stopdate;
 info.hours=hours;
 info.layout=layout;
 info.source=source;

@@ -14,9 +14,6 @@ if ~exist('name','var'),name=cell(0,1);end
 if ~exist('alldata','var'),alldata=[];end
 
 if ischar(name),name={name};end
-if length(name)==1
-    onlyinfo=strcmp(name{1},'info');
-end
 data=[];
 file='';
 t=[];

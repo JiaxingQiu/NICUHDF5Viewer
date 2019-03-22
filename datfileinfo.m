@@ -70,7 +70,8 @@ isutc=true;
 seq=(1:nt)';
 utc=startutc+seq;
 d=utc2local(utc);
-local=86400*(d-dayzero);    
+stop=d(nt);
+local=86400*(d-dayzero);
 t=utc-utczero;    
 if local==t
     local=[];
@@ -83,15 +84,17 @@ info.timeunit=timeunit;
 info.isutc=isutc;
 info.tunit=tunit;
 info.dayzero=dayzero;
-info.utczero=round(tunit*utczero);
+info.datezero=datestr(dayzero,31);
+info.timezero=round(tunit*utczero);
 info.times=round(tunit*t);
 info.local=round(tunit*local);
 
 info.sampleperiod=T;
 info.vitalfrequency=vfs;
-info.startutc=round(tunit*startutc);
-info.stoputc=round(tunit*stoputc);
-info.start=datestr(start,31);
+info.start=round(tunit*startutc);
+info.stop=round(tunit*stoputc);
+info.startdate=datestr(start,31);
+info.stopdate=datestr(stop,31);
 info.hours=hours;
         
 %Scaling factorf

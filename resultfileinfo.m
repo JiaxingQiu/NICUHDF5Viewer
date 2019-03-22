@@ -37,16 +37,19 @@ if ~isfield(info,'resultfile')
     if ~isresult
         [pathstr,root,~]=fileparts(file);    
         resultfile=fullfile(pathstr,root);
-        resultfile=[resultfile,'_results.mat'];
+        resultfile=[resultfile,'_results.mat'];        
     end
     info.resultfile=resultfile;
 else
     resultfile=info.resultfile;
 end
 
+if isempty(dir(resultfile)),return,end
+
+info.resultfile=resultfile;
 %Default timestamps in UTC and ms
 tunit=1000;
-utczero=0;
+timezero=0;
 isutc=true;
 dayzero=0;
 
@@ -54,23 +57,18 @@ if isfield(info,'isutc')
     isutc=info.isutc;
 end
 
-if isfield(info,'utczero')
-    utczero=info.utczero;
+if isfield(info,'timezero')
+    timezero=info.timezero;
 end
 
 if isfield(info,'tunit')
     tunit=info.tunit;
 end
+
 if isfield(info,'dayzero')
     dayzero=info.dayzero;
 end
 
-% if isfield(info,'name')
-%     name=info.name;
-% end
-% if isfield(info,'fixedname')
-%     fixedname=info.fixedname;
-% end
 result_name=cell(1,0);
 if isfield(info,'resultname')
     result_name=info.resultname;
@@ -108,7 +106,7 @@ for j=1:n
     data(i).raw=true;    
     t=result_data(j).time;
     if isutc
-        t=t-utczero;
+        t=t-timezero;
     else
         t=round((t-dayzero)*86400*tunit);
     end
@@ -121,6 +119,6 @@ end
 info.isutc=isutc;
 info.tunit=tunit;
 info.dayzero=dayzero;
-info.utczero=utczero;
+info.timezero=timezero;
 info.alldata=data;
 

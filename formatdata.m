@@ -2,6 +2,7 @@ function [xdata,xt,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
 %function [xdata,xt,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
 %
 %data       structure with data values and timestamps
+%           or cell array/single string with dataset names
 %info       structure with file attributes 
 %tformat    format/units of timestamps 
 %           0=> milliseconds since day zero (default)
@@ -29,30 +30,40 @@ if ~exist('dformat','var'),dformat=0;end
 if ~exist('rawflag','var'),rawflag=0;end
 rawflag=rawflag>0;
 
+if isstruct(data)
+    xdata=data;    
+else
+    xname=data;
+    data=getfiledata(info,xname);
+end
+
+xdata=data;
 %Default values
 tunit=1000;
 dayzero=0;
-utczero=0;
+timezero=0;
 t=[];
+isutc=true;
 
 if isfield(info,'times')
     t=info.times;
 end    
+xt=t;
 if isfield(info,'tunit')
     tunit=info.tunit;
 end
 if isfield(info,'dayzero')
     dayzero=info.dayzero;
 end
-if isfield(info,'utczero')
-    utczero=info.utczero;
+if isfield(info,'timezero')
+    timezero=info.timezero;
 end
-
-xdata=data;
-xt=t;
+if isfield(info,'isutc')
+    isutc=info.isutc;
+end    
 
 %Find dataset names
-n=length(data);
+n=length(xdata);
 xname=cell(n,1);
 for i=1:n
     if isfield(data,'name')
@@ -166,14 +177,12 @@ if dformat==2
 end
 
 %Format timestamps
-
+tscale=NaN;    
+toffset=NaN;
 if length(tformat)==2
     tscale=tformat(1);
     toffset=tformat(2);
     tformat=NaN;
-else
-    tscale=1;    
-    toffset=0;
 end
 
 %Day units
@@ -188,8 +197,17 @@ if tformat==2
     toffset=dayzero;
 end
 
-if tformat==3    
-    toffset=utczero;
+if tformat==3
+    if isutc
+        toffset=timezero;
+    end
+end
+
+if isnan(tscale)
+    tscale=1;
+end
+if isnan(toffset)
+    toffset=0;
 end
 
 if tscale~=1

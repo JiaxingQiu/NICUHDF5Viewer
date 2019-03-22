@@ -2,7 +2,7 @@ function info=getfileinfo(file,noresult)
 %function [data,info,name]=getdata(file,name)
 %
 %file       file name to retrieve information
-%noresult   flag to not get results default=false
+%noresult   flag to not get results (default=false)
 %
 %info       structure with time stamps and all dataset attributes/names
 
@@ -21,6 +21,9 @@ if ishdf5
 end
 if isdat
     info=datfileinfo(file);        
+end
+if ismat
+    info=matfileinfo(file);        
 end
 if isresult
     info=file;
@@ -62,14 +65,42 @@ if ~isfield(info,'resultfile')
         resultfile=fullfile(pathstr,root);
         resultfile=[resultfile,'_results.mat'];
     end
-    info.resultfile=resultfile;
 else
     resultfile=info.resultfile;
 end
 
+if isempty(dir(resultfile))
+    resultfile='';
+end
+
+info.resultfile=resultfile;
+
+result_name=cell(1,0);
+if isfield(info,'resultname')
+    result_name=info.resultname;
+else
+    try
+        load(resultfile,'result_name')
+    end
+
+end
+
+info.resultname=result_name;
+n=length(result_name);
+
+if n==0,return,end
+
+result_data=[];
+
+try
+    load(resultfile,'result_data')
+end
+
+if length(result_data)~=n,return,end
+
 %Default timestamps in UTC and ms
 tunit=1000;
-utczero=0;
+timezero=0;
 isutc=true;
 dayzero=0;
 
@@ -88,32 +119,6 @@ if isfield(info,'dayzero')
     dayzero=info.dayzero;
 end
 
-% if isfield(info,'name')
-%     name=info.name;
-% end
-% if isfield(info,'fixedname')
-%     fixedname=info.fixedname;
-% end
-result_name=cell(1,0);
-if isfield(info,'resultname')
-    result_name=info.resultname;
-else
-    try
-        load(resultfile,'result_name')
-    end
-    info.resultname=result_name;
-end
-
-n=length(result_name);
-
-result_data=[];
-
-try
-    load(resultfile,'result_data')
-end
-
-if length(result_data)~=n,return,end
-
 k=length(data);
 
 %Put all result data into default data structure format
@@ -131,7 +136,7 @@ for j=1:n
     data(i).raw=true;    
     t=result_data(j).time;
     if isutc
-        t=t-utczero;
+        t=t-timezero;
     else
         t=round((t-dayzero)*86400*tunit);
     end
@@ -144,7 +149,7 @@ end
 info.isutc=isutc;
 info.tunit=tunit;
 info.dayzero=dayzero;
-info.utczero=utczero;
+info.timezero=timezero;
 info.alldata=data;
 
 end
