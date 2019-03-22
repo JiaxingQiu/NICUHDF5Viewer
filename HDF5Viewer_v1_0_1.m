@@ -667,7 +667,7 @@ if ~isempty(handles.tags)
         starttimes = tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Start')); % ms
         if handles.info.isutc % ms in utc time
             if handles.tstampchoice==1 % Days since time zero
-                starttimes = starttimes-double(handles.info.utczero); % puts UTC date (ms) into ms since time zero
+                starttimes = starttimes-double(handles.info.timezero); % puts UTC date (ms) into ms since time zero
                 handles.starttimesfigure = starttimes/86400/1000; % convert to days since time zero
                 negstarts = handles.starttimesfigure<0;
                 daytodisp = floor(abs(handles.starttimesfigure)); % convert ms to days
@@ -872,7 +872,7 @@ end
 % Turn this into tags
 pmin = 1; % minimum number of points below threshold (default one) - only applies to tags!!
 tmin = 0; % time gap between crossings to join (default zero) - only applies to tags!!
-[tag,tagcol]=threshtags(~fulldataset,handles.info.times+handles.info.utczero,0.5,pmin,tmin); % the +handles.info.utczero converts time stamps from (ms from time zero) to (utc ms)
+[tag,tagcol]=threshtags(~fulldataset,handles.info.times+handles.info.timezero,0.5,pmin,tmin); % the +handles.info.timezero converts time stamps from (ms from time zero) to (utc ms)
 
 % Load the results data in in the regular results file format
 if ~isfield(handles,'rname')
@@ -880,7 +880,7 @@ if ~isfield(handles,'rname')
 end
 
 % Add the custom tags to the results file data in the format expected by the results file
-[handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,~] = addtoresultsfile3(newtagname,fulldataset,handles.info.times+handles.info.utczero,tag,tagcol,[],handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
+[handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,~] = addtoresultsfile3(newtagname,fulldataset,handles.info.times+handles.info.timezero,tag,tagcol,[],handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
 
 handles.alldatasetnames = [handles.info.name; newtagname]; % NOTE: You must save the tags before changing the tag name, otherwise the old tags will no longer be accessible...I think
 set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));

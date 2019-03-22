@@ -108,8 +108,12 @@ if isfield(info,'isutc')
     isutc=info.isutc;
 end
 
-if isfield(info,'utczero')
-    utczero=info.utczero;
+% if isfield(info,'utczero')
+%     utczero=info.utczero;
+% end
+
+if isfield(info,'timezero')
+    timezero=info.timezero;
 end
 
 if isfield(info,'tunit')

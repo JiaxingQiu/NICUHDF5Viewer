@@ -9,7 +9,7 @@ function [results,pt,tag,tagname,qrs] = apneadetector(info,lead)
 %
 % OUTPUT:
 % results:  probability of apnea
-% pt:       UTC time
+% pt:       UTC ms
 % tag:      tags ready to be saved in the results file
 % tagname:  tagnames ready to be saved in the results file
 %

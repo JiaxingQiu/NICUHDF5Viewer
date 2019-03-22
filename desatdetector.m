@@ -10,7 +10,7 @@ function [results,vt,tag,tagname] = desatdetector(info,threshold,pmin,tmin)
 
 % OUTPUT:
 % results: binary array of 1 for desaturation and 0 for no desaturation
-% vt:      UTC time
+% vt:      UTC ms date
 % tag:     tags ready to be saved in the results file
 % tagname: tagnames ready to be saved in the results file
 %
