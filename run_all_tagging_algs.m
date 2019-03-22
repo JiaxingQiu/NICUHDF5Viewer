@@ -29,18 +29,13 @@ for i=1:length(algstorun)
 end
 
 % Find the Result Filename
-if isfield(info,'resultfile')
-    resultfilename = info.resultfile;
-else % Or create one if it doesn't already exist
-    if contains(filename,'.hdf5')
-        resultfilename = strrep(filename,'.hdf5','_results.mat');
-    elseif contains(filename,'.dat')
-        resultfilename = strrep(filename,'.dat','_results.mat');
-    elseif contains(filename,'.mat')
-        resultfilename = strrep(filename,'.mat','_results.mat');
-    end
+if contains(filename,'.hdf5')
+    resultfilename = strrep(filename,'.hdf5','_results.mat');
+elseif contains(filename,'.dat')
+    resultfilename = strrep(filename,'.dat','_results.mat');
+elseif contains(filename,'.mat')
+    resultfilename = strrep(filename,'.mat','_results.mat');
 end
-
 
 % Save the Results
 msgbox('Saving the results','Tagging','modal');

@@ -2,7 +2,7 @@ function [tag,tagname]=threshtags(x,xt,T,pmin,tmin,negthresh)
 % function [tag,tagname]=threshtags(x,xt,T,pmin,tmin)
 %
 % x = input signal
-% x = input signal timestamps
+% xt = input signal timestamps
 % T = threshold for event
 % pmin = minimum number of points below threshold (default one)
 % tmin = time gap between crossings to join (default zero)

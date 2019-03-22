@@ -240,8 +240,10 @@ for s=1:numsigs
     % Load the data for the desired signal
     varname = handles.value{1,s}; % Find the name of the chosen signal
     handles.dataindex = find(ismember(handles.alldatasetnames,varname));
-    [data,~,handles.info] = getfiledata(handles.info,varname);
-    [handles.vdata,handles.t,handles.vname] = formatdata(data,handles.info,handles.tstampchoice,1);
+%     [data,~,handles.info] = getfiledata(handles.info,varname);
+%     [handles.vdata,handles.t,handles.vname] = formatdata(data,handles.info,handles.tstampchoice,1);
+    
+    [handles.vdata,handles.t,handles.vname] = formatdata(varname,handles.info,handles.tstampchoice,1);
     
     % Check to see if pre-defined limits/colors exist for the signal of interest
     [plotcolor,ylimmin,ylimmax] = customplotcolors(varname);
@@ -275,17 +277,22 @@ for s=1:numsigs
         if ~isfield(handles,'windowstarttime')
             handles.windowstarttime = handles.globalzerodaystozero;
         end
-        if handles.windowstarttime<0
-            daytodisp = -day(-handles.windowstarttime);
-        else
-            daytodisp = day(handles.windowstarttime);
-        end
+%         if handles.windowstarttime<0
+%             daytodisp = -day(-handles.windowstarttime);
+%         else
+%             daytodisp = day(handles.windowstarttime);
+%         end
+        daytodisp = floor(handles.windowstarttime);
         daytodisp = ['Day: ' num2str(daytodisp)];
     elseif handles.tstampchoice==2
         if ~isfield(handles,'windowstarttime')
             handles.windowstarttime = handles.globalzerolocaldate;
         end
-        daytodisp = datestr(handles.windowstarttime,'mm/dd/yy');
+        if handles.info.dayzero==0
+            daytodisp = 'Date Unknown';
+        else
+            daytodisp = datestr(handles.windowstarttime,'mm/dd/yy');
+        end
     end
     set(handles.DayTextBox,'string',daytodisp);
     handles.windowendtime = handles.windowstarttime+handles.windowsize;
@@ -763,7 +770,7 @@ function run_tagging_algorithms_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.tagalgstextbox,'string','Running...');
 drawnow
-run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.info,[])%%%%%%%%%%%%%%
+run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.info,[])
 % Get the info structure again now that the results file has been generated
 handles.info = getfileinfo(fullfile(handles.pathname, handles.filename));
 % Load the results data
