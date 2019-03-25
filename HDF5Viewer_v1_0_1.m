@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 11-Mar-2019 14:08:06
+% Last Modified by GUIDE v2.5 25-Mar-2019 10:32:04
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -245,6 +245,8 @@ for s=1:numsigs
     
     [handles.vdata,handles.t,handles.vname] = formatdata(varname,handles.info,handles.tstampchoice,1);
     
+    
+    
     % Check to see if pre-defined limits/colors exist for the signal of interest
     [plotcolor,ylimmin,ylimmax] = customplotcolors(varname);
     
@@ -315,6 +317,13 @@ for s=1:numsigs
         handles.plothandle(s) = plot(handles.tplot(I),handles.sig(I),plotcolor);
         handles.plothandleI(s).I = I;
         ylabel(strrep(varname,'_',' '));
+    end
+    
+    % If detected qrs beats exist, plot them
+    qt = getrqrs(handles);
+    if ~isempty(qt)
+        hold on
+        handles.plothandle(s) = scatter(qt,zeros(length(qt),1),'m*');
     end
     
     % Handle the ability to zoom in and out while maintaining reasonable-looking timestamps
@@ -1059,4 +1068,3 @@ msgbox({
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 },'Help')
-
