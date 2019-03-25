@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 25-Mar-2019 10:32:04
+% Last Modified by GUIDE v2.5 25-Mar-2019 15:51:10
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1064,7 +1064,7 @@ function help_menu_about_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 msgbox({
-'HDF5Viewer v2.7';
+'HDF5Viewer v3.0 beta';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 },'Help')

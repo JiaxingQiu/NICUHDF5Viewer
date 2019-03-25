@@ -117,7 +117,7 @@ for i=1:nv
     data(i).x=[];
     data(i).nx=0;
     data(i).fs=[];    
-    data(i).raw=true;    
+    data(i).raw=false;    
     data(i).t=[];
 
     if i<=nc

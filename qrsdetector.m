@@ -8,7 +8,7 @@ function qrs = qrsdetector(info,lead,version)
 % version:  version number for qrs detection algorithm
 %
 % OUTPUT:
-% qrs.qt:    times of detected heartbeats
+% qrs.qt:    times of detected heartbeats (utc milliseconds)
 % qrs.qb:    beat number of detected heartbeats
 % qrs.qgood: flag for good heartbeats
 
@@ -34,17 +34,17 @@ if isempty(data) && lead>0
     return
 end
 ecg = data.x;
-ecgt = data.t;
+ecgt = data.t; % date in UTC milliseconds format
 fs = data.fs;
 
 % QRS Detection
 gain = 1; % 400;
 if lead~=0
-    [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs);
+    [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs); % tombqrs expects time in seconds
 end
 
 qrs.lead = lead;
-qrs.qt = qt;
+qrs.qt = qt*1000; % date in UTC milliseconds format
 qrs.qb = qb;
 qrs.qgood = qgood;
 qrs.version = version;

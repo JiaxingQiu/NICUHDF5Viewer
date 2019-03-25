@@ -75,18 +75,17 @@ end
 
 info.resultfile=resultfile;
 
-result_name=cell(1,0);
+result_name=cell(0,2);
 if isfield(info,'resultname')
     result_name=info.resultname;
 else
     try
         load(resultfile,'result_name')
     end
-
 end
 
 info.resultname=result_name;
-n=length(result_name);
+n=size(result_name,1);
 
 if n==0,return,end
 
@@ -108,10 +107,6 @@ if isfield(info,'isutc')
     isutc=info.isutc;
 end
 
-% if isfield(info,'utczero')
-%     utczero=info.utczero;
-% end
-
 if isfield(info,'timezero')
     timezero=info.timezero;
 end
@@ -128,7 +123,7 @@ k=length(data);
 %Put all result data into default data structure format
 for j=1:n
     i=j+k;
-    name=result_name{j};
+    name=result_name{j,1};
     data(i,:).name=name;
     data(i).fixedname=fixedname(name);
     info.name{i,1}=name;

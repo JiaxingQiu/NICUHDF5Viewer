@@ -11,15 +11,19 @@ else
     return;
 end
 
+if ~isfield(handles.rqrs,'qrs')
+    return;
+end
+
 if isempty(handles.rqrs(lead).qrs)
     return;
 end
 
 qt = handles.rqrs(lead).qrs.qt;
 
-if handles.tstampchoice==1 % convert from utc date in seconds to days since time zero
-    qt = qt*1000-double(handles.info.timezero); % puts UTC date (ms) into ms since time zero
+if handles.tstampchoice==1 % convert from utc date in milliseconds to days since time zero
+    qt = qt-double(handles.info.timezero); % puts UTC date (ms) into ms since time zero
     qt = qt/86400/1000; % convert to days since time zero
 elseif handles.tstampchoice==2
-    qt = utc2local(qt); % convert from utc date in seconds to matlab date
+    qt = utc2local(qt/1000); % convert from utc date in milliseconds to matlab date
 end
