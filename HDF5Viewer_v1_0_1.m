@@ -712,7 +712,7 @@ if ~isempty(handles.tags)
     spaces = repmat(' -- ',[size(duration,1),1]);
     set(handles.TagListbox,'string',[daytodisp spaces minimum spaces duration])
     set(handles.TagListbox,'Max',2);
-    set(handles.TagListbox, 'Value', []); %%% FIX THIS!!!
+    set(handles.TagListbox, 'Value', []);
 end
 % Update handles structure
 guidata(hObject, handles);
