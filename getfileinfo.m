@@ -136,8 +136,8 @@ for j=1:n
     t=result_data(j).time;
     if isutc
         t=t-timezero;
-    else
-        t=round((t-dayzero)*86400*tunit);
+%     else
+%         t=round((t-dayzero)*86400*tunit);   % by removing this we will no longer be able to use old results files which have tags stored as days
     end
     data(i).t=t;
     data(i).nt=length(t);

@@ -39,7 +39,8 @@ end
 
 % Save the Results
 msgbox('Saving the results','Tagging','modal');
-save(resultfilename,'result_data','result_name','result_tags','result_tagcolumns','result_tagtitle','result_data','result_qrs');
+info = rmfield(info,'alldata');
+save(resultfilename,'result_data','result_name','result_tags','result_tagcolumns','result_tagtitle','result_data','result_qrs','info');
 
 msgbox('Tagging Algorithms Complete','Tagging','modal');
 end
@@ -116,16 +117,16 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 [result,t_temp,tag,tagcol] = desatdetector(info,79.99,pmin,tmin);
             case 8 
                 % Apnea detection algorithm using lead I
-                [result,t_temp,tag,tagcol,qrs] = apneadetector(info,1);
+                [result,t_temp,tag,tagcol,qrs] = apneadetector(info,1,result_qrs);
             case 9
                 % Apnea detection algorithm using lead II
-                [result,t_temp,tag,tagcol,qrs] = apneadetector(info,2);
+                [result,t_temp,tag,tagcol,qrs] = apneadetector(info,2,result_qrs);
             case 10
                 % Apnea detection algorithm using lead III
-                [result,t_temp,tag,tagcol,qrs] = apneadetector(info,3);
+                [result,t_temp,tag,tagcol,qrs] = apneadetector(info,3,result_qrs);
             case 11
                 % Apnea detection algorithm using no EKG lead
-                [result,t_temp,tag,tagcol] = apneadetector(info,0);
+                [result,t_temp,tag,tagcol] = apneadetector(info,0,result_qrs);
             case 12
                 % Mary Mohr's periodic breathing algorithm
                 [result,t_temp,tag,tagcol] = periodicbreathing(info);

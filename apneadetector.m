@@ -1,4 +1,4 @@
-function [results,pt,tag,tagname,qrs] = apneadetector(info,lead)
+function [results,pt,tag,tagname,qrs] = apneadetector(info,lead,result_qrs)
 % apneadetector uses the resp waveform to calculate the probability of apnea.
 % If an EKG sig is selected & available, it uses the signal to filter out
 % heartbeats from the chest impedance waveform.
@@ -6,6 +6,7 @@ function [results,pt,tag,tagname,qrs] = apneadetector(info,lead)
 % INPUT:
 % info:     from getfileinfo - if empty, it will go get it
 % lead:     value from 0 to 3 indicating lead of interest. 0 = no lead
+% qrs:      result_qrs, if it exists, otherwise []
 %
 % OUTPUT:
 % results:  probability of apnea
@@ -48,6 +49,16 @@ else
     resultfilename = [];
 end
 
+% Check to see if we input result_qrs into the function
+if lead>0
+    if ~isempty(result_qrs(lead))
+        if ~isempty(result_qrs(lead).qrs)
+            qt = result_qrs(lead).qrs.qt;
+            qb = result_qrs(lead).qrs.qb;
+            qgood = result_qrs(lead).qrs.qgood;
+        end
+    end
+end
 % Check to see if we already did QRS detection
 if exist(resultfilename,'file') && lead>0
     varinfo = who('-file',resultfilename);
@@ -98,7 +109,7 @@ if ~exist('qt')
         [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs);
     end
     qrs.lead = lead;
-    qrs.qt = qt;
+    qrs.qt = qt*1000;
     qrs.qb = qb;
     qrs.qgood = qgood;
 end

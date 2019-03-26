@@ -684,26 +684,28 @@ if ~isempty(handles.tags)
         if handles.info.isutc % ms in utc time
             if handles.tstampchoice==1 % Days since time zero
                 starttimes = starttimes-double(handles.info.timezero); % puts UTC date (ms) into ms since time zero
-                handles.starttimesfigure = starttimes/86400/1000; % convert to days since time zero
-                negstarts = handles.starttimesfigure<0;
-                daytodisp = floor(abs(handles.starttimesfigure)); % convert ms to days
-                daytodisp(negstarts) = -daytodisp(negstarts);
-                daytodisp = [repmat('Day: ',length(daytodisp),1) char(pad(cellstr(num2str(daytodisp)),6,'left')) repmat('   ',length(daytodisp),1)];
+                handles.starttimesfigure = starttimes/86400/1000; % convert ms to days since time zero
+                daytodisp = floor(handles.starttimesfigure);
+                timetodisp = handles.starttimesfigure-daytodisp;
+                ntags = size(daytodisp,1);
+                daytodisp = [repmat('Day: ',ntags,1)  num2str(daytodisp)  repmat('   ',ntags,1)  datestr(timetodisp,13)  repmat('      ',ntags,1)];
             elseif handles.tstampchoice==2 % Date
                 handles.starttimesfigure = utc2local(starttimes/1000); % convert UTC date (ms) to matlab date format
-                daytodisp = datestr(handles.starttimesfigure,'mm/dd/yy HH:MM:SS');
+                ntags = size(handles.starttimesfigure,1);
+                daytodisp = [datestr(handles.starttimesfigure,'mm/dd/yy HH:MM:SS') repmat('   ',ntags,1)];
             end
             duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
         else % ms since time zero
             if handles.tstampchoice==1 % Days since time zero
                 handles.starttimesfigure = starttimes/86400/1000; % convert to days since time zero
-                negstarts = handles.starttimesfigure<0; % tag starts before time zero
-                daytodisp = floor(abs(handles.starttimesfigure)); % convert ms to days
-                daytodisp(negstarts) = -daytodisp(negstarts);
-                daytodisp = [repmat('Day: ',length(daytodisp),1) char(pad(cellstr(num2str(daytodisp)),6,'left')) repmat('   ',length(daytodisp),1)];
+                daytodisp = floor(handles.starttimesfigure);
+                timetodisp = handles.starttimesfigure-daytodisp;
+                ntags = size(daytodisp,1);
+                daytodisp = [repmat('Day: ',ntags,1)  num2str(daytodisp)  repmat('   ',ntags,1)  datestr(timetodisp,13)  repmat('      ',ntags,1)];
             elseif handles.tstampchoice==2 % Date
                 handles.starttimesfigure = starttimes/86400/1000+handles.info.dayzero; % convert to days
-                daytodisp = datestr(handles.starttimesfigure,'mm/dd/yy HH:MM:SS');
+                ntags = size(handles.starttimesfigure,1);
+                daytodisp = [datestr(handles.starttimesfigure,'mm/dd/yy HH:MM:SS') repmat('   ',ntags,1)];
             end
             duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
         end
