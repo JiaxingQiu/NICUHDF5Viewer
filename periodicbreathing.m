@@ -1,4 +1,4 @@
-function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info)
+function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info,result_name,result_data)
 % periodicbreathing grabs the results from the apnea detection (first
 % looking for apnea detection using ecg lead III, then II, then I, then no
 % lead) and runs Mary Mohr's periodic breathing algorithm on it to
@@ -23,23 +23,42 @@ tagname = [];
 load('Wavelets_Info.mat','Wavelets_Info')
 setappdata(0,'Wavelets_Info',Wavelets_Info);
 
-% Load Apnea Data
-[data,~,~] = getfiledata(info,'/Results/Apnea-I');
-if isempty(data)
-    [data,~,~] = getfiledata(info,'/Results/Apnea-II');
+% Check if we have just run the apnea detector
+apneaindex = [];
+if sum(strcmp(result_name(:,1),'/Results/Apnea-III'))
+    apneaindex = strcmp(result_name(:,1),'/Results/Apnea-III');
+elseif sum(strcmp(result_name(:,1),'/Results/Apnea-II'))
+    apneaindex = strcmp(result_name(:,1),'/Results/Apnea-II');
+elseif sum(strcmp(result_name(:,1),'/Results/Apnea-I'))
+    apneaindex = strcmp(result_name(:,1),'/Results/Apnea-I');
+elseif sum(strcmp(result_name(:,1),'/Results/Apnea-NoECG'))
+    apneaindex = strcmp(result_name(:,1),'/Results/Apnea-NoECG');
+end
+if ~isempty(apneaindex)
+    data = result_data(apneaindex);
+    unTomb = data.data;
+    Ttime = data.time;
+end
+
+% If we haven't just run the apnea detector, load apnea data
+if isempty(apneaindex)
+    [data,~,~] = getfiledata(info,'/Results/Apnea-III');
     if isempty(data)
-        [data,~,~] = getfiledata(info,'/Results/Apnea-III');
+        [data,~,~] = getfiledata(info,'/Results/Apnea-II');
         if isempty(data)
-            [data,~,~] = getfiledata(info,'/Results/Apnea-NoECG');
+            [data,~,~] = getfiledata(info,'/Results/Apnea-I');
             if isempty(data)
-                return
+                [data,~,~] = getfiledata(info,'/Results/Apnea-NoECG');
+                if isempty(data)
+                    return
+                end
             end
         end
     end
+    [data,~,~] = formatdata(data,info,3,1);
+    unTomb = data.x;
+    Ttime = data.t;
 end
-[data,~,~] = formatdata(data,info,3,1);
-unTomb = data.x;
-Ttime = data.t;
 
 % Run the periodic breathing algorithm
 [pb_indx,pb_time,~,~,~] = Calc_pb_wavelet(unTomb,Ttime);

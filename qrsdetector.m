@@ -23,13 +23,12 @@ qrs = [];
 
 % Load in the EKG signal
 if lead == 1
-    [data,~,info] = getfiledata(info,'ECGI');
+    [data,~,~] = formatdata('ECGI',info,3,1);
 elseif lead == 2
-    [data,~,info] = getfiledata(info,'ECGII');
+    [data,~,~] = formatdata('ECGII',info,3,1);
 elseif lead == 3
-    [data,~,info] = getfiledata(info,'ECGIII');
+    [data,~,~] = formatdata('ECGIII',info,3,1);
 end
-[data,~,~] = formatdata(data,info,3,1);
 if isempty(data) && lead>0
     return
 end

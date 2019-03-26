@@ -129,7 +129,7 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 [result,t_temp,tag,tagcol] = apneadetector(info,0,result_qrs);
             case 12
                 % Mary Mohr's periodic breathing algorithm
-                [result,t_temp,tag,tagcol] = periodicbreathing(info);
+                [result,t_temp,tag,tagcol] = periodicbreathing(info,result_name,result_data);
             case 13
                 % Pete's bradycardia detection algorithm: Bradys are <100 for ECG HR for at least 4 seconds. Joining rule for bradys is 4 seconds
                 [result,t_temp,tag,tagcol] = bradydetector(info,99.99,4,4000);
