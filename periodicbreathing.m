@@ -37,7 +37,7 @@ end
 if ~isempty(apneaindex)
     data = result_data(apneaindex);
     unTomb = data.data;
-    Ttime = data.time;
+    Ttime = data.time; % Need to make sure this is okay for all types of data
 end
 
 % If we haven't just run the apnea detector, load apnea data
