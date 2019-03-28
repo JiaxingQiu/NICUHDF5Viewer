@@ -1,4 +1,4 @@
-function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info,result_name,result_data)
+function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info,lead,result_name,result_data)
 % periodicbreathing grabs the results from the apnea detection (first
 % looking for apnea detection using ecg lead III, then II, then I, then no
 % lead) and runs Mary Mohr's periodic breathing algorithm on it to
@@ -25,14 +25,17 @@ setappdata(0,'Wavelets_Info',Wavelets_Info);
 
 % Check if we have just run the apnea detector
 apneaindex = [];
-if sum(strcmp(result_name(:,1),'/Results/Apnea-III'))
-    apneaindex = strcmp(result_name(:,1),'/Results/Apnea-III');
-elseif sum(strcmp(result_name(:,1),'/Results/Apnea-II'))
-    apneaindex = strcmp(result_name(:,1),'/Results/Apnea-II');
-elseif sum(strcmp(result_name(:,1),'/Results/Apnea-I'))
-    apneaindex = strcmp(result_name(:,1),'/Results/Apnea-I');
-elseif sum(strcmp(result_name(:,1),'/Results/Apnea-NoECG'))
-    apneaindex = strcmp(result_name(:,1),'/Results/Apnea-NoECG');
+if lead == 0
+    filename = '/Results/Apnea-NoECG';
+elseif lead == 1
+    filename = '/Results/Apnea-I';
+elseif lead == 2
+    filename = '/Results/Apnea-II';
+elseif lead == 3
+    filename = '/Results/Apnea-III';
+end
+if sum(strcmp(result_name(:,1),filename))
+    apneaindex = strcmp(result_name(:,1),filename);
 end
 if ~isempty(apneaindex)
     data = result_data(apneaindex);
@@ -42,20 +45,10 @@ end
 
 % If we haven't just run the apnea detector, load apnea data
 if isempty(apneaindex)
-    [data,~,~] = getfiledata(info,'/Results/Apnea-III');
+    [data,~,~] = formatdata(filename,info,3,1);
     if isempty(data)
-        [data,~,~] = getfiledata(info,'/Results/Apnea-II');
-        if isempty(data)
-            [data,~,~] = getfiledata(info,'/Results/Apnea-I');
-            if isempty(data)
-                [data,~,~] = getfiledata(info,'/Results/Apnea-NoECG');
-                if isempty(data)
-                    return
-                end
-            end
-        end
+        return
     end
-    [data,~,~] = formatdata(data,info,3,1);
     unTomb = data.x;
     Ttime = data.t;
 end
