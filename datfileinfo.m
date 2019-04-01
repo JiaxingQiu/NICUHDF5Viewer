@@ -17,7 +17,7 @@ facfile=fullfile(pathstr,'ScalingFactors.txt');
 if ~isempty(dir(facfile))
     fac=load(facfile);
 else
-    fac=[];
+    fac=[NaN NaN];
 end
 
 %Timestamps in UTC and ms
@@ -29,18 +29,36 @@ isutc=true;
 info.file=file;
 
 %Hard code dat file names
-info.name={'/Waveforms/ECG','/Waveforms/RESP','/Waveforms/SPO2','/Waveforms/HR','/VitalSigns/SPO2','/VitalSigns/HR'}';
-info.fixedname=fixedname(info.name);
+
+name={'/Raw/ECG','/Raw/RESP','/Raw/SPO2','/Raw/HR'}';
+
+%Add processed signals
+
+name=[name;{'/Waveforms/ECG','/Waveforms/RESP','/VitalSigns/SPO2','/VitalSigns/HR'}'];
+
+%Hard code waveform and vital sign frequency
+wfs=200;
+vfs=1;
+T=1000;
+
+%Scaling factors
+%Signals 3 and 4 hard-coded
+sf=[1;1;100;250;NaN;NaN;NaN;NaN];
+
+%Frequencies
+fs=[wfs*ones(6,1);vfs*ones(2,1)];
+
+info.name=name;
+info.fixedname=fixedname(name);
 
 info.facfile=facfile;
 info.fac=fac;
 
+scale=1/fac(2);
+offset=fac(1);
+
 nv=length(info.name);
 
-%Hard code frequency and vital sign frequency
-fs=200;
-vfs=1;
-T=1000;
 
 %Get raw data and start date from file
 [rawdata,start]=getrawdatdata(file);
@@ -51,12 +69,11 @@ startutc=round(startutc);
 dayzero=floor(start);
 utczero=local2utc(dayzero);
 
-rawdata=double(rawdata);
 %Find sequence of data assumed consecutive
 [nr,nc]=size(rawdata);
-nt=floor(nr/fs);
+nt=floor(nr/wfs);
 stoputc=startutc+nt;
-hours=nr/(fs*3600);
+hours=nr/(wfs*3600);
 
 % nr=nt*fs;
 % rawdata=rawdata(1:nr,:);
@@ -96,43 +113,90 @@ info.stop=round(tunit*stoputc);
 info.startdate=datestr(start,31);
 info.stopdate=datestr(stop,31);
 info.hours=hours;
-        
-%Scaling factorf
+
+%block=NaN;
+
+%Raw signals
+for i=1:nv
+    data(i,:).name=info.name{i};
+    data(i).fixedname=info.fixedname{i};    
+    data(i).x=[];
+    data(i).nx=0;        
+    data(i).fs=fs(i);
+    data(i).raw=false;    
+    data(i).t=[];
+    data(i).nt=nt;    
+    data(i).index=[1 nt];        
+    data(i).T=T;
+    data(i).block=fs(i);
+    data(i).scale=scale/sf(i);    
+    data(i).offset=sf(i)*offset;        
+    if ~isnan(sf(i))
+        data(i).x=rawdata(:,i);
+        data(i).raw=true;
+    end       
+end
+
+rawdata=double(rawdata);
+%Scaling factor
 if length(fac)>1
     rawdata=fac(2)*rawdata+fac(1);
 end
 
-%Extra hard-coded scaling factors for oversampled vital sign waveforms
-rawdata(:,3)=100*rawdata(:,3);
-rawdata(:,4)=250*rawdata(:,4);
+%Hard-coded scaling factors for oversampled vital sign waveforms
+rawdata(:,3)=sf(3)*rawdata(:,3);
+rawdata(:,4)=sf(4)*rawdata(:,4);
 
-scale=1/fac(2);
-offset=fac(1);
-%block=NaN;
+%Find individual waveforms and vital sign signals
+ecg=rawdata(:,1);
+resp=rawdata(:,2);
+spo2=downsample(rawdata(:,3),wfs);        
+hr=downsample(rawdata(:,4),wfs);        
+clear rawdata
+
+%Filter out high frequency noise in ECG waveform
+
+[b,a]=butter(5,2*40/wfs,'low');
+ecg=filtfilt(b,a,ecg);
+
+%Filter out high frequency noise in RESP waveform
+[b,a]=butter(5,2*5/wfs,'low');
+resp=filtfilt(b,a,resp);
+
+%Find SD for each second and identify low amplitude ECG outliers
+amp=log(std(reshape(ecg(1:(wfs*nt)),wfs,nt))');
+u=mean(amp(amp>-Inf));
+s=std(amp(amp>-Inf));
+amplow=u-3*s;
+low=find(amp<amplow);
+for i=1:length(low)
+    j=wfs*(low(i)-1)+(1:wfs);
+    ecg(j)=NaN;
+    resp(j)=NaN;
+end
+
+%Find SPO2 and HR outliers
+hrgood=hr>40;
+uhr=mean(hr(hrgood));
+shr=std(hr(hrgood));
+Thr=min(80,uhr-4*shr);
+hrgood=hrgood&hr>Thr;
+hr(~hrgood)=NaN;
+
+spo2good=spo2>40;
+uspo2=mean(spo2(spo2good));
+sspo2=std(spo2(spo2good));
+Tspo2=min(60,uspo2-4*sspo2);
+spo2good=spo2good&spo2>Tspo2;
+spo2(~spo2good)=NaN;
+
+data(5).x=ecg;
+data(6).x=resp;
+data(7).x=spo2;
+data(8).x=hr;
 
 for i=1:nv
-    data(i,:).name=info.name{i};
-    data(i).fixedname=info.fixedname{i};        
-    
-    data(i).x=[];
-    data(i).nx=0;
-    data(i).fs=[];    
-    data(i).raw=false;    
-    data(i).t=[];
-
-    if i<=nc
-        data(i).x=rawdata(:,i);        
-        data(i).fs=fs;
-    else        
-        data(i).x=downsample(rawdata(:,i-2),fs);        
-        data(i).fs=1;
-    end    
-    data(i).nt=nt;    
-    data(i).index=[1 nt];        
-    data(i).T=T;
-    data(i).block=data(i).fs;
-    data(i).scale=scale;
-    data(i).offset=offset;        
+    data(i).nx=length(data(i).x);
 end
 info.alldata=data;
 
@@ -153,7 +217,7 @@ rawdata=[];
 
 fid=fopen(file);
 if fid>0
-    rawdata=fread(fid,[4 inf],'int16','ieee-be')';
+    rawdata=fread(fid,[4 inf],'*int16','ieee-be')';
     fclose(fid);
 end
 %Get start date and id from filename

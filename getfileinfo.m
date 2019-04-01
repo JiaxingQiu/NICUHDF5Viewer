@@ -136,8 +136,8 @@ for j=1:n
     t=result_data(j).time;
     if isutc
         t=t-timezero;
-%     else
-%         t=round((t-dayzero)*86400*tunit);   % by removing this we will no longer be able to use old results files which have tags stored as days
+%     else   % we need to remove this because if we have results files in ms since time zero, the isutc flag will fail, but then the program will think the data is in days, which it isn't. Unfortunately, by removing this, we will no longer be able to use old results files which have tags stored as days
+%         t=round((t-dayzero)*86400*tunit);
     end
     data(i).t=t;
     data(i).nt=length(t);

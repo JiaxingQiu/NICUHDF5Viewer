@@ -78,11 +78,6 @@ end
 rawdata(:,3)=100*rawdata(:,3);
 rawdata(:,4)=250*rawdata(:,4);
 
-% Convert to days/1000 because the surrounding code is horrible - my
-% greatest apologies
-t = t/86400; % Convert seconds to days
-t = t/1000; % Because everything gets multiplied by 1000
-
 for i=1:nv
     data(i,:).name=name{i};
     j=v(i);
@@ -119,7 +114,7 @@ end
 % end
 
 %Find SPO2 and HR outliers
-% hrgood=hr>40;
+um% hrgood=hr>40;
 % uhr=mean(hr(hrgood));
 % shr=std(hr(hrgood));
 % Thr=min(80,uhr-4*shr);

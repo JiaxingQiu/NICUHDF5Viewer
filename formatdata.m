@@ -1,4 +1,4 @@
-function [xdata,xt,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
+function [xdata,xt,xfs,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
 %function [xdata,xt,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
 %
 %data       structure with data values and timestamps
@@ -21,7 +21,8 @@ function [xdata,xt,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
 %           data structure (dformat=1)           
 %           data column number / value pairs (dformat=2)
 %xt         time stamps for rows of data matrix or global timestamps otherwise
-%xname      names for structure element, matrix columns or column numbers
+%xfs        frequencies for structure elments or columns
+%xname      names for structure element or columns
 %t          global timestamps
 
 if ~exist('info','var'),info=[];end
@@ -62,8 +63,9 @@ if isfield(info,'isutc')
     isutc=info.isutc;
 end    
 
-%Find dataset names
+%Find dataset frequencies and names
 n=length(xdata);
+xfs=ones(n,1);
 xname=cell(n,1);
 for i=1:n
     if isfield(data,'name')
@@ -71,6 +73,9 @@ for i=1:n
     else
         xname{i}=['Column ',num2str(i)];
     end
+    if isfield(data,'fs')
+        xfs(i)=data(i).fs;
+    end    
 end
 
 %Put global time stamps for each data point into structure
@@ -103,8 +108,15 @@ for i=1:n
     nt=length(tt);
 %Make data double precision and scale if requested    
     x=data(i).x;    
-    if ~rawflag&&data(i).raw==1
+    xclass=class(x);
+    if ~rawflag&&data(i).raw==1            
         x=double(x);
+%         if strcmp(xclass,'int16')
+%             x(abs(x)>2^14)=NaN;
+%         end
+        if ~strcmp(xclass,'double')
+            x(abs(x)>2^14)=NaN;
+        end
         scale=data(i).scale;
         if ~isnan(scale)
             if scale~=1
@@ -114,7 +126,7 @@ for i=1:n
         offset=data(i).offset;
         if ~isnan(offset)
             if offset~=0           
-                x=x-double(offset);
+                x=x+double(offset);
             end
         end
         data(i).raw=false;

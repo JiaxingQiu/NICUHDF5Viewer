@@ -211,7 +211,7 @@ for i=1:n
     data(i).block=block;
     data(i).scale=scale;
     data(i).offset=offset;    
-    
+
 end
 
 info.alldata=data;
@@ -259,16 +259,6 @@ if ischar(cal)
     end
 end
 
-%Find cal if not in file
-if isempty(cal)
-    if ~isempty(scale)
-        cal=zeros(1,4);
-        cal(1)=offset;
-        cal(2)=cal(1)-1/scale;
-        cal(4)=1;
-    end
-end
-
 %Convert calibration vector used for BedMaster data to scaling factor 
 %Cal = “Cal Lo, Cal Hi, Grid Lo, Grid Hi”
 % The Cal and Grid values are used in a couple of scaling tags as well:
@@ -277,13 +267,23 @@ end
 %If Cal Hi is NaN then Scale = -0.025
 
 %Use cal to find scale factor if stll empty
-if isnan(scale)   
-    if length(cal)>=4
-%        fac(2)=-(cal(2)-cal(1))/(cal(4)-cal(3));
-        scale=-(cal(4)-cal(3))/(cal(2)-cal(1));        
-        offset=cal(1)-scale*cal(3);
-    end
-end    
+if length(cal)>=4
+    %        fac(2)=-(cal(2)-cal(1))/(cal(4)-cal(3));
+    scale=-(cal(4)-cal(3))/(cal(2)-cal(1));        
+    offset=cal(1)-cal(3)/scale;
+end
+%end    
+
+%Find cal if not in file
+% if isempty(cal)
+%     if ~isnan(scale)
+%         cal=zeros(1,4);
+%         cal(1)=0;
+%         cal(2)=1;
+%         cal(3)=-scale*offset;
+%         cal(4)=cal(3)-scale;
+%     end
+% end
 
 end
 
