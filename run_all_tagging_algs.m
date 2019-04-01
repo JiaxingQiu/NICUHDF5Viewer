@@ -66,6 +66,7 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
         'Desat Detection Pete',1;...
         'Brady Desat',1;...
         'Brady Desat Pete',1;...
+        'ABD Pete No ECG',1;...
         'Data Available: Pulse',1;...
         'Data Available: HR',1;...
         'Data Available: SPO2_pct',1;...
@@ -89,7 +90,8 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
         '/Results/Brady<100-Pete',1;...
         '/Results/Desat<80-Pete',1;...
         '/Results/BradyDesat',1;...
-        '/Results/BradyDesatPete',1};
+        '/Results/BradyDesatPete',1;...
+        '/Results/ABDPete-NoECG',1};
     
     % Find out if this algorithm has already been run. If it has, but this is the first alg on the list, load in the data that the program expects
     shouldrun = shouldrunalgorithm(filename,algnum,resultname,algdispname,result_tagtitle,result_qrs);
@@ -162,24 +164,27 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 % Brady Desat Algorithm with a 30 second threshold. Any brady within 30 seconds of any desat (in either direction) will count
                 [result,t_temp,tag,tagcol] = bradydesatpete(info,30000,result_tags,result_tagcolumns,result_tagtitle);
             case 20
+                % ABD Algorithm with a 30 second threshold. Used Pete's B and D tags along with Apnea-NoECG
+                [result,t_temp,tag,tagcol] = abd(info,30000,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+            case 21
                 % Determine when a pulse signal exists
                 [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'Pulse',1);
-            case 21
+            case 22
                 % Determine when a hr signal exists
                 [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'HR',1);
-            case 22
+            case 23
                 % Determine when a spo2% signal exists
                 [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'SPO2_pct',1);
-            case 23 
+            case 24 
                 % Determine when a resp signal exists
                 [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'Resp',0);
-            case 24
+            case 25
                 % Determine when an ECGI signal exists
                 [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGI',0);
-            case 25
+            case 26
                 % Determine when an ECGII signal exists
                 [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGII',0);
-            case 26
+            case 27
                 % Determine when an ECGIII signal exists
                 [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGIII',0);
 

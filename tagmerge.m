@@ -1,4 +1,4 @@
-function [result,t_temp,tag,tagcol] = tagmerge(tagcolumnsa,tagcolumnsb,tagsa,tagsb,thresh,info)
+function [result,tglobal,tag,tagcol] = tagmerge(tagcolumnsa,tagcolumnsb,tagsa,tagsb,thresh,info)
 
 % Find tag overlap within threshold of thresh ms
 startcola = strcmp(tagcolumnsa.tagname,'Start');
@@ -7,27 +7,27 @@ stopcola = strcmp(tagcolumnsa.tagname,'Stop');
 startcolb = strcmp(tagcolumnsb.tagname,'Start');
 stopcolb = strcmp(tagcolumnsb.tagname,'Stop');
 
+if isempty(tagsa.tagtable)||isempty(tagsb.tagtable)
+    tglobal = info.times+info.timezero;
+    result = zeros(length(tglobal),1);
+    tag = [];
+    tagcol = {'Start';'Stop';'Duration'};
+    return
+end
+
 starta = tagsa.tagtable(:,startcola);
 stopa = tagsa.tagtable(:,stopcola);
 
 startb = tagsb.tagtable(:,startcolb);
 stopb = tagsb.tagtable(:,stopcolb);
 
-if isempty(starta)||isempty(startb)
-    result = [];
-    t_temp = [];
-    tag = [];
-    tagcol = [];
-    return
-end
-
 startstart = starta-startb';
 startstop = starta-stopb';
 stopstart = stopa-startb';
 
-binstartstart = abs(startstart)<thresh;
-binstartstop = abs(startstop)<thresh;
-binstopstart = abs(stopstart)<thresh;
+binstartstart = abs(startstart)<=thresh;
+binstartstop = abs(startstop)<=thresh;
+binstopstart = abs(stopstart)<=thresh;
 
 overlap1 = startstart<=0&stopstart>=0;
 overlap2 = startstart>=0&startstop<=0;
@@ -73,10 +73,5 @@ tag(:,2) = computedstops(startorder);
 tag(:,3) = tag(:,2)-tag(:,1); %Duration of tag in ms
 
 % Store tag time points in a binary array
-t_temp = info.times+info.timezero;
-[~,startindices] = ismember(tag(:,1),t_temp);
-[~,endindices] = ismember(tag(:,2),t_temp);
-result = zeros(length(t_temp),1);
-for i=1:length(startindices)
-    result(startindices(i):endindices(i))=1;
-end
+tglobal = info.times+info.timezero;
+result = resultfromtags(tag,tagcol,tglobal);

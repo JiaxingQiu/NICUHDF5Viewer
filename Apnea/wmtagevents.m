@@ -11,7 +11,7 @@ if ~exist('pt','var')
     pt=(1:n)'/ps;
 end
 %tag=[s(:) e(:)-s(:)+1 wad(:) nna(:) t0(:) t1(:) gapl(:) gapr(:)];
-tagname = {'Index' 'Duration' 'WtdApneaDur' 'nNaN' 'Start' 'End' 'GapLeft' 'GapRight'}'; % index, duration, weighted apnea duration (not an apnea unless this value is >10), number of Nans in window, start time, end time, gap to the left (find out how far away the next event to the left is), gap to the right
+tagname = {'Index' 'Duration' 'WtdApneaDur' 'nNaN' 'Start' 'Stop' 'GapLeft' 'GapRight'}'; % index, duration, weighted apnea duration (not an apnea unless this value is >10), number of Nans in window, start time, end time, gap to the left (find out how far away the next event to the left is), gap to the right
 nc=length(tagname);
 tag=zeros(0,nc);
 tag0=zeros(0,nc);
