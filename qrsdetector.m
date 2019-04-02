@@ -23,27 +23,23 @@ qrs = [];
 
 % Load in the EKG signal
 if lead == 1
-    [data,~,~] = formatdata('ECGI',info,3,1);
+    [data,~,fs] = formatdata('ECGI',info,3,1);
 elseif lead == 2
-    [data,~,~] = formatdata('ECGII',info,3,1);
+    [data,~,fs] = formatdata('ECGII',info,3,1);
 elseif lead == 3
-    [data,~,~] = formatdata('ECGIII',info,3,1);
+    [data,~,fs] = formatdata('ECGIII',info,3,1);
 end
 if isempty(data) && lead>0
     return
 end
 ecg = data.x;
 ecgt = data.t; % date in UTC milliseconds format
-fs = data.fs;
 
 % QRS Detection
-gain = 1; % 400;
-if lead~=0
-    [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs); % tombqrs expects time in seconds
-end
+[qt,qecg,qs]=getqrs(ecg,ecgt,fs,info.tunit);
 
 qrs.lead = lead;
-qrs.qt = qt*1000; % date in UTC milliseconds format
-qrs.qb = qb;
-qrs.qgood = qgood;
+qrs.qt = qt; % times of detected beats (date in UTC milliseconds format?)
+qrs.qecg = qecg; % ecg value at detected beat time
+qrs.qs = qs; % segment of data used to run qrs detector
 qrs.version = version;

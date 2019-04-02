@@ -74,4 +74,5 @@ tag(:,3) = tag(:,2)-tag(:,1); %Duration of tag in ms
 
 % Store tag time points in a binary array
 tglobal = info.times+info.timezero;
-result = resultfromtags(tag,tagcol,tglobal);
+tagcoltemp.tagname = tagcol;
+result = resultfromtags(tag,tagcoltemp,tglobal);

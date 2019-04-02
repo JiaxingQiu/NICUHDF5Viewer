@@ -52,27 +52,21 @@ end
 % Check to see if we input result_qrs into the function
 try
     qt = result_qrs(lead).qrs.qt;
-    qb = result_qrs(lead).qrs.qb;
-    qgood = result_qrs(lead).qrs.qgood;
 catch
     try
         load(resultfilename,'result_qrs')
         qt = result_qrs(lead).qrs.qt;
-        qb = result_qrs(lead).qrs.qb;
-        qgood = result_qrs(lead).qrs.qgood;
     catch
         % Load in the EKG signal
         if lead == 1
-            [data,~,~] = formatdata('ECGI',info,3,1);
+            [data,~,fs] = formatdata('ECGI',info,3,1);
         elseif lead == 2
-            [data,~,~] = formatdata('ECGII',info,3,1);
+            [data,~,fs] = formatdata('ECGII',info,3,1);
         elseif lead == 3
-            [data,~,~] = formatdata('ECGIII',info,3,1);
+            [data,~,fs] = formatdata('ECGIII',info,3,1);
         elseif lead == 0 
             data = [];
             qt = [];
-            qb = [];
-            qgood =[];
         end
         if lead > 0
             if isempty(data)
@@ -80,20 +74,20 @@ catch
             end
             ecg = data.x;
             ecgt = data.t;
-            fs = data.fs;
             if isempty(ecgt)
                 return
             end
             % QRS Detection
-            gain = 1; % 400;
-            ecgt = ecgt(~isnan(ecg));
-            ecg = ecg(~isnan(ecg));
-            [qt,qb,qgood,~,~]=tombqrs(ecg,ecgt/1000,gain,fs); % Needs seconds as an input and returns seconds as an output
+            [qt,qecg,qs]=getqrs(ecg,ecgt,fs,info.tunit);
+
+            qrs.lead = lead;
+            qrs.qt = qt; % times of detected beats (date in UTC milliseconds format?)
+            qrs.qecg = qecg; % ecg value at detected beat time
+            qrs.qs = qs; % segment of data used to run qrs detector
+            qrs.version = version;
         end
         qrs.lead = lead;
-        qrs.qt = qt*1000; % convert seconds back to ms
-        qrs.qb = qb;
-        qrs.qgood = qgood;
+        qrs.qt = qt; % convert seconds back to ms
     end
 end
 
@@ -104,7 +98,11 @@ resp = resp(goodrespvals);
 respt = respt(goodrespvals);
 
 % Calculate the apnea probability
-[p,pt,pgood]=tombstone(resp,respt/1000,qt(qgood)/1000,qb(qgood),CIfs); % Needs seconds as an input and returns seconds as an output 
+
+%Find good heartbeats and RR intervals
+[qb,qgood,rr,rrt,drop]=qrsgood(qt/1000); % Needs seconds as an input
+
+[p,pt,pgood]=tombstone(resp,respt/1000,qt/1000,qb,CIfs); % Needs seconds as an input and returns seconds as an output 
 pt = pt*1000; % convert seconds back to ms
 
 % Create apnea tags

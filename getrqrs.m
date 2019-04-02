@@ -1,5 +1,6 @@
-function qt = getrqrs(handles)
+function [qt,qecg] = getrqrs(handles)
 qt = [];
+qecg = [];
 
 if strcmp(handles.info.fixedname(handles.dataindex),'ECGIII')
     lead = 3;
@@ -19,7 +20,12 @@ if isempty(handles.rqrs(lead).qrs)
     return;
 end
 
+if ~isfield(handles.rqrs(lead).qrs,'qecg')
+    return;
+end
+
 qt = handles.rqrs(lead).qrs.qt;
+qecg = handles.rqrs(lead).qrs.qecg;
 
 if handles.tstampchoice==1 % convert from utc date in milliseconds to days since time zero
     qt = qt-double(handles.info.timezero); % puts UTC date (ms) into ms since time zero

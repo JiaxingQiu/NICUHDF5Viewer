@@ -1,7 +1,7 @@
 function varargout = HDF5Viewer_v1_0_1(varargin)
 % HDF5VIEWER_V1_0_1 MATLAB code for HDF5Viewer_v1_0_1.fig
 %
-%      This viewer was developed by Amanda Edwards at the University of
+%      This viewer was developed by Amanda Zimmet at the University of
 %      Virginia with the help of code created by Doug Lake at the
 %      University of Virginia. This graphical user interface allows users
 %      to:
@@ -240,7 +240,7 @@ for s=1:numsigs
     % Load the data for the desired signal
     varname = handles.value{1,s}; % Find the name of the chosen signal
     handles.dataindex = find(ismember(handles.alldatasetnames,varname));
-    [handles.vdata,handles.t,handles.vname] = formatdata(varname,handles.info,handles.tstampchoice,1);
+    [handles.vdata,handles.t,handles.fs,handles.vname] = formatdata(varname,handles.info,handles.tstampchoice,1);
     
     % Check to see if pre-defined limits/colors exist for the signal of interest
     [plotcolor,ylimmin,ylimmax] = customplotcolors(varname);
@@ -310,10 +310,10 @@ for s=1:numsigs
     end
     
     % If detected qrs beats exist, plot them
-    qt = getrqrs(handles);
+    [qt,qecg] = getrqrs(handles);
     if ~isempty(qt)
         hold on
-        handles.plothandle(s) = scatter(qt,zeros(length(qt),1),'m*');
+        handles.plothandle(s) = scatter(qt,qecg,'m*');
     end
     
     % Handle the ability to zoom in and out while maintaining reasonable-looking timestamps

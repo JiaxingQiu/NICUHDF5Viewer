@@ -74,7 +74,11 @@ for i=1:n
         xname{i}=['Column ',num2str(i)];
     end
     if isfield(data,'fs')
-        xfs(i)=data(i).fs;
+        if isempty(data(i).fs)
+            xfs(i) = nan;
+        else
+            xfs(i)=data(i).fs;
+        end
     end    
 end
 
