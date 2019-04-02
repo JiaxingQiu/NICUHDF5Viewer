@@ -397,6 +397,11 @@ if contains(varname,'Results')
     ylimmax = 1;
 end
 
+if contains(varname,'Results/HR')
+    ylimmin = 0;
+    ylimmax = 250;
+end
+
 
 % --- Executes during object creation, after setting all properties.
 function listbox_avail_signals_CreateFcn(hObject, eventdata, handles)
