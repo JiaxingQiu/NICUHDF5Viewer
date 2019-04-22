@@ -158,6 +158,7 @@ end
 handles.ishdf5=strcmp(ext,'.hdf5');
 
 set(handles.loadedfile,'string','Loading File Info...');
+waitfor(handles.loadedfile,'string','Loading File Info...');
 
 % Get the info structure - this gets file attributes, loads result data and loads .dat file data
 handles.info = getfileinfo(fullfile(handles.pathname, handles.filename));

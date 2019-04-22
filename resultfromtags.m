@@ -13,13 +13,17 @@ tglobalnew = (starttime:sampleperiod:stoptime)';
 [A,startindices] = ismember(tag(:,startcol),tglobalnew);
 if any(A==0)
     for j=1:n
-        [~,startindices(j)] = min(abs(tglobalnew - tag(j,startcol)));
+        if A(j)==0
+            [~,startindices(j)] = min(abs(tglobalnew - tag(j,startcol)));
+        end
     end
 end
 [A,stopindices] = ismember(tag(:,stopcol),tglobalnew);
 if any(A==0)
     for j=1:n
-        [~,stopindices(j)] = min(abs(tglobalnew - tag(j,stopcol)));
+        if A(j)==0
+            [~,stopindices(j)] = min(abs(tglobalnew - tag(j,stopcol)));
+        end
     end
 end
 result = zeros(length(tglobalnew),1);
