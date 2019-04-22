@@ -154,14 +154,6 @@ for j=1:n
         
         tglobal = info.times+timezero;
         tag = result_tags(j).tagtable;
-%         startcol = strcmp(result_tagcolumns(j).tagname,'Start');
-%         stopcol = strcmp(result_tagcolumns(j).tagname,'Stop');
-%         [~,startindices] = ismember(tag(:,startcol),tglobal);
-%         [~,endindices] = ismember(tag(:,stopcol),tglobal);
-%         x = zeros(length(tglobal),1);
-%         for index=1:length(startindices)
-%             x(startindices(index):endindices(index))=1;
-%         end
         [x,t] = resultfromtags(tag,result_tagcolumns(j),tglobal,info);
         t = t-timezero;
 %         t = info.times;
