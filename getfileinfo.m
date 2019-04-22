@@ -90,9 +90,24 @@ n=size(result_name,1);
 if n==0,return,end
 
 result_data=[];
+result_tags=[];
+result_tagcolumns=[];
+result_tagtitle=[];
 
 try
     load(resultfile,'result_data')
+end
+
+try
+    load(resultfile,'result_tags')
+end
+
+try
+    load(resultfile,'result_tagcolumns')
+end
+
+try
+    load(resultfile,'result_tagtitle')
 end
 
 if length(result_data)~=n,return,end
@@ -128,17 +143,33 @@ for j=1:n
     data(i).fixedname=fixedname(name);
     info.name{i,1}=name;
     info.fixedname{i,1}=fixedname(name);
-    x=result_data(j).data;    
-    data(i).x=x;
-    data(i).nx=length(x);
-    data(i).fs=[];    
-    data(i).raw=true;    
+    x=result_data(j).data; 
     t=result_data(j).time;
     if isutc
         t=t-timezero;
 %     else   % we need to remove this because if we have results files in ms since time zero, the isutc flag will fail, but then the program will think the data is in days, which it isn't. Unfortunately, by removing this, we will no longer be able to use old results files which have tags stored as days
 %         t=round((t-dayzero)*86400*tunit);
     end
+    if isempty(x) % If there is no continuous result data (i.e. if this is just binary tags), store tag time points in a binary array
+        
+        tglobal = info.times+timezero;
+        tag = result_tags(j).tagtable;
+%         startcol = strcmp(result_tagcolumns(j).tagname,'Start');
+%         stopcol = strcmp(result_tagcolumns(j).tagname,'Stop');
+%         [~,startindices] = ismember(tag(:,startcol),tglobal);
+%         [~,endindices] = ismember(tag(:,stopcol),tglobal);
+%         x = zeros(length(tglobal),1);
+%         for index=1:length(startindices)
+%             x(startindices(index):endindices(index))=1;
+%         end
+        [x,t] = resultfromtags(tag,result_tagcolumns(j),tglobal,info);
+        t = t-timezero;
+%         t = info.times;
+    end
+    data(i).x=x;
+    data(i).nx=length(x);
+    data(i).fs=[];    
+    data(i).raw=true;    
     data(i).t=t;
     data(i).nt=length(t);
     data(i).scale=NaN;

@@ -39,10 +39,13 @@ hrdata(hrdata<=1) = nan;
 % Tag bradycardia events
 [tag,tagname]=threshtags(hrdata,vt,threshold,ceil(pmin*fs),tmin,1);
 
-% Store bradycardia time points in a binary array
-[~,startindices] = ismember(tag(:,1),vt);
-[~,endindices] = ismember(tag(:,2),vt);
-results = zeros(length(hrdata),1);
-for i=1:length(startindices)
-    results(startindices(i):endindices(i))=1;
-end
+% % Store bradycardia time points in a binary array
+% [~,startindices] = ismember(tag(:,1),vt);
+% [~,endindices] = ismember(tag(:,2),vt);
+% results = zeros(length(hrdata),1);
+% for i=1:length(startindices)
+%     results(startindices(i):endindices(i))=1;
+% end
+
+results = [];
+vt = [];

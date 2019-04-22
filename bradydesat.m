@@ -31,4 +31,7 @@ end
 % Find the brady desat overlap
 [result,t_temp,tag,tagcol] = tagmerge(bradytagcolumns,desattagcolumns,bradytags,desattags,thresh,info);
 
+result = [];
+t_temp = [];
+
 end

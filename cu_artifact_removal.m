@@ -63,7 +63,9 @@ end
 [tag,tagname]=threshtags(~artifact,vt,0.5,pmin,tmin);
 
 % Output the artifact timeseries
-results = artifact;
+% results = artifact;
+results = [];
+vt = [];
 end
 
 function fillbar(e)

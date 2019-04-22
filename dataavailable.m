@@ -34,6 +34,9 @@ outdata = data.x;
 vt = data.t;
 fs = data.fs;
 
+vtdiff = diff(vt)>(1/fs);
+
+
 if removeneg
     outdata(outdata<=1) = nan; % Remove negative values
 else
@@ -42,10 +45,5 @@ end
 binarydata = ~isnan(outdata);
 [tag,tagname]=threshtags(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh);
 
-% Store timepoints in a binary array
-[~,startindices] = ismember(tag(:,1),vt);
-[~,endindices] = ismember(tag(:,2),vt);
-results = zeros(length(outdata),1);
-for i=1:length(startindices)
-    results(startindices(i):endindices(i))=1;
-end
+results = [];
+vt = [];

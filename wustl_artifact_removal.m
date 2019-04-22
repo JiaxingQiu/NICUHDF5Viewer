@@ -70,6 +70,8 @@ end
 [tag,tagname]=threshtags(~results,vt,0.5,pmin,tmin);
 
 clear spo2data
+results = [];
+vt = [];
 end
 
 function fillbar(e)

@@ -38,21 +38,24 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
 if isempty(result_name)
     
     % Store Results Data
-    if ~isempty(result)
-        result_name = name;
-        result_data(1).data = result;
-        result_data(1).time = time;
-    elseif ~exist('result_name')
-        result_name = {};
-        result_data.data = [];
-        result_data.time = [];
-    end
+%     if ~isempty(result)
+%         result_name = name;
+%         result_data(1).data = result;
+%         result_data(1).time = time;
+%     elseif ~exist('result_name')
+%         result_name = {};
+%         result_data.data = [];
+%         result_data.time = [];
+%     end
     
     % Store Tag Data
     if ~isempty(tagcol)
         result_tags(1).tagtable = tag;
         result_tagcolumns(1).tagname = tagcol;
         result_tagtitle = name;
+        result_name = name;
+        result_data(1).data = result;
+        result_data(1).time = time;
     elseif ~exist('result_tags')
         result_tags.tagtable = [];
         result_tagcolumns.tagname = [];
@@ -78,15 +81,13 @@ else
         else
             tagindex = size(result_tagtitle,1)+1;
         end
-    end
-    
-    if ~isempty(result)
         if sum(contains(result_name(:,1),tagname)) %any(strcmp(result_name,name))
             dataindex = find(strcmp(result_name(:,1), tagname));
         else
             dataindex = size(result_name,1)+1;
         end
     end
+    
     
     if size(result_tagtitle,2)==1 % if this is an old results file which does not contain a version number, add in a 1 for the version number
         result_tagtitle = horzcat(result_tagtitle,ones(size(result_tagtitle,1),1));

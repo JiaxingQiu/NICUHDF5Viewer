@@ -38,10 +38,12 @@ spo2data(spo2data<=1) = nan;
 % Tag desaturation events
 [tag,tagname]=threshtags(spo2data,vt,threshold,ceil(pmin*fs),tmin,1);
 
-% Store desaturation timepoints in a binary array
-[~,startindices] = ismember(tag(:,1),vt);
-[~,endindices] = ismember(tag(:,2),vt);
-results = zeros(length(spo2data),1);
-for i=1:length(startindices)
-    results(startindices(i):endindices(i))=1;
-end
+% % Store desaturation timepoints in a binary array
+% [~,startindices] = ismember(tag(:,1),vt);
+% [~,endindices] = ismember(tag(:,2),vt);
+% results = zeros(length(spo2data),1);
+% for i=1:length(startindices)
+%     results(startindices(i):endindices(i))=1;
+% end
+results = [];
+vt =[];

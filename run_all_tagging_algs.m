@@ -1,5 +1,5 @@
 function run_all_tagging_algs(filename,info,algstorun)
-nalgs = 21;
+nalgs = 28;
 if isempty(algstorun)
     algstorun = ones(nalgs,1);
 end
@@ -93,7 +93,14 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
         '/Results/BradyDesat',1;...
         '/Results/BradyDesatPete',1;...
         '/Results/ABDPete-NoECG',1;...
-        '/Results/HR',1};
+        '/Results/HR',1;...
+        '/Results/DataAvailable:Pulse',1;...
+        '/Results/DataAvailable:HR',1;...
+        '/Results/DataAvailable:SPO2_pct',1;...
+        '/Results/DataAvailable:Resp',1;...
+        '/Results/DataAvailable:ECGI',1;...
+        '/Results/DataAvailable:ECGII',1;...
+        '/Results/DataAvailable:ECGIII',1};
     
     % Find out if this algorithm has already been run. If it has, but this is the first alg on the list, load in the data that the program expects
     shouldrun = shouldrunalgorithm(filename,algnum,resultname,algdispname,result_tagtitle,result_qrs);
@@ -173,43 +180,33 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 [result,t_temp,tag,tagcol] = pullHRdata(info);
             case 22
                 % Determine when a pulse signal exists
-                [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'Pulse',1);
+                [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'Pulse',1);
             case 23
                 % Determine when a hr signal exists
-                [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'HR',1);
+                [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'HR',1);
             case 24
                 % Determine when a spo2% signal exists
-                [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'SPO2_pct',1);
+                [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'SPO2_pct',1);
             case 25 
                 % Determine when a resp signal exists
-                [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'Resp',0);
+                [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'Resp',0);
             case 26
                 % Determine when an ECGI signal exists
-                [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGI',0);
+                [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGI',0);
             case 27
                 % Determine when an ECGII signal exists
-                [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGII',0);
+                [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGII',0);
             case 28
                 % Determine when an ECGIII signal exists
-                [~,~,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGIII',0);
-
+                [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGIII',0);
         end
-        if exist('result')
+        if exist('tagcol')
             if isfirst
                 [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = loadresultsfile(filename,resultname(algnum-3,:),result,t_temp,tag,tagcol,[]);
                 isfirst = 0;
             else
-                if ~isempty(result)
-                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(resultname(algnum-3,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs); % Must subtract 3 for resultname because qrs detection doesn't have a resultname
-                end
-            end
-        elseif exist('tagcol') % For dataavailable results
-            if isfirst
-                [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = loadresultsfile(filename,algdispname(algnum,:),[],[],tag,tagcol,[]);
-                isfirst = 0;
-            else
                 if ~isempty(tagcol)
-                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(algdispname(algnum,:),[],[],tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(resultname(algnum-3,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs); % Must subtract 3 for resultname because qrs detection doesn't have a resultname
                 end
             end
         end
@@ -223,8 +220,18 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 end
             end
         end
-    catch
-        msgbox(['Failure running algorithm ' num2str(algnum) ' of ' num2str(size(algdispname,1)) ': ' algdispname{algnum,1} '. Continuing running tagging algorithms.'],msgboxtitle,'modal');
+    catch ME
+        message = ['Failure running algorithm ' num2str(algnum) ' of ' num2str(size(algdispname,1)) ': ' algdispname{algnum,1} '. Continuing running tagging algorithms.'];
+        msgbox(message,msgboxtitle,'modal');
+        disp(message)
+        disp(['Identifier: ' ME.identifier])
+        disp(['Message: ' ME.message])
+        for m=1:length(ME.stack)
+            disp(['File: ' ME.stack(m).file])
+            disp(['Name: ' ME.stack(m).name])
+            disp(['Line: ' num2str(ME.stack(m).line)])
+        end
+        disp(newline)
         pause(1)
     end
 

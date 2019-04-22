@@ -57,5 +57,6 @@ end
 
 % Find the ABD overlap
 [result,t_temp,tag,tagcol] = tripletagmerge(apneatagcolumns,bradytagcolumns,desattagcolumns,apneatags,bradytags,desattags,thresh,info);
-
+result = [];
+t_temp = [];
 end

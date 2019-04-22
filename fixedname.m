@@ -10,7 +10,12 @@ function name=fixedname(name)
 
 name0=name;
 % Get the list of all possible variable strings that go with the desired signame
-load('X:\Amanda\NICUHDF5Viewer\VariableNames','VariableNames')
+if ~isdeployed
+    load('X:\Amanda\NICUHDF5Viewer\VariableNames','VariableNames')
+else
+    loadfilename = which(fullfile('VariableNames.mat'));
+    load(loadfilename,'VariableNames')
+end
 vname=fieldnames(VariableNames);
 for i=1:length(vname)
     v=getfield(VariableNames,vname{i});
