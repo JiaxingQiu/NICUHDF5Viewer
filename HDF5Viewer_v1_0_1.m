@@ -1039,8 +1039,8 @@ msgbox({
     '- Click and drag in the figure window to highlight a portion of the data';
     '- Hit the Accept Tag button';
     '- The tag should show up in the large white boxes above';
-    '- The tag should also show up in the Main Tab under the list of signals';
     '- You can tag multiple instances within the file with the same name and they will all be conglomerated under a single tag category with separate tags';
+    '- To view the binary timeseries of tags in the Main Tab, unfortunately, you will need to Save All Custom Tags then reload the hdf5 file';
     '- When you are finished adding tags, hit the Save All Custom Tags Button';
     '';
 },'Help')
@@ -1062,7 +1062,7 @@ function help_menu_about_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 msgbox({
-'HDF5Viewer v3.0 beta';
+'HDF5Viewer v3.0';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 },'Help')
