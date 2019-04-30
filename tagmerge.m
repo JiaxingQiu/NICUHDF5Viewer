@@ -10,7 +10,7 @@ stopcolb = strcmp(tagcolumnsb.tagname,'Stop');
 if isempty(tagsa.tagtable)||isempty(tagsb.tagtable)
     tglobal = info.times+info.timezero;
     result = zeros(length(tglobal),1);
-    tag = tagsa.tagtable; % want this instead of an empty array because this empty array will have a width dimension, which is important for indexing later
+    tag = zeros(0,3); % want this instead of an empty array because this empty array will have a width dimension, which is important for indexing later
     tagcol = {'Start';'Stop';'Duration'};
     return
 end

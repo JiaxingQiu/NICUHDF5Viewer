@@ -20,10 +20,15 @@ if sum(strcmp(result_tagtitle(:,1),'/Results/Apnea-NoECG'))
     apneatagcolumns = result_tagcolumns(apneaindex);
 else
     % Run apnea algorithm
-    [~,~,apneatags,apneatagcolumns] = apneadetector(info,0,result_qrs);
+    [~,~,at,a] = apneadetector(info,0,result_qrs);
+    apneatags(1).tagtable = at;
+    apneatagcolumns(1).tagname = a;
 end
 
 if isempty(apneatags)
+    result = [];
+    t_temp = [];
+    tagcol = [];
     return
 end
 
@@ -34,7 +39,9 @@ if sum(strcmp(result_tagtitle(:,1),'/Results/Brady<100-Pete'))
     bradytagcolumns = result_tagcolumns(bradyindex);
 else
     % Run brady algorithm
-    [~,~,bradytags,bradytagcolumns] = bradydetector(info,99.99,4,4000);
+    [~,~,bt,b] = bradydetector(info,99.99,4,4000);
+    bradytags(1).tagtable = bt;
+    bradytagcolumns(1).tagname = b;
 end
 
 if isempty(bradytags)
@@ -48,7 +55,9 @@ if sum(strcmp(result_tagtitle(:,1),'/Results/Desat<80-Pete'))
     desattagcolumns = result_tagcolumns(desatindex);
 else
     % Run desat algorithm
-    [~,~,desattags,desattagcolumns] = desatdetector(info,79.99,10,10000);
+    [~,~,dt,d] = desatdetector(info,79.99,10,10000);
+    desattags(1).tagtable = dt;
+    desattagcolumns(1).tagname = d;
 end
 
 if isempty(desattags)

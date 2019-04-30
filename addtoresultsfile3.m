@@ -38,15 +38,15 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
 if isempty(result_name)
     
     % Store Results Data
-%     if ~isempty(result)
-%         result_name = name;
-%         result_data(1).data = result;
-%         result_data(1).time = time;
-%     elseif ~exist('result_name')
-%         result_name = {};
-%         result_data.data = [];
-%         result_data.time = [];
-%     end
+    if ~isempty(time)
+        result_name = name;
+        result_data(1).data = result;
+        result_data(1).time = time;
+    elseif ~exist('time')
+        result_name = {};
+        result_data.data = [];
+        result_data.time = [];
+    end
     
     % Store Tag Data
     if ~isempty(tagcol)
@@ -76,7 +76,9 @@ else
         tagname = name;
     end
     if ~isempty(tagcol)
-        if sum(contains(result_tagtitle(:,1),tagname)) % any(strcmp(result_tagtitle,name))
+        if isempty(result_tagtitle)
+            tagindex = 1;
+        elseif sum(contains(result_tagtitle(:,1),tagname)) % any(strcmp(result_tagtitle,name))
             tagindex = find(strcmp(result_tagtitle(:,1), tagname));
         else
             tagindex = size(result_tagtitle,1)+1;

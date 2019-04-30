@@ -23,6 +23,7 @@ function [results,vt,tag,tagname] = cu_artifact_removal(info,pmin,tmin)
 
 % Initialize output variables in case the necessary data isn't available
 results = [];
+vt = [];
 tag = [];
 tagname = [];
 
