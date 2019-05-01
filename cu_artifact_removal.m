@@ -34,6 +34,12 @@ hrindex = strcmp({data.fixedname},'HR')==1;
 if isempty(spo2index) || isempty(hrindex)
     return
 end
+if sum(spo2index)==0
+    return
+end
+if sum(hrindex)==0
+    return
+end
 [datamatrix,vt,~,~] = formatdata(data,info,3,0);
 spo2rdata = datamatrix(:,spo2index);
 hrdata = datamatrix(:,hrindex);
