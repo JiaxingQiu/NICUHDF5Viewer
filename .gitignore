@@ -35,6 +35,7 @@ FilesForZach/
 
 # Matlab Project files
 *.prj
+*.html
 HDF5Viewer/
 HDF5Viewer_resources/
 HDF5Viewer_v1_2/
@@ -42,6 +43,7 @@ HDF5Viewer_v1_2_resources/
 HDF5Viewer_v1_3/
 HDF5Viewer_v1_3_resources/
 HDF5Viewer_v*/
+MergeTags*/
 Old/
 Matlab Scripts for HDF5/
 
