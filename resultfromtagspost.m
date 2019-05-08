@@ -8,8 +8,13 @@ for a=1:maxalgnum
     startcol = strcmp(tagcol.tagname,'Start');
     stopcol = strcmp(tagcol.tagname,'Stop');
     n = size(tag,1);
-    starttime = info.start;
-    stoptime = info.stop;
+    if info.isutc
+        starttime = info.start;
+        stoptime = info.stop;
+    else
+        starttime = min(info.times);
+        stoptime = max(info.times);
+    end
     tglobalnew = (starttime:round(1/fs*1000):stoptime)';
     if ~exist('result_binary')
         result_binary = zeros(maxalgnum,length(tglobalnew));
