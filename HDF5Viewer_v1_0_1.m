@@ -77,7 +77,7 @@ function HDF5Viewer_v1_0_1_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for HDF5Viewer_v1_0_1
 handles.output = hObject;
 if ~isdeployed
-    addpath('TabManager');
+    addpath([pwd '\TabManager'])
 end
 % Initialise tabs
 handles.tabManager = TabManager( hObject );

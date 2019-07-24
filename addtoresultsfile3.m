@@ -80,11 +80,17 @@ else
             tagindex = 1;
         elseif sum(contains(result_tagtitle(:,1),tagname)) % any(strcmp(result_tagtitle,name))
             tagindex = find(strcmp(result_tagtitle(:,1), tagname));
+            if isempty(tagindex)
+                tagindex = size(result_tagtitle,1)+1;
+            end
         else
             tagindex = size(result_tagtitle,1)+1;
         end
         if sum(contains(result_name(:,1),tagname)) %any(strcmp(result_name,name))
             dataindex = find(strcmp(result_name(:,1), tagname));
+            if isempty(dataindex)
+                dataindex = size(result_name,1)+1;
+            end
         else
             dataindex = size(result_name,1)+1;
         end

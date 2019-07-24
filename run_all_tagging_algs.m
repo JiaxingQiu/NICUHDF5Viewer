@@ -4,7 +4,11 @@ if isempty(algstorun)
     algstorun = ones(nalgs,1);
 end
 if isempty(info)
-    info=getfileinfo(filename);
+    try
+        info=getfileinfo(filename);
+    catch
+        return
+    end
 end
 
 isfirst = [];
