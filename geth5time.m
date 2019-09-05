@@ -64,6 +64,16 @@ end
 
 [data,t,T]=fixtime(data,T);
 
+source='';
+
+try
+    source=h5readatt(file,'/','Source Reader');
+end
+
+if strcmp('TDMS',source)
+    t(:,1)=t(:,2);
+end
+
 end
 
 function [data,t,dt]=fixtime(data,dt)
