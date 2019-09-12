@@ -67,10 +67,14 @@ end
 tagcol = {'Start';'Stop';'Duration'};
 computedstarts = minstart(~isnan(minstart));
 [starts,startorder] = sort(computedstarts);
-tag(:,1) = starts;
-computedstops = maxstop(~isnan(maxstop));
-tag(:,2) = computedstops(startorder);
-tag(:,3) = tag(:,2)-tag(:,1); %Duration of tag in ms
+if ~isempty(starts)
+    tag(:,1) = starts;
+    computedstops = maxstop(~isnan(maxstop));
+    tag(:,2) = computedstops(startorder);
+    tag(:,3) = tag(:,2)-tag(:,1); %Duration of tag in ms
+else
+    tag = zeros(0,3);  % Amanda added this recently - may need to check this
+end
 
 % Store tag time points in a binary array
 tglobal = info.times+info.timezero;
