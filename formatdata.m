@@ -83,7 +83,6 @@ for i=1:n
 end
 
 %Put global time stamps for each data point into structure
-
 for i=1:n
     tt=data(i).t;
     seq=[];

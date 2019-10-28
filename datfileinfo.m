@@ -105,7 +105,6 @@ info.datezero=datestr(dayzero,31);
 info.timezero=round(tunit*utczero);
 info.times=round(tunit*t);
 info.local=round(tunit*local);
-
 info.sampleperiod=T;
 info.vitalfrequency=vfs;
 info.start=round(tunit*startutc);

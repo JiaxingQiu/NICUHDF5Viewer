@@ -3,6 +3,12 @@ nalgs = 28;
 if isempty(algstorun)
     algstorun = ones(nalgs,1);
 end
+if ischar(algstorun)
+    algstorun = str2num(char(algstorun));
+end
+if ischar(info)
+    info = str2num(char(info));
+end
 if isempty(info)
     try
         info=getfileinfo(filename);
@@ -46,7 +52,11 @@ msgbox('Saving the results','Tagging','modal');
 info = rmfield(info,'alldata');
 save(resultfilename,'result_data','result_name','result_tags','result_tagcolumns','result_tagtitle','result_data','result_qrs','info');
 
-msgbox('Tagging Algorithms Complete','Tagging','modal');
+w = msgbox('Tagging Algorithms Complete','Tagging','modal');
+pause(1);
+if isvalid(w)
+    delete(w);
+end
 end
 
 function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,isfirst] = runalg(filename,info,algnum,isfirst,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs)
