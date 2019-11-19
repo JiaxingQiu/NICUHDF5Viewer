@@ -82,9 +82,9 @@ else
         return
     end
     
-    if sum(contains(result_tagtitle(:,1),resultname(algnum-3)))
+    if sum(contains(result_tagtitle(:,1),resultname(algnum)))
         % Find out which version number has previously been run
-        index = strcmp(result_tagtitle(:,1), resultname(algnum-3));
+        index = strcmp(result_tagtitle(:,1), resultname(algnum));
         if size(result_tagtitle,2)>1
             oldversion = result_tagtitle(index,2);
         else
