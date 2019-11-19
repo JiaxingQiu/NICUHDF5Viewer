@@ -64,7 +64,10 @@ if isempty(result_name)
     
     % Store QRS Data
     if ~isempty(qrsinput)
-        result_qrs(qrsinput.lead).qrs = qrsinput;
+%        result_qrs(qrsinput.lead).qrs = qrsinput;
+        for i=1:length(qrsinput)
+            result_qrs(qrsinput(i).lead).qrs = qrsinput(i);
+        end
     elseif ~exist('result_qrs')
     	result_qrs = struct;
     end
@@ -130,8 +133,9 @@ else
         end
     end
     
-    if ~isempty(qrsinput)
-        result_qrs(qrsinput.lead).qrs = qrsinput;
+%        result_qrs(qrsinput.lead).qrs = qrsinput;
+    for i=1:length(qrsinput)
+        result_qrs(qrsinput(i).lead).qrs = qrsinput(i);
     end
         
 end
