@@ -28,15 +28,18 @@ tag = [];
 tagname = [];
     
 % Add the wavelet pattern to Matlab
-load('Wavelets_Info.mat','Wavelets_Info')
+%load('Wavelets_Info.mat','Wavelets_Info')
+load('wavelets.inf.mat','Wavelets_Info')
 setappdata(0,'Wavelets_Info',Wavelets_Info);
 
-%Default is all leads
-apneaname='/Results/Apnea';
-%Results for single lead results
+%Single lead result names
 filename={'/Results/Apnea-NoECG','/Results/Apnea-I','/Results/Apnea-II','/Results/Apnea-III'}';
-if lead>=0&&lead<=3
-    apneaname=filename{lead+1};
+%Default is all leads
+apneaname='/Results/Apnea';    
+if ~isempty(lead)
+    if lead>=0&&lead<=3
+        apneaname=filename{lead+1};
+    end
 end
 
 % Check if we have just run the apnea detector

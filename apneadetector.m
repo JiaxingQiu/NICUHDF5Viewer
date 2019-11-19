@@ -1,4 +1,4 @@
-function [results,pt,tag,tagname,qrs,goodbeats] = apneadetector(info,lead,result_qrs)
+function [results,pt,tag,tagname,qrs] = apneadetector(info,lead,result_qrs)
 % apneadetector uses the resp waveform to calculate the probability of apnea.
 % If an EKG sig is selected & available, it uses the signal to filter out
 % heartbeats from the chest impedance waveform.
@@ -15,7 +15,7 @@ function [results,pt,tag,tagname,qrs,goodbeats] = apneadetector(info,lead,result
 % pt:          UTC ms
 % tag:         tags ready to be saved in the results file
 % tagname:     tagnames ready to be saved in the results file
-%
+% qrs          structure with QRS detection results if new
 
 % Add algorithm folders to path
 if ~isdeployed
@@ -96,28 +96,25 @@ end
 %     goodbeats=[goodbeats;qrs1];
 % end
 nqrs=length(goodbeats);
-keep=false(nqrs,1);
-
+keep=true(nqrs,1);
 for i=1:nqrs
     goodbeats(i).qb=[];
     goodbeats(i).qgood=[];    
     if ~leadall      
         keep(i)=sum(lead==goodbeats(i).lead)>0;
     end
-    disp(goodbeats(i).lead)
     if ~keep(i),continue,end
     qt=[];
     try
         qt=goodbeats(i).qt;
     end
     keep(i)=~isempty(qt);
-    if ~keep(i),continue,end     
+    if ~keep(i),continue,end
     [qb,qgood]=qrsgood(qt/1000); % Needs seconds as an input
     goodbeats(i).qb=qb;
     goodbeats(i).qgood=qgood;    
     keep(i)=sum(qgood)>0;    
 end
-disp(keep)
 goodbeats=goodbeats(keep);
 
 % Calculate the apnea probability

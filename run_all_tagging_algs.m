@@ -1,5 +1,5 @@
 function run_all_tagging_algs(filename,info,algstorun)
-nalgs = 28;
+nalgs = 31;
 if isempty(algstorun)
     algstorun = ones(nalgs,1);
 end
@@ -72,15 +72,18 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
         'Apnea Detection with ECG Lead II',1;...
         'Apnea Detection with ECG Lead III',1;...
         'Apnea Detection with No ECG Lead',1;...
+        'Apnea Detection',1;
         'Periodic Breathing with ECG Lead I',1;...
         'Periodic Breathing with ECG Lead II',1;...
         'Periodic Breathing with ECG Lead III',1;...
         'Periodic Breathing with No ECG Lead',1;...
+        'Periodic Breathing',1;...
         'Brady Detection Pete',1;...
         'Desat Detection Pete',1;...
         'Brady Desat',1;...
         'Brady Desat Pete',1;...
         'ABD Pete No ECG',2;...
+        'ABD Pete',1;...
         'Save HR in Results',1;...
         'Data Available: Pulse',1;...
         'Data Available: HR',1;...
@@ -98,15 +101,18 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
         '/Results/Apnea-II',1;...
         '/Results/Apnea-III',1;...
         '/Results/Apnea-NoECG',1;...
+        '/Results/Apnea',1;...
         '/Results/PeriodicBreathing-I',1;...
         '/Results/PeriodicBreathing-II',1;...
         '/Results/PeriodicBreathing-III',1;...
         '/Results/PeriodicBreathing-NoECG',1;...
+        '/Results/PeriodicBreathing',1;...
         '/Results/Brady<100-Pete',1;...
         '/Results/Desat<80-Pete',1;...
         '/Results/BradyDesat',1;...
         '/Results/BradyDesatPete',1;...
         '/Results/ABDPete-NoECG',2;...
+        '/Results/ABDPete',1;...
         '/Results/HR',1;...
         '/Results/DataAvailable:Pulse',1;...
         '/Results/DataAvailable:HR',1;...
@@ -163,54 +169,63 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 % Apnea detection algorithm using no EKG lead
                 [result,t_temp,tag,tagcol] = apneadetector(info,0,result_qrs);
             case 12
+                % Apnea detection algorithm using all EKG leads
+                [result,t_temp,tag,tagcol,qrs] = apneadetector(info,[],result_qrs);
+            case 13
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with ecg lead I
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,1,result_name,result_data);
-            case 13
+            case 14
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with ecg lead II
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,2,result_name,result_data);
-            case 14
+            case 15
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with ecg lead III
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,3,result_name,result_data);
-            case 15
+            case 16
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with no ecg lead
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,0,result_name,result_data);
-            case 16
+            case 17
+                % Mary Mohr's periodic breathing algorithm run on results from apnea detector with all EKG leads
+                [result,t_temp,tag,tagcol] = periodicbreathing(info,[],result_name,result_data);
+            case 18
                 % Pete's bradycardia detection algorithm: Bradys are <100 for ECG HR for at least 4 seconds. Joining rule for bradys is 4 seconds
                 [result,t_temp,tag,tagcol] = bradydetector(info,99.99,4,4000);
-            case 17
+            case 19
                 % Pete's Desat detection algorithm: <80% for at least 10 seconds if two of those events happen within 10 seconds of eachother, join them together as one event
                 [result,t_temp,tag,tagcol] = desatdetector(info,79.99,10,10000);
-            case 18
+            case 20
                 % Brady Desat Algorithm with a 30 second threshold. Any brady within 30 seconds of any desat (in either direction) will count
                 [result,t_temp,tag,tagcol] = bradydesat(info,30000,result_tags,result_tagcolumns,result_tagtitle);
-            case 19
+            case 21
                 % Brady Desat Algorithm with a 30 second threshold. Any brady within 30 seconds of any desat (in either direction) will count
                 [result,t_temp,tag,tagcol] = bradydesatpete(info,30000,result_tags,result_tagcolumns,result_tagtitle);
-            case 20
+            case 22
                 % ABD Algorithm with a 30 second threshold. Used Pete's B and D tags along with Apnea-NoECG
-                [result,t_temp,tag,tagcol] = abd(info,30000,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
-            case 21
+                [result,t_temp,tag,tagcol] = abd(info,30000,result_tags,result_tagcolumns,result_tagtitle,result_qrs,0);
+            case 23
+                % ABD Algorithm with a 30 second threshold. Used Pete's B and D tags along with Apnea
+                [result,t_temp,tag,tagcol] = abd(info,30000,result_tags,result_tagcolumns,result_tagtitle,result_qrs,1);
+            case 24
                 % Store HR Vital Sign
                 [result,t_temp,tag,tagcol] = pullHRdata(info);
-            case 22
+            case 25
                 % Determine when a pulse signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'Pulse',1);
-            case 23
+            case 26
                 % Determine when a hr signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'HR',1);
-            case 24
+            case 27
                 % Determine when a spo2% signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'SPO2_pct',1);
-            case 25 
+            case 28
                 % Determine when a resp signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'Resp',0);
-            case 26
+            case 29
                 % Determine when an ECGI signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGI',0);
-            case 27
+            case 30
                 % Determine when an ECGII signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGII',0);
-            case 28
+            case 31
                 % Determine when an ECGIII signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGIII',0);
         end

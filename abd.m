@@ -1,4 +1,6 @@
-function [result,t_temp,tag,tagcol] = abd(info,thresh,result_tags,result_tagcolumns,result_tagtitle,result_qrs)
+function [result,t_temp,tag,tagcol] = abd(info,thresh,result_tags,result_tagcolumns,result_tagtitle,result_qrs,ECG)
+% Set ECG to 0 to use Apnea-NoECG. Set ECG to 1 to use Apnea with all ECG
+% leads.
 
 t_temp = info.times+info.timezero;
 result = zeros(length(t_temp),1);
@@ -14,15 +16,28 @@ if isempty(result_tagtitle)
 end
 
 % Get apnea results
-if sum(strcmp(result_tagtitle(:,1),'/Results/Apnea-NoECG'))
-    apneaindex = strcmp(result_tagtitle(:,1),'/Results/Apnea-NoECG');
-    apneatags = result_tags(apneaindex);
-    apneatagcolumns = result_tagcolumns(apneaindex);
-else
-    % Run apnea algorithm
-    [~,~,at,a] = apneadetector(info,0,result_qrs);
-    apneatags(1).tagtable = at;
-    apneatagcolumns(1).tagname = a;
+if ECG == 0
+    if sum(strcmp(result_tagtitle(:,1),'/Results/Apnea-NoECG'))
+        apneaindex = strcmp(result_tagtitle(:,1),'/Results/Apnea-NoECG');
+        apneatags = result_tags(apneaindex);
+        apneatagcolumns = result_tagcolumns(apneaindex);
+    else
+        % Run apnea algorithm
+        [~,~,at,a] = apneadetector(info,0,result_qrs);
+        apneatags(1).tagtable = at;
+        apneatagcolumns(1).tagname = a;
+    end
+elseif ECG == 1
+    if sum(strcmp(result_tagtitle(:,1),'/Results/Apnea'))
+        apneaindex = strcmp(result_tagtitle(:,1),'/Results/Apnea');
+        apneatags = result_tags(apneaindex);
+        apneatagcolumns = result_tagcolumns(apneaindex);
+    else
+        % Run apnea algorithm
+        [~,~,at,a] = apneadetector(info,[],result_qrs);
+        apneatags(1).tagtable = at;
+        apneatagcolumns(1).tagname = a;
+    end
 end
 
 if isempty(apneatags)
