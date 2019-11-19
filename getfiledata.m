@@ -1,10 +1,10 @@
 function [data,name,info]=getfiledata(info,name,alldata)
-%function [data,info,name]=getdata(file,name)
+%function [data,name,info]=getfiledata(info,name,alldata)
 %
 %info       structure with file name and all dataset attributes/names
 %           or just file name to retrieve data from
 %name       name of datasets to retrieve (empty=default => all) 
-%alldata    dataset structure with all data if previously retrieved
+%alldata    dataset structure with all data timestamp info if previously retrieved
 %
 %data       dataset structure with requested data, time stamps and attributes
 %name       name of datasets
@@ -38,18 +38,28 @@ if newdata
     end    
 end
 
-%Find all dataset names
+%Find all dataset names including fixed names
 n=length(alldata);
-allname=cell(n,1);
+fixed=isfield(alldata,'fixedname');
+%Add second column for fixed names
+if fixed
+    nc=2;
+else
+    nc=1;
+end
+allname=cell(n,nc);
 if isfield(alldata,'name')
     for i=1:n
-        allname{i}=alldata(i).name;
+        allname{i,1}=alldata(i).name;
+        if fixed
+            allname{i,2}=alldata(i).fixedname;
+        end
     end
 end
 
 %Find requested names
 if isempty(name)
-    name=allname;
+    name=allname(:,1);
     data=alldata;
 else
     if n>0
@@ -65,12 +75,12 @@ if ~ishdf5,return,end
 n=length(data);    
 for i=1:n
     x=data(i).x;
-%Convert to row vector if necessary    
     if ~isempty(x),continue,end    
     try
         x=h5read(file,[data(i).name,'/data']);         
     end
     xsize=size(x);
+%Convert to row vector if necessary        
     if xsize(2)>xsize(1)
         x=x';
         x=x(:,1);
@@ -95,13 +105,14 @@ function [name,index]=findindex(allname,name)
 if ~exist('name','var'),name=cell(0,1);end
 if ischar(name),name={name};end
 
-n=length(allname);
+n=size(allname,1);
 if isempty(name)
     index=(1:n)';
     return
 end
 
-allname=[allname fixedname(allname)];
+fixed=size(allname,2)>1;
+%allname=[allname fixedname(allname)];
 
 %Find requested names
 sub=zeros(n,1);
@@ -117,6 +128,7 @@ for i=1:length(name)
         sub(j)=1;
         continue
     end
+    if ~fixed,continue,end
     j=strmatch(name{i},allname(:,2),'exact');
     if ~isempty(j)
         sub(j)=2;

@@ -77,7 +77,16 @@ try
             dTplus  = fs;
             dTminus = fs;  
         end
-
+        %Check for out of bounds indices ** added 9/23/2019
+        
+        if start-dTminus<1
+            dTminus=start-1;
+        end
+        
+        if stop+dTplus>length(ecg)
+            dTplus=length(ecg)-stop;
+        end
+        
         % lowering the threshold in case not enough beats are
         % detected. Also changed the refractory period to be different between
         % mother and foetus. sign of peaks is determined by the sign on the

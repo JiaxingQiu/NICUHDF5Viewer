@@ -1,5 +1,5 @@
 function [info,name,data]=h5fileinfo(file)
-%function info=getfileinfo(file)
+%function [info,name,data]=h5fileinfo(file)
 %
 %file       hdf5 file
 %
@@ -14,8 +14,41 @@ name=datanames(file,'/','/data');
 info.name=name;
 
 %Find fixed names for all all datasets
-info.fixedname=fixedname(name);
 n=length(name);
+fixedname=findfixedname(name);
+
+ecgleads={'ECGI','ECGII','ECGIII'}';
+nleads=length(ecgleads);
+
+% Find all ecg signals with and without fixed ecg lead name
+ecg=false(n,1);
+lead=zeros(n,1);
+wave=find(startsWith(name,'/Waveforms/'));
+nw=length(wave);
+leads=(1:nleads)';
+for i=1:nw
+    j=wave(i);    
+    k=strmatch(fixedname{j},ecgleads,'exact');    
+    if ~isempty(k)
+        ecg(j)=1;
+        lead(j)=k;
+        leads(leads==k)=[];
+    else
+        ecg(j)=contains(name{j},'ECG');
+    end
+end
+
+% Find other ecg signals without fixed ecg name and assign them possibly arbitrary lead numbers
+nolead=find(ecg&lead==0);
+while ~isempty(nolead)&&~isempty(leads)
+    j=nolead(1);
+    k=leads(1);
+    fixedname{j}=ecgleads{k};
+    nolead(1)=[];
+    leads(1)=[];
+end
+
+info.fixedname=fixedname;
 
 %Create data structure shell
 data=[];
@@ -65,37 +98,73 @@ info.tunit=tunit;
 try
     T=h5readatt(file,'/','Sample Period (ms)');
 end
+T=double(T);
 
 start=0;
 try
     start=h5readatt(file,'/','Start Time');
 end
 
+stop=0;
+try
+    stop=h5readatt(file,'/','End Time');
+end
+
+%Get timestamps for all datasets
+[data,T]=h5datatime(file,data,T);
+
+%Find time zero = midnight local time prior to start time
 if isutc
     if isnan(dayzero)
         utczero=double(start/tunit);
         dayzero=floor(utc2local(utczero));
     end
+    utczero=round(tunit*local2utc(dayzero));
 end
 
-%Get timestamps for all datasets and correct global times
-[data,t,T]=geth5time(file,data,T);
+source='';
 
-info.originaltimes=t(:,2);
-t=t(:,1);
+try
+    source=h5readatt(file,'/','Source Reader');
+end
+
+globaltime=~strcmp('TDMS',source);
+
+%Get global times and fix jitter
+%
 local=[];
+info.globaltime=globaltime;
+info.originaltimes=[];
+t=[];
+if globaltime
+    [data,t]=fixtime(data,T);
+    if size(t,2)>1
+        info.originaltimes=t(:,2);
+        t=t(:,1);
+    end
+else
+    data=indexdata(data);
+    t=double((start:T:stop)');
+    info.originaltimes=t;    
+end
+
+%Offset times by UTC time zero if UTC file
+%Find local global times in case of time change
 if isutc
-    if isnan(dayzero)
-        utczero=double(start/tunit);
-        dayzero=floor(utc2local(utczero));
-    end    
-    utczero=round(tunit*local2utc(dayzero));        
     d=utc2local(t/tunit)-dayzero;
     t=t-utczero;    
     local=round(86400*tunit*d);
     if local==t
         local=[];
     end
+    if ~globaltime    
+        for i=1:length(data)
+            tt=data(i).t;
+            if ~isempty(tt)
+                data(i).t=tt-utczero;
+            end
+        end
+    end    
 end
 
 if isnan(dayzero),dayzero=0;end
@@ -110,23 +179,18 @@ info.vitalfrequency=vfs;
 
 %Find root attributes for file
 
-stop=0;
 startdate='';
 stopdate='';
 
 layout=NaN;
 source='';
 
-try
-    start=h5readatt(file,'/','Start Time');
-end
+% try
+%     start=h5readatt(file,'/','Start Time');
+% end
 
 try
     startdate=h5readatt(file,'/','Start Date/Time');
-end
-
-try
-    stop=h5readatt(file,'/','End Time');
 end
 
 try
@@ -159,6 +223,7 @@ info.hours=hours;
 info.layout=layout;
 info.source=source;
 
+%Add data and atributes from HDF5 file to the structure
 n=length(data);    
 for i=1:n    
     
@@ -219,6 +284,8 @@ info.alldata=data;
 end
 
 function [scale,offset]=scalefactor(file,dataset,layout)
+%
+% Find scale and offset for specified dataset
 
 if ~exist('layout','var'),layout=NaN;end
 
@@ -333,6 +400,98 @@ ng=length(info.Groups);
 for i=1:ng
     name1=datanames(file,info.Groups(i).Name,filter);    
     name=[name;name1];    
+end
+
+end
+
+function [data,T]=h5datatime(file,data,T)
+%function [data,T]=h5datatime(file,data,T)
+%
+%file       hdf5 file
+%data       srtucture with name of datasets
+%T          block period in milliseconds
+%
+%data       dataset structure with requested time stamps and attributes
+
+if ~exist('T','var'),T=NaN;end
+
+n=length(data);
+name=cell(n,1);
+if n==0,return,end
+
+for i=1:n    
+    dataset=data(i).name;    
+    name{i}=dataset;
+    
+    tgroup=[dataset,'/time'];
+    tsize=[0 0];
+    try
+        tinfo=h5info(file,tgroup);
+        tsize=tinfo.Dataspace.Size;
+    end
+%    data(i).tsize=tsize;
+    t=[];
+    try
+        t=h5read(file,[dataset,'/time']);
+    end
+    t=double(t);
+    if size(t,2)>size(t,1)
+        t=t';
+        t=t(:,1);
+    end
+    nt=length(t);   
+    data(i).t=t;
+    data(i).nt=nt;
+    data(i).T=T;
+    if isnan(T)
+        try
+            data(i).T=h5readatt(file,dataset,'Sample Period (ms)');            
+        end
+    end
+    data(i).T=double(data(i).T);
+end
+
+if isnan(T)
+    T=double(cat(1,data.T));
+    [T,~,ic]=unique(T);    
+    nT=length(T);
+    if nT>1       
+        nn=zeros(nT,1);
+        for i=1:nT
+            nn(i)=sum(ic==i);
+        end
+        disp([T nn])
+        [~,j]=max(nn);
+        T=T(j);
+    end
+end
+
+end
+
+function data=indexdata(data)
+%
+%Add index to consecutive timestamps in data structure
+
+n=length(data);
+
+for i=1:n
+    t=data(i).t;
+    nt=length(t);
+    if nt==0,continue,end
+    T=double(data(i).T);
+    t0=t(1);
+    j=1+(t-t0)/T;
+    if sum(rem(j,1)~=0)>0,continue,end
+    data(i).t=t0;
+    j1=min(j);
+    j2=max(j);    
+    k=find(diff(j)>1);
+    if ~isempty(k)       
+        j2=[j(k);j2];
+        j1=[j1;j(k+1)];
+    end
+    index=[j1 j2-j1+1];
+    data(i).index=index;
 end
 
 end

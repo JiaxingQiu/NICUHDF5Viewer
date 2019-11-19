@@ -17,7 +17,7 @@ facfile=fullfile(pathstr,'ScalingFactors.txt');
 if ~isempty(dir(facfile))
     fac=load(facfile);
 else
-    fac=[NaN NaN];
+    fac=[ ];
 end
 
 %Timestamps in UTC and ms
@@ -54,11 +54,15 @@ info.fixedname=fixedname(name);
 info.facfile=facfile;
 info.fac=fac;
 
-scale=1/fac(2);
-offset=fac(1);
+scale=1;
+offset=0;
+
+if length(fac)>1
+    scale=1/fac(2);
+    offset=fac(1);
+end
 
 nv=length(info.name);
-
 
 %Get raw data and start date from file
 [rawdata,start]=getrawdatdata(file);
@@ -72,6 +76,14 @@ utczero=local2utc(dayzero);
 %Find sequence of data assumed consecutive
 [nr,nc]=size(rawdata);
 nt=floor(nr/wfs);
+
+%Get rid of incomplete blocks at the end
+nr1=nt*wfs;
+if nr1<nr
+    rawdata=rawdata(1:nr1,:);
+    nr=nr1;
+end
+
 stoputc=startutc+nt;
 hours=nr/(wfs*3600);
 
@@ -87,11 +99,17 @@ isutc=true;
 seq=(1:nt)';
 utc=startutc+seq;
 d=utc2local(utc);
+
 stop=d(nt);
 local=86400*(d-dayzero);
 t=utc-utczero;    
-if local==t
+t=round(tunit*t);
+local=round(tunit*local);
+
+if local==t    
     local=[];
+% else
+%     disp(sum(local~=t))
 end
 
 t0=round(tunit*(startutc-utczero));
@@ -103,8 +121,11 @@ info.tunit=tunit;
 info.dayzero=dayzero;
 info.datezero=datestr(dayzero,31);
 info.timezero=round(tunit*utczero);
-info.times=round(tunit*t);
-info.local=round(tunit*local);
+info.times=t;
+info.local=local;
+% info.times=round(tunit*t);
+% info.local=round(tunit*local);
+
 info.sampleperiod=T;
 info.vitalfrequency=vfs;
 info.start=round(tunit*startutc);

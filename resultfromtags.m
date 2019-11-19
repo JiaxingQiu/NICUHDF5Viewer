@@ -3,8 +3,13 @@ function [result,tglobalnew] = resultfromtags(tag,tagcol,tglobal,info)
 startcol = strcmp(tagcol.tagname,'Start');
 stopcol = strcmp(tagcol.tagname,'Stop');
 n = size(tag,1);
-starttime = min(tglobal);
-stoptime = max(tglobal);
+if ~isempty(tglobal)
+    starttime = min(tglobal);
+    stoptime = max(tglobal);
+else
+    starttime = info.start;
+    stoptime = info.stop;
+end
 sampleperiod = info.sampleperiod/max([info.alldata(:).block]); % create the most fine-grained time array so that any resolution tags will be able to be detected.
 tglobalnew = (starttime:sampleperiod:stoptime)';
 if ~isempty(tag)
