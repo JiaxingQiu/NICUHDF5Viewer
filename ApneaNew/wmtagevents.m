@@ -1,17 +1,21 @@
-function [tag,tagname,tag0]=wmtagevents(p,pgood,pt,ps)  
+function [tag,tagname,tag0]=wmtagevents(p,pt,ps)  
+%function [tag,tagname,tag0]=wmtagevents(p,pt,ps)  
+%
+% p         apnea probability signal
+% pt        apnea probability timestamps
+%
+% tag       table with apnea tags
+% tagname   tag table column names
 
 if ~exist('ps','var'),ps=4;end
 p=p(:);
+%Set NaNs 
 n=length(p);
-if ~exist('pt','var')
-    pgood=true(n,1);
-end
-p(~pgood)=0;
 if ~exist('pt','var')   
     pt=(1:n)'/ps;
 end
 %tag=[s(:) e(:)-s(:)+1 wad(:) nna(:) t0(:) t1(:) gapl(:) gapr(:)];
-tagname = {'ix' 'dur' 'wad' 'nna' 'st' 'et' 'gap1' 'gapr'}';
+tagname = {'Index' 'Duration' 'WtdApneaDur' 'nNaN' 'Start' 'Stop' 'GapLeft' 'GapRight'}'; % index, duration, weighted apnea duration (not an apnea unless this value is >10), number of Nans in window, start time, end time, gap to the left (find out how far away the next event to the left is), gap to the right
 nc=length(tagname);
 tag=zeros(0,nc);
 tag0=zeros(0,nc);
@@ -56,14 +60,12 @@ for i=1:n
     wad(i) = (sum(temp) - 0.5*(p(s(i)) + p(e(i))))/ps;
 end
 %Include events with WAD > 2 seconds and less than 200 missing points 
-j=nna<=200&wad>=2;
+j=nna<=200&wad>=10;
 s=s(j); 
 e=e(j); 
 wad=wad(j); 
 nna = nna(j);   
 n = length(s);
-tag=zeros(n,nc);
-if n==0,return,end
 %Find gaps to adjacent events
 gap=[];
 if n>1
@@ -73,7 +75,13 @@ gapl=[Inf;gap];
 gapr=[gap;Inf];
 t0=pt(s);
 t1=pt(e);
-tag=[s e-s+1 wad nna t0 t1 gapl gapr];    
+% duration = seconds(utc2local(t1/1000)-utc2local(t0/1000));
+if isempty(s)
+    tag = [];
+else
+    tag=[s e-s+1 wad nna t0 t1 gapl gapr];    
+end
+% tag=[s duration wad nna t0 t1 gapl gapr];  
 % if n<=1
 %     gapl = repelem(Inf,length(s));
 %     gapr = repelem(Inf,length(s));
@@ -102,3 +110,10 @@ for i=2:n0
     tag(n,6)=pt(e);
     tag(n,8)=tag0(i,8);
 end
+
+%Elapsed local time
+t2 = utc2local(tag(:,6)/1000);
+t1 = utc2local(tag(:,5)/1000);
+tag(:,2) = etime(datevec(t2),datevec(t1))*1000;
+% tag(:,2)=1000*(utc2local(tag(:,6)/1000)-utc2local(tag(:,5)/1000));
+% tag(:,2)=tag(:,6)-tag(:,5);

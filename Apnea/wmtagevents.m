@@ -1,12 +1,16 @@
-function [tag,tagname,tag0]=wmtagevents(p,pgood,pt,ps)  
+function [tag,tagname,tag0]=wmtagevents(p,pt,ps)  
+%function [tag,tagname,tag0]=wmtagevents(p,pt,ps)  
+%
+% p         apnea probability signal
+% pt        apnea probability timestamps
+%
+% tag       table with apnea tags
+% tagname   tag table column names
 
 if ~exist('ps','var'),ps=4;end
 p=p(:);
+%Set NaNs 
 n=length(p);
-if ~exist('pt','var')
-    pgood=true(n,1);
-end
-p(~pgood)=0;
 if ~exist('pt','var')   
     pt=(1:n)'/ps;
 end
@@ -106,6 +110,8 @@ for i=2:n0
     tag(n,6)=pt(e);
     tag(n,8)=tag0(i,8);
 end
+
+%Elapsed local time
 t2 = utc2local(tag(:,6)/1000);
 t1 = utc2local(tag(:,5)/1000);
 tag(:,2) = etime(datevec(t2),datevec(t1))*1000;

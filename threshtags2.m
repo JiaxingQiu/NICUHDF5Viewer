@@ -1,11 +1,18 @@
-function [tag,tagname]=threshtags(x,xt,T,pmin,tmin,negthresh)
-% function [tag,tagname]=threshtags(x,xt,T,pmin,tmin)
+function [tag,tagname]=threshtags2(x,xt,T,pmin,tmin,negthresh,lessequal)
+% This function has been edited to call threshcross2, which is able to
+% identify gaps in time even if no nans are present
+% It also changes the threshold to < instead of <=. This allows for a
+% proper calculation of area (instead of the area below 79.99, it can
+% calculate the area under 80 for example).
+
+% function [tag,tagname]=threshtags2(x,xt,T,pmin,tmin)
 %
 % x = input signal
 % xt = input signal timestamps
 % T = threshold for event
 % pmin = minimum number of points below threshold (default one)
 % tmin = time gap between crossings to join (default zero)
+% lessequal = set to 1 for < or >. Set to 2 for <= or >=.
 %
 % tag = tag times and info
 % tagname = name of tagput data
@@ -51,7 +58,7 @@ if ~exist('negthresh','var'),negthresh=1;end
 % end
 
 % Find crossing events with minimum number of points
-[i1,i2]=threshcross(x,T,pmin,negthresh);
+[i1,i2]=threshcross2(x,xt,T,pmin,negthresh,lessequal);
 if isempty(i1),return,end
 
 t1=xt(i1);
@@ -97,10 +104,18 @@ for i=1:ne
     end
     aa=max(T+1-xx,0);
     area(i)=sum(aa);
-    if negthresh
-        np(i)=sum(xx<=T);
+    if lessequal==1
+        if negthresh
+            np(i)=sum(xx<T);
+        else
+            np(i)=sum(xx>T);
+        end
     else
-        np(i)=sum(xx>=T);
+        if negthresh
+            np(i)=sum(xx<=T);
+        else
+            np(i)=sum(xx>=T);
+        end
     end
 end
 tag=[t1 t2 dur np area extrema];

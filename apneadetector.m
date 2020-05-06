@@ -36,9 +36,14 @@ tag = [];
 tagname = [];
 qrs=[];
 
+% UTC milleseconds time format
+tformat=3;
+% structure data format
+dformat=1;
+
 % Load in the respiratory signal
 [data,~,info] = getfiledata(info,'Resp');
-[data,~,~] = formatdata(data,info,3,1);
+[data,~,~] = formatdata(data,info,tformat,dformat);
 toc
 if isempty(data) % if there is no chest impedance signal, give up
     return
@@ -238,6 +243,7 @@ toc
 disp('Apnea Probability')
 tic
 psd1=windowsd(y./env,w1,w2);
+
 j=find(psd1>=0&~(psd1>psd));
 psd(j)=psd1(j);
 toc
@@ -343,29 +349,37 @@ end
 end
 
 function [sd,nw]=windowsd(x,w1,w2)
-%function [sd]=wmaprob(x,xt,pt,dt)
+%function [sd,nw]=windowsd(x,w1,w2)
 %
-% x     input chest impedance signal
-% xt    timestamps of input chest impedance signal
-% pt    timestamps to calculate probability
-% dt    window to calculate SD (default 2 seconds)
+% x     input signal
+% w1    window start indice
+% w2    window stop indice
 %
-% p     apnea probability
-% psd   SD of input signal over time window
-% nx    number of input signal observations in time window
+
+% sd   SD of input signal over time window
+% nw   number of input signal observations in time window
 
 n=length(w1);
 sd=NaN*ones(n,1);
-T2=[0;cumsum(x.^2)];
-T1=[0;cumsum(x)];
-nw=w2-w1+1;
-good=find(nw>0);
-j2=w2(good);
-j1=w1(good);
-nw=nw(good);
-s1=T1(j2+1)-T1(j1);
-s2=T2(j2+1)-T2(j1);
-sxx=s2-(s1.^2)./nw;
-sd(good)=sqrt(sxx./(nw-1));
+nw=zeros(n,1);
+for i=1:n
+    j=(w1(i):w2(i))';
+    if isempty(j),continue,end
+    nw(i)=length(j);
+    sd(i)=std(x(j));
+end
 
+% T2=[0;cumsum(x.^2)];
+% T1=[0;cumsum(x)];
+% 
+% nw=w2-w1+1;
+% good=find(nw>0);
+% j2=w2(good);
+% j1=w1(good);
+% nw=nw(good);
+% s1=T1(j2+1)-T1(j1);
+% s2=T2(j2+1)-T2(j1);
+% sxx=s2-(s1.^2)./nw;
+% sd(good)=sqrt(sxx./(nw-1));
+% 
 end

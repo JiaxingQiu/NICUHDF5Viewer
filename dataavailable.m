@@ -34,16 +34,24 @@ outdata = data.x;
 vt = data.t;
 fs = data.fs;
 
-vtdiff = diff(vt)>(1/fs);
+% Remove duplicate timestamps. Only keep the x value relating to the last
+% copy of a given timestamp;
+[vt,ia] = unique(vt,'last');
+outdata = outdata(ia);
 
+vtdiff = diff(vt/1000)>(1/fs)*2;
 
 if removeneg
     outdata(outdata<=1) = nan; % Remove negative values
 else
     outdata(outdata==-32768) = nan; % Remove empty values
 end
+
 binarydata = ~isnan(outdata);
-[tag,tagname]=threshtags(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh);
+binarydata = double(binarydata);
+binarydata2 = zeros(length(outdata),1);
+binarydata2(logical([vtdiff; 0])) = 1;
+[tag,tagname]=dataavailabletags(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,binarydata2);
 
 results = [];
 vt = [];

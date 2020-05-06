@@ -1,7 +1,7 @@
-function [tag,tagname]=threshtags(x,xt,T,pmin,tmin,negthresh)
-% function [tag,tagname]=threshtags(x,xt,T,pmin,tmin)
+function [tag,tagname]=dataavailabletags(x,xt,T,pmin,tmin,negthresh,bd2)
+% function [tag,tagname]=dataavailabletags(x,xt,T,pmin,tmin)
 %
-% x = input signal
+% x = input signal with 1s for data, 0s for missing data and 2's for split points
 % xt = input signal timestamps
 % T = threshold for event
 % pmin = minimum number of points below threshold (default one)
@@ -22,11 +22,6 @@ tagname{5}='Area';
 tagname{6}='Minimum';
 tag=zeros(0,length(tagname));
 
-% Remove duplicate timestamps. Only keep the x value relating to the last
-% copy of a given timestamp;
-[xt,ia] = unique(xt,'last');
-x = x(ia);
-
 % Get rid of missing data
 j=find(isnan(x));
 x(j)=[];
@@ -37,50 +32,28 @@ if ~exist('tmin','var'),tmin=0;end
 if ~exist('pmin','var'),pmin=1;end
 if ~exist('negthresh','var'),negthresh=1;end
 
-% if length(tmin)>1
-%     tmin=tmin(1);
-%     gmin=tmin(2);
-% else
-%     gmin=0;
-% end   
-% if length(pmin)>1
-%     pmin=pmin(1);    
-%     dmin=pmin(2);
-% else
-%     dmin=0;
-% end
-
 % Find crossing events with minimum number of points
-[i1,i2]=threshcross(x,T,pmin,negthresh);
-if isempty(i1),return,end
+[i1,i2]=threshcross2(x,0.5,pmin,0,2);
 
-t1=xt(i1);
-t2=xt(i2);
-%Get rid of crossing events less than minimum time duration
-% if dmin>2
-%     dur=t2-t1+2;    
-%     j=dur<dmin;
-%     i1(j)=[];
-%     i2(j)=[];
-% end
+bd2(~logical(x))=0; % Don't tag nan values at the edge of missing data, because they were already flagged. This just creates extra edges.
+i3 = find(bd2);
+repeat = ismember(i3,i2);
+i3 = i3(~repeat);
+i4 = i3+1;
+
+j1 = unique([i1;i4]);
+j2 = unique([i2;i3]);
+
+if isempty(j1),return,end
 
 tsamp = median(diff(xt));
 
-%Join events with minimum time gap
-if tmin>0
-    [k1,k2]=tagjoin(t1,t2,tmin);   
-    j1=i1(k1);
-    j2=i2(k2);
-else
-    j1=i1;
-    j2=i2;
-end    
-t1=xt(j1);
-t2=xt(j2);
-ne=length(j1);
+t1 = xt(j1);
+t2 = xt(j2);
+
+ne=length(t1);
 
 dur=t2-t1+tsamp;
-%np=j2-j1+1;
 np=zeros(ne,1);
 area=zeros(ne,1);
 extrema=NaN*ones(ne,1);
