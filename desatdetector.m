@@ -4,7 +4,7 @@ function [results,vt,tag,tagname] = desatdetector(info,threshold,pmin,tmin)
 
 % INPUT:
 % info:      from getfileinfo - if empty, it will go get it
-% threshold: hr (<=) threshold for desat event. If you want <80, set to 79.99 or the like
+% threshold: spo2 (<) threshold for desat event.
 % pmin:      minimum number of points below threshold (default one)
 % tmin:      time gap between crossings to join (default zero)
 
@@ -36,7 +36,7 @@ fs = data.fs;
 spo2data(spo2data<=1) = nan;
 
 % Tag desaturation events
-[tag,tagname]=threshtags(spo2data,vt,threshold,ceil(pmin*fs),tmin,1);
+[tag,tagname]=threshtags2(spo2data,vt,threshold,ceil(pmin*fs),tmin,1,1);
 
 % % Store desaturation timepoints in a binary array
 % [~,startindices] = ismember(tag(:,1),vt);
