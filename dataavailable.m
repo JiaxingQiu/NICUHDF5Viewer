@@ -43,7 +43,7 @@ else
     outdata(outdata==-32768) = nan; % Remove empty values
 end
 binarydata = ~isnan(outdata);
-[tag,tagname]=threshtags(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh);
+[tag,tagname]=threshtags2(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,2);
 
 results = [];
 vt = [];
