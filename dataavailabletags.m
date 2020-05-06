@@ -33,7 +33,7 @@ if ~exist('pmin','var'),pmin=1;end
 if ~exist('negthresh','var'),negthresh=1;end
 
 % Find crossing events with minimum number of points
-[i1,i2]=threshcross2(x,0.5,pmin,0,2);
+[i1,i2]=threshcross2(x,xt,0.5,pmin,0,2);
 
 bd2(~logical(x))=0; % Don't tag nan values at the edge of missing data, because they were already flagged. This just creates extra edges.
 i3 = find(bd2);

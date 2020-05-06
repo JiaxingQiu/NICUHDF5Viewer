@@ -26,7 +26,7 @@ end
 
 % Get apnea results
 if ECG == 0
-    idx = findresultindex('/Results/Apnea-NoECG',1,result_tagtitle);
+    idx = findresultindex('/Results/Apnea-NoECG',2,result_tagtitle);
     if sum(idx)
         apneatags = result_tags(idx);
         apneatagcolumns = result_tagcolumns(idx);
@@ -57,7 +57,7 @@ if isempty(apneatags)
 end
 
 % Get brady results
-idx = findresultindex('/Results/Brady<100-Pete',3,result_tagtitle);
+idx = findresultindex('/Results/Brady<100-Pete',2,result_tagtitle);
 if sum(idx)
     bradytags = result_tags(idx);
     bradytagcolumns = result_tagcolumns(idx);
@@ -73,7 +73,7 @@ if isempty(bradytags)
 end
 
 % Get desat results
-idx = findresultindex('/Results/Desat<80-Pete',3,result_tagtitle);
+idx = findresultindex('/Results/Desat<80-Pete',2,result_tagtitle);
 if sum(idx)
     desattags = result_tags(idx);
     desattagcolumns = result_tagcolumns(idx);

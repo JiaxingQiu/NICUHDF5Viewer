@@ -1,4 +1,4 @@
-function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info,lead,result_name,result_data)
+function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info,lead,result_tagtitle,result_data)
 % periodicbreathing grabs the results from the apnea detection (first
 % looking for apnea detection using ecg lead III, then II, then I, then no
 % lead) and runs Mary Mohr's periodic breathing algorithm on it to
@@ -9,10 +9,10 @@ function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info,lead,result_name
 % info:             from getfileinfo - if empty, it will go get it
 % lead:             value from 0 to 3 indicating lead of interest. 0 = no lead
 %                   default empty => all leads
-% result_name       name of results
+% result_tagtitle   name of results
 % result_data       results data
 
-if ~exist('result_name','var'),result_name=[];end
+if ~exist('result_tagtitle','var'),result_tagtitle=[];end
 if ~exist('result_data','var'),result_data=[];end
 if ~exist('lead','var'),lead=[];end
 
@@ -35,10 +35,12 @@ setappdata(0,'Wavelets_Info',Wavelets_Info);
 %Single lead result names
 filename={'/Results/Apnea-NoECG','/Results/Apnea-I','/Results/Apnea-II','/Results/Apnea-III'}';
 %Default is all leads
-apneaname='/Results/Apnea';    
+apneaname='/Results/Apnea'; 
+version=1;
 if ~isempty(lead)
     if lead>=0&&lead<=3
         apneaname=filename{lead+1};
+        version=2;
     end
 end
 
@@ -54,8 +56,9 @@ Ttime=[];
 % elseif lead == 3
 %     filename = '/Results/Apnea-III';
 % end
-if ~isempty(result_name)
-    apneaindex=find(strcmp(result_name(:,1),apneaname));
+if ~isempty(result_tagtitle)
+    idx = findresultindex(apneaname,version,result_tagtitle);
+    apneaindex=find(idx);
     if ~isempty(apneaindex)
         apneaindex=apneaindex(1);
         data = result_data(apneaindex);

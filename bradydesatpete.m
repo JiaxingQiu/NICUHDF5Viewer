@@ -18,7 +18,7 @@ if isempty(result_tagtitle)
 end
 
 % Get brady results
-idx = findresultindex('/Results/Brady<100-Pete',3,result_tagtitle);
+idx = findresultindex('/Results/Brady<100-Pete',2,result_tagtitle);
 if sum(idx)
     bradytags = result_tags(idx);
     bradytagcolumns = result_tagcolumns(idx);
@@ -30,7 +30,7 @@ else
 end
 
 % Get desat results
-idx = findresultindex('/Results/Desat<80-Pete',3,result_tagtitle);
+idx = findresultindex('/Results/Desat<80-Pete',2,result_tagtitle);
 if sum(idx)
     desattags = result_tags(idx);
     desattagcolumns = result_tagcolumns(idx);
