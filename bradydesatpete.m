@@ -3,31 +3,40 @@ function [result,t_temp,tag,tagcol] = bradydesatpete(info,thresh,result_tags,res
 if isempty(result_tagtitle)
     if ~isempty(info.resultfile)
         result_tags = load(info.resultfile,'result_tags');
+        if isfield(result_tags,'result_tags')
+            result_tags = result_tags.result_tags;
+        end
         result_tagcolumns = load(info.resultfile,'result_tagcolumns');
+        if isfield(result_tagcolumns,'result_tagcolumns')
+            result_tagcolumns = result_tagcolumns.result_tagcolumns;
+        end
         result_tagtitle = load(info.resultfile,'result_tagtitle');
+        if isfield(result_tagtitle,'result_tagtitle')
+            result_tagtitle = result_tagtitle.result_tagtitle;
+        end
     end
 end
 
 % Get brady results
-if sum(strcmp(result_tagtitle(:,1),'/Results/Brady<100-Pete'))
-    bradyindex = strcmp(result_tagtitle(:,1),'/Results/Brady<100-Pete');
-    bradytags = result_tags(bradyindex);
-    bradytagcolumns = result_tagcolumns(bradyindex);
+idx = findresultindex('/Results/Brady<100-Pete',2,result_tagtitle);
+if sum(idx)
+    bradytags = result_tags(idx);
+    bradytagcolumns = result_tagcolumns(idx);
 else
     % Run brady algorithm
-    [~,~,bt,b] = bradydetector(info,99.99,4,4000);
+    [~,~,bt,b] = bradydetector(info,100,4,4000);
     bradytags(1).tagtable = bt;
     bradytagcolumns(1).tagname = b;
 end
 
 % Get desat results
-if sum(strcmp(result_tagtitle(:,1),'/Results/Desat<80-Pete'))
-    desatindex = strcmp(result_tagtitle(:,1),'/Results/Desat<80-Pete');
-    desattags = result_tags(desatindex);
-    desattagcolumns = result_tagcolumns(desatindex);
+idx = findresultindex('/Results/Desat<80-Pete',2,result_tagtitle);
+if sum(idx)
+    desattags = result_tags(idx);
+    desattagcolumns = result_tagcolumns(idx);
 else
     % Run desat algorithm
-    [~,~,dt,d] = desatdetector(info,79.99,10,10000);
+    [~,~,dt,d] = desatdetector(info,80,10,10000);
     desattags(1).tagtable = dt;
     desattagcolumns(1).tagname = d;
 end
