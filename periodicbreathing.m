@@ -84,4 +84,4 @@ if isrow(pb_indx)
 end
 
 % Create periodic breathing tags
-[tag,tagname]=threshtags2(pb_indx,pb_time,0.6,1,0,0,0); % This threshold was chosen from Mary Mohr's thesis
+[tag,tagname]=threshtags2(pb_indx,pb_time,0.6,1,0,0,2); % This threshold was chosen from Mary Mohr's thesis
