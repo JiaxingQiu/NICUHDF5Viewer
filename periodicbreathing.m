@@ -1,4 +1,4 @@
-function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info,lead,result_name,result_data)
+function [pb_indx,pb_time,tag,tagname] = periodicbreathing(info,lead,result_tagtitle,result_data)
 % periodicbreathing grabs the results from the apnea detection (first
 % looking for apnea detection using ecg lead III, then II, then I, then no
 % lead) and runs Mary Mohr's periodic breathing algorithm on it to
@@ -34,17 +34,17 @@ elseif lead == 2
 elseif lead == 3
     filename = '/Results/Apnea-III';
 end
-if sum(strcmp(result_name(:,1),filename))
-    apneaindex = strcmp(result_name(:,1),filename);
-end
-if ~isempty(apneaindex)
-    data = result_data(apneaindex);
-    unTomb = data.data;
-    Ttime = data.time; % Need to make sure this is okay for all types of data
+if ~isempty(result_tagtitle)
+    apneaindex = findresultindex(filename,1,result_tagtitle);
+    if sum(apneaindex)
+        data = result_data(apneaindex);
+        unTomb = data.data;
+        Ttime = data.time; % Need to make sure this is okay for all types of data
+    end
 end
 
 % If we haven't just run the apnea detector, load apnea data
-if isempty(apneaindex)
+if ~sum(apneaindex)
     [data,~,~] = formatdata(filename,info,3,1);
     if isempty(data)
         return
