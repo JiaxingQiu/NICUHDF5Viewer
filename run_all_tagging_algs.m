@@ -1,7 +1,8 @@
 function run_all_tagging_algs(filename,info,algstorun)
 nalgs = 31;
 if isempty(algstorun)
-    algstorun = ones(nalgs,1);
+    [~,algmaskout] = algmask;
+    algstorun = ones(length(algmaskout),1);
 end
 if ischar(algstorun)
     algstorun = str2num(char(algstorun));
