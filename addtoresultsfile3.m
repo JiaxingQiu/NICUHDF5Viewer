@@ -98,10 +98,14 @@ else
     
     
     if size(result_tagtitle,2)==1 % if this is an old results file which does not contain a version number, add in a 1 for the version number
-        result_tagtitle = horzcat(result_tagtitle,ones(size(result_tagtitle,1),1));
+        oldversioncells = cell(size(result_tagtitle,1),1);
+        oldversioncells(:,1) = {1};
+        result_tagtitle = horzcat(result_tagtitle,oldversioncells);
     end
     if size(result_name,2)==1 % if this is an old results file which does not contain a version number, add in a 1 for the version number
-        result_name = horzcat(result_name,ones(size(result_name,1),1)); 
+        oldversioncells = cell(size(result_name,1),1);
+        oldversioncells(:,1) = {1};
+        result_name = horzcat(result_name,oldversioncells); 
     end
     
     if contains(tagname,'CustomTag')
