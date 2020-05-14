@@ -18,8 +18,11 @@ end
 if exist(resultfilename,'file')
     load(resultfilename,'result_tagtitle');
     try
+        warning('off','MATLAB:load:variableNotFound') % remove this warning message - it will come up too often if someone is adding results to an old version of the files which does not store an empty result_qrs
         load(resultfilename,'result_qrs');
+        warning('on','MATLAB:load:variableNotFound') % put the warning message back on for the rest of the program execution
     catch
+        warning('on','MATLAB:load:variableNotFound') % put the warning message back on for the rest of the program execution
     end
 else
     return

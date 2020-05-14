@@ -225,7 +225,7 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             end
         end
     catch ME
-        message = ['Failure running algorithm ' num2str(algnum) ' of ' num2str(size(algdispname,1)) ': ' algdispname{algnum,1} '. Continuing running tagging algorithms.'];
+        message = ['Failure running algorithm ' num2str(algnum) ' of ' num2str(size(algdispname,1)) ': ' algdispname{algnum,1} ' on ' filename '. Continuing running tagging algorithms.'];
         msgbox(message,msgboxtitle,'modal');
         disp(message)
         disp(['Identifier: ' ME.identifier])
