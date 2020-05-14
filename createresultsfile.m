@@ -6,7 +6,8 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
         result_data(1).data = result;
         result_data(1).time = time;
     else
-        result_name = {};
+        result_name{1,1} = name{1,1};
+        result_name{1,2} = name{1,2};
         result_data.data = [];
         result_data.time = [];
     end
