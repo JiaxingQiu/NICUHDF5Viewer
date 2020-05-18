@@ -25,13 +25,6 @@ else
     apneatagcolumns(1).tagname = a;
 end
 
-if isempty(apneatags)
-    result = [];
-    t_temp = [];
-    tagcol = [];
-    return
-end
-
 % Get brady results
 if sum(strcmp(result_tagtitle(:,1),'/Results/Brady<100-Pete'))
     bradyindex = strcmp(result_tagtitle(:,1),'/Results/Brady<100-Pete');
@@ -44,10 +37,6 @@ else
     bradytagcolumns(1).tagname = b;
 end
 
-if isempty(bradytags)
-    return
-end
-
 % Get desat results
 if sum(strcmp(result_tagtitle(:,1),'/Results/Desat<80-Pete'))
     desatindex = strcmp(result_tagtitle(:,1),'/Results/Desat<80-Pete');
@@ -58,10 +47,6 @@ else
     [~,~,dt,d] = desatdetector(info,79.99,10,10000);
     desattags(1).tagtable = dt;
     desattagcolumns(1).tagname = d;
-end
-
-if isempty(desattags)
-    return
 end
 
 % Find the ABD overlap
