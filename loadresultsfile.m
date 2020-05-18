@@ -19,6 +19,8 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
         else
             result_qrs = struct;
         end
-        [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(name,result,time,tag,tagcol,qrsinput,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+        if ~isempty(tagcol)
+            [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(name,result,time,tag,tagcol,qrsinput,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+        end
     end
 end
