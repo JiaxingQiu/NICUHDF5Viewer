@@ -225,7 +225,7 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 [isfile,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = loadresults(filename);
                 isfirst = 0;
                 if ~isfile && ~isempty(qrs) % If there is no results file and we have something to put in one, create a file!
-                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = createresultsfile(algdispname(algnum,:),[],[],[],[],qrs);
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = createresultsfile([],[],[],[],[],qrs);
                 elseif ~isfile % If there is no results file and we don't have something to put in one, don't create one yet - wait!
                     isfirst = 1;
                 elseif isfile && ~isempty(qrs) % If there is a results file and we have something to put in it, put it in!
