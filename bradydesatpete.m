@@ -42,7 +42,13 @@ else
 end
 
 % Find the brady desat overlap
-[result,t_temp,tag,tagcol] = tagmerge(bradytagcolumns,desattagcolumns,bradytags,desattags,thresh,info);
+if ~isempty(desattagcolumns(1).tagname) && ~isempty(bradytagcolumns(1).tagname)
+    [result,t_temp,tag,tagcol] = tagmerge(bradytagcolumns,desattagcolumns,bradytags,desattags,thresh,info);
+else
+    tag = [];
+    tagcol = [];
+end
+
 result = [];
 t_temp = [];
 end
