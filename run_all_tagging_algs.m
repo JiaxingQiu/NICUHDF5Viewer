@@ -210,18 +210,32 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
         end
         if exist('tagcol')
             if isfirst
-                [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = loadresultsfile(filename,resultname(algnum1,:),result,t_temp,tag,tagcol,[]);
+                [isfile,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = loadresults(filename);
                 isfirst = 0;
-            else
-                if ~isempty(tagcol)
-                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(resultname(algnum1,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs); % Must subtract 3 for resultname because qrs detection doesn't have a resultname
+                if ~isfile && ~isempty(tagcol) % If there is no results file and we have something to put in one, create a file!
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = createresultsfile(resultname(algnum1,:),result,t_temp,tag,tagcol,[]);
+                elseif ~isfile % If there is no results file and we don't have something to put in one, don't create one yet - wait!
+                    isfirst = 1;
+                elseif isfile && ~isempty(tagcol) % If there is a results file and we have something to put in it, put it in!
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(resultname(algnum1,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+                    % Note: If there is a results file and we don't have anything to put in it, there is nothing more to do
                 end
+            elseif ~isempty(tagcol)
+                [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(resultname(algnum1,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
             end
         end
         if exist('qrs')
             if isfirst
-                [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = loadresultsfile(filename,algdispname(algnum,:),[],[],[],[],qrs);
+                [isfile,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = loadresults(filename);
                 isfirst = 0;
+                if ~isfile && ~isempty(qrs) % If there is no results file and we have something to put in one, create a file!
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = createresultsfile([],[],[],[],[],qrs);
+                elseif ~isfile % If there is no results file and we don't have something to put in one, don't create one yet - wait!
+                    isfirst = 1;
+                elseif isfile && ~isempty(qrs) % If there is a results file and we have something to put in it, put it in!
+                    [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(algdispname(algnum,:),[],[],[],[],qrs,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+                    % Note: If there is a results file and we don't have anything to put in it, there is nothing more to do
+                end
             else
                 if ~isempty(qrs)
                     [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(algdispname(algnum,:),[],[],[],[],qrs,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);

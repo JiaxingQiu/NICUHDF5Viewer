@@ -34,13 +34,6 @@ else
     apneatagcolumns(1).tagname = a;
 end
 
-if isempty(apneatags)
-    result = [];
-    t_temp = [];
-    tagcol = [];
-    return
-end
-
 % Get brady results
 idx = findresultindex('/Results/Brady<100-Pete',2,result_tagtitle);
 if sum(idx)
@@ -51,10 +44,6 @@ else
     [~,~,bt,b] = bradydetector(info,100,4,4000);
     bradytags(1).tagtable = bt;
     bradytagcolumns(1).tagname = b;
-end
-
-if isempty(bradytags)
-    return
 end
 
 % Get desat results
@@ -69,12 +58,13 @@ else
     desattagcolumns(1).tagname = d;
 end
 
-if isempty(desattags)
-    return
-end
-
 % Find the ABD overlap
-[result,t_temp,tag,tagcol] = tripletagmerge(apneatagcolumns,bradytagcolumns,desattagcolumns,apneatags,bradytags,desattags,thresh,info);
+if ~isempty(desattagcolumns(1).tagname) && ~isempty(bradytagcolumns(1).tagname) && ~isempty(apneatagcolumns(1).tagname)
+    [result,t_temp,tag,tagcol] = tripletagmerge(apneatagcolumns,bradytagcolumns,desattagcolumns,apneatags,bradytags,desattags,thresh,info);
+else
+    tag = [];
+    tagcol = [];
+end
 result = [];
 t_temp = [];
 end
