@@ -9,10 +9,17 @@ if isempty(result_tagtitle)
 end
 
 % Get brady results
-if sum(strcmp(result_tagtitle(:,1),'/Results/Brady<100'))
-    bradyindex = strcmp(result_tagtitle(:,1),'/Results/Brady<100');
-    bradytags = result_tags(bradyindex);
-    bradytagcolumns = result_tagcolumns(bradyindex);
+if ~isempty(result_tagtitle)
+    if sum(strcmp(result_tagtitle(:,1),'/Results/Brady<100'))
+        bradyindex = strcmp(result_tagtitle(:,1),'/Results/Brady<100');
+        bradytags = result_tags(bradyindex);
+        bradytagcolumns = result_tagcolumns(bradyindex);
+    else
+        % Run brady algorithm
+        [~,~,bt,b] = bradydetector(info,99.99,1,0);
+        bradytags(1).tagtable = bt;
+        bradytagcolumns(1).tagname = b;
+    end
 else
     % Run brady algorithm
     [~,~,bt,b] = bradydetector(info,99.99,1,0);
@@ -21,10 +28,17 @@ else
 end
 
 % Get desat results
-if sum(strcmp(result_tagtitle(:,1),'/Results/Desat<80'))
-    desatindex = strcmp(result_tagtitle(:,1),'/Results/Desat<80');
-    desattags = result_tags(desatindex);
-    desattagcolumns = result_tagcolumns(desatindex);
+if ~isempty(result_tagtitle)
+    if sum(strcmp(result_tagtitle(:,1),'/Results/Desat<80'))
+        desatindex = strcmp(result_tagtitle(:,1),'/Results/Desat<80');
+        desattags = result_tags(desatindex);
+        desattagcolumns = result_tagcolumns(desatindex);
+    else
+        % Run desat algorithm
+        [~,~,dt,d] = desatdetector(info,79.99,1,0);
+        desattags(1).tagtable = dt;
+        desattagcolumns(1).tagname = d;
+    end
 else
     % Run desat algorithm
     [~,~,dt,d] = desatdetector(info,79.99,1,0);

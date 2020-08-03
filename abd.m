@@ -50,7 +50,7 @@ else
 end
 
 % Find the ABD overlap
-if ~isempty(desattagcolumns(1).tagname) && ~isempty(bradytagcolumns(1).tagname) && ~iempty(apneatagcolumns(1).tagname)
+if ~isempty(desattagcolumns(1).tagname) && ~isempty(bradytagcolumns(1).tagname) && ~isempty(apneatagcolumns(1).tagname)
     [result,t_temp,tag,tagcol] = tripletagmerge(apneatagcolumns,bradytagcolumns,desattagcolumns,apneatags,bradytags,desattags,thresh,info);
 else
     tag = [];

@@ -45,10 +45,18 @@ dayzero=0;
 timezero=0;
 t=[];
 isutc=true;
+globaltime=true;
+
+if isfield(info,'globaltime')
+    globaltime=info.globaltime;
+end    
 
 if isfield(info,'times')
     t=info.times;
 end    
+if ~globaltime
+    t=NaN;
+end
 xt=t;
 if isfield(info,'tunit')
     tunit=info.tunit;
@@ -75,14 +83,25 @@ for i=1:n
     end
     if isfield(data,'fs')
         if isempty(data(i).fs)
-            xfs(i) = nan;
+            xfs(i) = NaN;
         else
             xfs(i)=data(i).fs;
         end
     end    
 end
 
-%Put global time stamps for each data point into structure
+% Put timestamps and data in requested format into structure
+
+%Three ways to put timestamps for each data point into structure
+%
+%Three ways of getting timestamps
+%
+%1) data.t          = []
+%   data.index      = index into global timestamps 
+%2) data.t          = time zero
+%   data.index      = index of equally spaced consecutive times from time zero
+%   data.T          = time between blocks
+%3) data.t          = timestamps already found
 
 for i=1:n
     tt=data(i).t;
@@ -91,10 +110,10 @@ for i=1:n
 %     if isfield(data,'seq')
 %         seq=data(i).seq;
 %     end
-
     if isfield(data,'index')
         index=data(i).index;
     end
+% Convert index into sequence vector    
     if size(index,2)>1    
         j1=index(:,1);
         j2=j1+index(:,2)-1;
@@ -102,11 +121,19 @@ for i=1:n
             j=(j1(k):j2(k))';
             seq=[seq;j];
         end
-    end    
+    end
+%Use global timestamps if they exist
     if ~isnan(t)
         if ~isempty(seq)
             tt=t(seq);
-        end       
+        end
+    else
+%Offset from time zero if it exists        
+        if length(tt)==1
+            t0=tt;
+            T=double(data(i).T);            
+            tt=t0+(seq-1)*T;
+        end
     end
     data(i).t=tt;
     nt=length(tt);
@@ -192,7 +219,8 @@ if dformat==2
     xdata=[c x];    
 end
 
-%Format timestamps
+%Format timestamps in requested format and time unit
+
 tscale=NaN;    
 toffset=NaN;
 if length(tformat)==2
@@ -219,6 +247,7 @@ if tformat==3
     end
 end
 
+%Default is no scaling or offset
 if isnan(tscale)
     tscale=1;
 end
@@ -226,6 +255,7 @@ if isnan(toffset)
     toffset=0;
 end
 
+%Scale timestamps if requested
 if tscale~=1
     t=t/tscale;
     xt=xt/tscale;
@@ -235,6 +265,8 @@ if tscale~=1
         end
     end
 end
+
+%Offset timestamps if requestec
 if toffset~=0
     t=toffset+t;    
     xt=toffset+xt;
