@@ -4,7 +4,7 @@ function [results,vt,tag,tagname] = bradydetector(info,threshold,pmin,tmin)
 
 % INPUT:
 % info:      from getfileinfo - if empty, it will go get it
-% threshold: hr (<=) threshold for bradycardia event. If you want <80, set to 79.99 or the like
+% threshold: hr (<) threshold for bradycardia event.
 % pmin:      minimum number of points below threshold (default one)
 % tmin:      time gap (ms) between crossings to join (default zero)
 
@@ -37,7 +37,7 @@ fs = data.fs;
 hrdata(hrdata<=1) = nan;
 
 % Tag bradycardia events
-[tag,tagname]=threshtags(hrdata,vt,threshold,ceil(pmin*fs),tmin,1);
+[tag,tagname]=threshtags2(hrdata,vt,threshold,ceil(pmin*fs),tmin,1,1);
 
 % % Store bradycardia time points in a binary array
 % [~,startindices] = ismember(tag(:,1),vt);

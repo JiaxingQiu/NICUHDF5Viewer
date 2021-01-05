@@ -31,6 +31,14 @@ xt=xt/fs;
 xhi=filtfilt(bhi,ahi,x); 
 env=filtfilt(blo,alo,abs(xhi)); 
 
+%Find QRS detection in CI window
+tmin=min(xt);
+tmax=max(xt);
+qsub=qt>=tmin&qt<=tmax;
+qsub=qsub&qb>0;
+qt=qt(qsub);
+qb=qb(qsub);
+
 %Heart rate filter
 if ~isempty(qt) % Handle the situation where there is no ekg signal
     ns=30;
@@ -83,13 +91,6 @@ yt=xt;
 %Find good input and time range
 xgood=~isnan(x);
 x(~xgood)=0;
-
-tmin=min(xt);
-tmax=max(xt);
-qsub=qt>=tmin&qt<=tmax;
-qsub=qsub&qb>0;
-qt=qt(qsub);
-qb=qb(qsub);
 
 %Find times of equally spaced beat samples
 bmin=min(qb);
