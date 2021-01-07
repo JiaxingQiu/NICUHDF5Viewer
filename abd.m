@@ -80,7 +80,7 @@ else
     tag = [];
     tagcol = [];
 end
-    
+
 result = [];
 t_temp = [];
 end

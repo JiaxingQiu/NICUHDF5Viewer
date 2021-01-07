@@ -9,7 +9,13 @@ function fixedname=findfixedname(name)
 %    'ECGIII'
 
 % Get the list of all possible variable strings that go with the desired signame
-load('X:\Amanda\NICUHDF5Viewer\VariableNames','VariableNames')
+if ~isdeployed
+    load('X:\Amanda\NICUHDF5Viewer\VariableNames','VariableNames')
+else
+    loadfilename = which(fullfile('VariableNames.mat'));
+    load(loadfilename,'VariableNames')
+end
+
 vname=fieldnames(VariableNames);
 fixedname=name;
 for i=1:length(vname)

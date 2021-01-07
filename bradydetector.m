@@ -4,7 +4,7 @@ function [results,vt,tag,tagname] = bradydetector(info,threshold,pmin,tmin)
 
 % INPUT:
 % info:      from getfileinfo - if empty, it will go get it
-% threshold: hr (<) threshold for bradycardia event. 
+% threshold: hr (<) threshold for bradycardia event.
 % pmin:      minimum number of points below threshold (default one)
 % tmin:      time gap (ms) between crossings to join (default zero)
 

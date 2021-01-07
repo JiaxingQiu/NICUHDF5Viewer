@@ -128,7 +128,13 @@ try
     source=h5readatt(file,'/','Source Reader');
 end
 
-globaltime=~strcmp('TDMS',source);
+if strcmp('DWC',source)
+    globaltime=0;
+elseif strcmp('TDMS',source)
+    globaltime=0;
+else
+    globaltime=1;
+end
 
 %Get global times and fix jitter
 %
@@ -460,7 +466,7 @@ if isnan(T)
         for i=1:nT
             nn(i)=sum(ic==i);
         end
-        disp([T nn])
+%         disp([T nn])
         [~,j]=max(nn);
         T=T(j);
     end

@@ -52,6 +52,9 @@ binarydata = double(binarydata);
 binarydata2 = zeros(length(outdata),1);
 binarydata2(logical([vtdiff; 0])) = 1;
 [tag,tagname]=dataavailabletags(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,binarydata2);
+% [tag,tagname]=threshtags2(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,2);
+% This is how this is done on the master branch, but I don't know which is
+% superior. Both should be tested I think going forward. 
 
 results = [];
 vt = [];
