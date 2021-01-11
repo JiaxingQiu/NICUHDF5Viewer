@@ -128,13 +128,7 @@ try
     source=h5readatt(file,'/','Source Reader');
 end
 
-if strcmp('DWC',source)
-    globaltime=0;
-elseif strcmp('TDMS',source)
-    globaltime=0;
-else
-    globaltime=1;
-end
+globaltime=~strcmp('TDMS',source);
 
 %Get global times and fix jitter
 %
@@ -157,11 +151,13 @@ end
 %Offset times by UTC time zero if UTC file
 %Find local global times in case of time change
 if isutc
-    d=utc2local(t/tunit)-dayzero;
-    t=t-utczero;    
-    local=round(86400*tunit*d);
-    if local==t
-        local=[];
+    if ~isempty(t)  
+        d=utc2local(t/tunit)-dayzero;
+        t=t-utczero;    
+        local=round(86400*tunit*d);
+        if local==t
+            local=[];
+        end
     end
     if ~globaltime    
         for i=1:length(data)
@@ -466,7 +462,7 @@ if isnan(T)
         for i=1:nT
             nn(i)=sum(ic==i);
         end
-%         disp([T nn])
+        disp([T nn])
         [~,j]=max(nn);
         T=T(j);
     end

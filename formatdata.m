@@ -4,20 +4,23 @@ function [xdata,xt,xfs,xname,t]=formatdata(data,info,tformat,dformat,rawflag)
 %data       structure with data values and timestamps
 %           or cell array/single string with dataset names
 %info       structure with file attributes 
+%
 %tformat    format/units of timestamps 
 %           0=> milliseconds since day zero (default)
 %           1=> days since day zero
 %           2=> date in Matlab format
 %           3=> date in UTC milliseconds format
+%
 %dformat    format of data output 
-%           0=> single vector and time stamps (default)
-%               or matrix with unique time stamps 
+%           0=> data matrix with time stamps (default)
 %           1=> structure format 
-%           2=> long two-column matrix with vital sign number and value
+%           2=> long 3-column matrix with timestamp row, vital sign column and value
+%           -1=> data matrix with global time stamps
+%
 %rawflag    0/false => make double precision and scale (default)
 %           1/true => keep data in original raw unscaled format (e.g. short)
 
-%xdata      data vector or matrix (dformat=0)
+%xdata      data matrix (dformat=0)
 %           data structure (dformat=1)           
 %           data column number / value pairs (dformat=2)
 %xt         time stamps for rows of data matrix or global timestamps otherwise
@@ -122,6 +125,11 @@ for i=1:n
             seq=[seq;j];
         end
     end
+    data(i).seq=seq;
+%Don't need sequence any more if structure output
+    if dformat==1
+        data(i).seq=[];
+    end
 %Use global timestamps if they exist
     if ~isnan(t)
         if ~isempty(seq)
@@ -178,21 +186,25 @@ for i=1:n
     data(i).t=tt;
 end
 
-%Structure output
-xdata=data;
-xt=t;
+%Find long output components if not structure output
 
-if dformat~=1
+if dformat==1      
+    xdata=data;
+    xt=t;
+else
     x=[];
     xt=[];
-    c=[];        
+    c=[];
+    r=[];
     for i=1:n
         nx=length(data(i).x);    
         if nx==0,continue,end            
         xx=data(i).x;
-        tt=data(i).t;    
+        tt=data(i).t;
+        seq=data(i).seq;
         nt=length(tt);    
         if nt~=nx,continue,end
+        r=[r;seq];
         c=[c;i*ones(nx,1)];
         x=[x;xx];    
         xt=[xt;tt];
@@ -200,23 +212,23 @@ if dformat~=1
 end
 
 %Matrix output
-if dformat==0
-    if n==1
-        xdata=x;
-    else        
+if dformat<=0
+    if dformat==0
         [xt,~,r]=unique(xt);
-        nt=length(xt);
-        xdata=NaN*ones(nt,n);
-        for i=1:n
-            j=c==i;
-            xdata(r(j),i)=x(j);
-        end
+    else
+        xt=t;
+    end
+    nt=length(xt);
+    xdata=NaN*ones(nt,n);
+    for i=1:n
+        j=c==i;
+        xdata(r(j),i)=x(j);
     end
 end
 
 %Long matrix output
 if dformat==2
-    xdata=[c x];    
+    xdata=[r c x];    
 end
 
 %Format timestamps in requested format and time unit
