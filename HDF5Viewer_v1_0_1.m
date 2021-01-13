@@ -917,6 +917,8 @@ function SaveAllCustomTagsButton_Callback(hObject, eventdata, handles)
 % Find the Result Filename
 if contains(fullfile(handles.pathname, handles.filename),'.hdf5')
     resultfilename = strrep(fullfile(handles.pathname, handles.filename),'.hdf5','_results.mat');
+elseif contains(fullfile(handles.pathname, handles.filename),'.dat')
+    resultfilename = strrep(fullfile(handles.pathname, handles.filename),'.dat','_results.mat');
 else
     resultfilename = strrep(fullfile(handles.pathname, handles.filename),'.mat','_results.mat');
 end
