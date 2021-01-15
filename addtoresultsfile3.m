@@ -110,15 +110,15 @@ else
     
     if contains(tagname,'CustomTag')
         result_name(dataindex,:) = {tagname 1};
-        if dataindex>length(result_data)
-            result_data(dataindex).data = result;
+        if tagindex>length(result_tags)
+            result_data(dataindex).data = [];
             result_tags(tagindex).tagtable = tag;
         else
-            result_data(dataindex).data = result_data(dataindex).data|result;
+            result_data(dataindex).data = [];
             result_tags(tagindex).tagtable = vertcat(result_tags(tagindex).tagtable,tag);
             result_tags(tagindex).tagtable = sortrows(result_tags(tagindex).tagtable);
         end
-        result_data(dataindex).time = time;
+        result_data(dataindex).time = [];
         result_tagcolumns(tagindex).tagname = tagcol;
         result_tagtitle(tagindex,:) = {tagname 1};
     else

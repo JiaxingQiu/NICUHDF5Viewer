@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 25-Mar-2019 15:51:10
+% Last Modified by GUIDE v2.5 13-Jan-2021 16:22:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1068,3 +1068,22 @@ msgbox({
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 },'Help')
+
+
+% --- Executes on button press in DeleteTagButton.
+function DeleteTagButton_Callback(hObject, eventdata, handles)
+% hObject    handle to DeleteTagButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if ~isempty(handles.tags)
+    % Grab the tag category
+    tagcategoryselected = handles.tagtitles{handles.tagtitlechosen};
+    % Check that the tag category is custom
+    if contains(tagcategoryselected,'CustomTag')
+        % Remove the tag from the tagtable
+        handles.tags(handles.tagtitlechosen).tagtable(handles.tagchosen,:)=[];
+        % Update which tags are shown
+        UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
+    end
+end
