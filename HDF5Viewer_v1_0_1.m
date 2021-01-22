@@ -1126,3 +1126,5 @@ handles.loadedfile.String = fullfile(handles.filename); % Show the name of the l
 
 overwrite = 0;
 plotdata(hObject, eventdata, handles, overwrite);
+
+UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
