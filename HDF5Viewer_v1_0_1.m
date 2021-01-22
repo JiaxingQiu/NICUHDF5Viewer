@@ -896,7 +896,10 @@ end
 % Add the custom tags to the results file data in the format expected by the results file
 [handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,~] = addtoresultsfile3(newtagname,fulldataset,handles.info.times+handles.info.timezero,tag,tagcol,[],handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
 
-handles.alldatasetnames = [handles.info.name; newtagname]; % NOTE: You must save the tags before changing the tag name, otherwise the old tags will no longer be accessible...I think
+% Check if custom tag name already exists
+if isempty(find(strcmp(handles.info.name,newtagname), 1))
+    handles.alldatasetnames = [handles.info.name; newtagname]; % NOTE: You must save the tags before changing the tag name, otherwise the old tags will no longer be accessible...I think
+end
 set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
 
 % Update which tagged events are shown
@@ -942,9 +945,15 @@ save(resultfilename,'result_data','result_name','result_tags','result_tagcolumns
 % Tell the user we are done saving the results file
 set(handles.tagalgstextbox,'string','Done Saving Custom Tags');
 drawnow
-set(handles.SaveAllCustomTagsButton,'string','Save All Custom Tags','enable','on');
+
+% Refresh the Display
+set(handles.tagalgstextbox,'string','Reloading Data for Display');
 drawnow
 
+refreshresults(hObject, eventdata, handles)
+
+set(handles.SaveAllCustomTagsButton,'string','Save All Custom Tags','enable','on');
+drawnow
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% HELP MENU %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1087,3 +1096,33 @@ if ~isempty(handles.tags)
         UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
     end
 end
+
+
+function refreshresults(hObject, eventdata, handles)
+% Set the text below the Load HDF5 button to indicate that the results are loading
+set(handles.loadedfile,'string','Loading Tags...');
+waitfor(handles.loadedfile,'string','Loading Tags...');
+[handles.rname,handles.rdata,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile);
+
+% Update info structure to get new results time series
+handles.info=getfileinfo([handles.pathname handles.filename]);
+
+% Populate the Available Signals listbox with the signal names
+handles.alldatasetnames = handles.info.name;
+set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
+
+% Populate the Tag Category listbox with the tag categories, if they exist
+if ~isempty(handles.tagtitles)
+    set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
+else
+    set(handles.TagCategoryListbox,'string','');
+end
+
+% Make sure the Tag Listbox is set to be empty (this clears old tags)
+set(handles.TagListbox,'string','')
+
+% Set the text below the Load HDF5 button to be the filename
+handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
+
+overwrite = 0;
+plotdata(hObject, eventdata, handles, overwrite);

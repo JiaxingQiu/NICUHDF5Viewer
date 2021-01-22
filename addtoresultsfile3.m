@@ -110,7 +110,7 @@ else
     
     if contains(tagname,'CustomTag')
         result_name(dataindex,:) = {tagname 1};
-        if tagindex>length(result_tags)
+        if dataindex>length(result_data)
             result_data(dataindex).data = [];
             result_tags(tagindex).tagtable = tag;
         else
