@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 13-Jan-2021 16:22:01
+% Last Modified by GUIDE v2.5 22-Jan-2021 13:46:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1051,8 +1051,11 @@ msgbox({
     '- Hit the Accept Tag button';
     '- The tag should show up in the large white boxes above';
     '- You can tag multiple instances within the file with the same name and they will all be conglomerated under a single tag category with separate tags';
-    '- To view the binary timeseries of tags in the Main Tab, unfortunately, you will need to Save All Custom Tags then reload the hdf5 file';
+    '- How to delete a custom tag: Within the Tagged Events tab, select the custom tag category of interest from the Tag Categories box, then select the individual tag you would like to delete from the Tags box (the display will jump to that tag timestamp). Then you should be able to hit the Delete Tag button and make the selected tag go away in the Tags box. This won’t save the deletion or update the display until you hit the Save All Custom Tags button.'; 
+    '  - Note: When using the delete button, you do NOT need to type the name of the custom tag in the text box in the Custom Tagging section.';
     '- When you are finished adding tags, hit the Save All Custom Tags Button';
+    '- When you hit the Save All Custom Tags button it will take a few seconds because it is working on reloading the data so as to update the display. That way you can visually see the custom tags you just created (or just deleted) and you don’t have to tag blindly.';
+    '- If you type the same name in the text box in the Custom Tagging section as a previously used custom tag, new custom tags you create will be added to the previously listed tags.';
     '';
 },'Help')
 
@@ -1073,7 +1076,7 @@ function help_menu_about_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 msgbox({
-'HDF5Viewer v4.0';
+'HDF5Viewer v4.0alpha';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 },'Help')
