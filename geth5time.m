@@ -64,16 +64,6 @@ end
 
 [data,t,T]=fixtime(data,T);
 
-source='';
-
-try
-    source=h5readatt(file,'/','Source Reader');
-end
-
-if strcmp('TDMS',source)
-    t(:,1)=t(:,2);
-end
-
 end
 
 function [data,t,dt]=fixtime(data,dt)
@@ -119,9 +109,10 @@ for i=1:n
     end
     index=[j1 j2-j1+1];
     data(i).index=index;
+    data(i).seq=ind;        
 %Put corrected timestamps back into data structure    
 %    data(i).t=t(ind,1);
-%    data(i).seq=ind;    
+
 end
 
 end

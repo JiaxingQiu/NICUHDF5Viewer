@@ -41,7 +41,7 @@ function varargout = HDF5Viewer_v1_0_1(varargin)
 
 % Edit the above text to modify the response to help HDF5Viewer_v1_0_1
 
-% Last Modified by GUIDE v2.5 25-Mar-2019 15:51:10
+% Last Modified by GUIDE v2.5 22-Jan-2021 13:46:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -896,7 +896,10 @@ end
 % Add the custom tags to the results file data in the format expected by the results file
 [handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,~] = addtoresultsfile3(newtagname,fulldataset,handles.info.times+handles.info.timezero,tag,tagcol,[],handles.rname,handles.rdata,handles.tags,handles.tagcolumns,handles.tagtitles,handles.rqrs);
 
-handles.alldatasetnames = [handles.info.name; newtagname]; % NOTE: You must save the tags before changing the tag name, otherwise the old tags will no longer be accessible...I think
+% Check if custom tag name already exists
+if isempty(find(strcmp(handles.info.name,newtagname), 1))
+    handles.alldatasetnames = [handles.info.name; newtagname]; % NOTE: You must save the tags before changing the tag name, otherwise the old tags will no longer be accessible...I think
+end
 set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
 
 % Update which tagged events are shown
@@ -917,6 +920,8 @@ function SaveAllCustomTagsButton_Callback(hObject, eventdata, handles)
 % Find the Result Filename
 if contains(fullfile(handles.pathname, handles.filename),'.hdf5')
     resultfilename = strrep(fullfile(handles.pathname, handles.filename),'.hdf5','_results.mat');
+elseif contains(fullfile(handles.pathname, handles.filename),'.dat')
+    resultfilename = strrep(fullfile(handles.pathname, handles.filename),'.dat','_results.mat');
 else
     resultfilename = strrep(fullfile(handles.pathname, handles.filename),'.mat','_results.mat');
 end
@@ -940,9 +945,15 @@ save(resultfilename,'result_data','result_name','result_tags','result_tagcolumns
 % Tell the user we are done saving the results file
 set(handles.tagalgstextbox,'string','Done Saving Custom Tags');
 drawnow
-set(handles.SaveAllCustomTagsButton,'string','Save All Custom Tags','enable','on');
+
+% Refresh the Display
+set(handles.tagalgstextbox,'string','Reloading Data for Display');
 drawnow
 
+refreshresults(hObject, eventdata, handles)
+
+set(handles.SaveAllCustomTagsButton,'string','Save All Custom Tags','enable','on');
+drawnow
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% HELP MENU %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1040,8 +1051,11 @@ msgbox({
     '- Hit the Accept Tag button';
     '- The tag should show up in the large white boxes above';
     '- You can tag multiple instances within the file with the same name and they will all be conglomerated under a single tag category with separate tags';
-    '- To view the binary timeseries of tags in the Main Tab, unfortunately, you will need to Save All Custom Tags then reload the hdf5 file';
+    '- How to delete a custom tag: Within the Tagged Events tab, select the custom tag category of interest from the Tag Categories box, then select the individual tag you would like to delete from the Tags box (the display will jump to that tag timestamp). Then you should be able to hit the Delete Tag button and make the selected tag go away in the Tags box. This won’t save the deletion or update the display until you hit the Save All Custom Tags button.'; 
+    '  - Note: When using the delete button, you do NOT need to type the name of the custom tag in the text box in the Custom Tagging section.';
     '- When you are finished adding tags, hit the Save All Custom Tags Button';
+    '- When you hit the Save All Custom Tags button it will take a few seconds because it is working on reloading the data so as to update the display. That way you can visually see the custom tags you just created (or just deleted) and you don’t have to tag blindly.';
+    '- If you type the same name in the text box in the Custom Tagging section as a previously used custom tag, new custom tags you create will be added to the previously listed tags.';
     '';
 },'Help')
 
@@ -1062,7 +1076,58 @@ function help_menu_about_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 msgbox({
-'HDF5Viewer v4.0';
+'HDF5Viewer v4.0alpha';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 },'Help')
+
+
+% --- Executes on button press in DeleteTagButton.
+function DeleteTagButton_Callback(hObject, eventdata, handles)
+% hObject    handle to DeleteTagButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if ~isempty(handles.tags)
+    % Grab the tag category
+    tagcategoryselected = handles.tagtitles{handles.tagtitlechosen};
+    % Check that the tag category is custom
+    if contains(tagcategoryselected,'CustomTag')
+        % Remove the tag from the tagtable
+        handles.tags(handles.tagtitlechosen).tagtable(handles.tagchosen,:)=[];
+        % Update which tags are shown
+        UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);
+    end
+end
+
+
+function refreshresults(hObject, eventdata, handles)
+% Set the text below the Load HDF5 button to indicate that the results are loading
+set(handles.loadedfile,'string','Loading Tags...');
+waitfor(handles.loadedfile,'string','Loading Tags...');
+[handles.rname,handles.rdata,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile);
+
+% Update info structure to get new results time series
+handles.info=getfileinfo([handles.pathname handles.filename]);
+
+% Populate the Available Signals listbox with the signal names
+handles.alldatasetnames = handles.info.name;
+set(handles.listbox_avail_signals,'string',handles.alldatasetnames);
+
+% Populate the Tag Category listbox with the tag categories, if they exist
+if ~isempty(handles.tagtitles)
+    set(handles.TagCategoryListbox,'string',handles.tagtitles(:,1));
+else
+    set(handles.TagCategoryListbox,'string','');
+end
+
+% Make sure the Tag Listbox is set to be empty (this clears old tags)
+set(handles.TagListbox,'string','')
+
+% Set the text below the Load HDF5 button to be the filename
+handles.loadedfile.String = fullfile(handles.filename); % Show the name of the loaded file
+
+overwrite = 0;
+plotdata(hObject, eventdata, handles, overwrite);
+
+UpdateTagListboxGivenCategoryChoice(hObject,eventdata,handles);

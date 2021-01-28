@@ -90,5 +90,5 @@ for i=1:ns
     qt=[qt;t(q)];
     qecg=[qecg;x(q)];    
     qs=[qs;i*ones(nq,1)];
-    disp([i length(x) nq])
+%     disp([i length(x) nq])
 end
