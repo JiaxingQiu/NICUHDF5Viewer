@@ -188,22 +188,24 @@ env=filtfilt(blo,alo,abs(xhi));
 % Envelope without NaNs
 % env=env(xgood); %Amanda commented this out because env already had the nans removed above with her change to the xhi equation
 
-%Four samples per second
+%Four samples per second % Amanda changed all calls to x and xt to y and yt to keep all indices on track
 ps=4;
-p1=ceil(ps*xt(1));
-p2=ceil(ps*xt(end));
+p1=ceil(ps*yt(1));
+p2=ceil(ps*yt(end));
 pt=(p1:p2)'/ps;
 dt=2;
 nt=length(pt);
 
-tmin=min(xt);
-tmax=max(xt);
+tmin=min(yt);
+tmax=max(yt);
 
 %Find windows for apnea probability calculation
 
 d=dt/2;
 w=[-d d];
 [w1,w2]=findwindows(pt,[-d d],yt);
+w1=w1(~isnan(w1)); % Amanda added this to avoid nan errors in windowsd
+w2=w2(~isnan(w2)); % Amanda added this to avoid nan errors in windowsd
 nw=w2-w1+1;
 dtn=dt*fs;
 pgood=nw>=(dtn*0.9); % At least 90% of the data in the two second window cannot be nans
@@ -215,38 +217,38 @@ nqrs=length(goodbeats);
 
 for i=1:nqrs
 
-qt=[];
-try
-    qt=goodbeats(i).qt;        
-end
+    qt=[];
+    try
+        qt=goodbeats(i).qt;        
+    end
 
-if isempty(qt),continue,end
-qb=goodbeats(i).qb;    
-qt=qt/1000;
-qsub=qt>=tmin&qt<=tmax;
-qsub=qsub&qb>0;
-qt=qt(qsub);
-qb=qb(qsub);
+    if isempty(qt),continue,end
+    qb=goodbeats(i).qb;    
+    qt=qt/1000;
+    qsub=qt>=tmin&qt<=tmax;
+    qsub=qsub&qb>0;
+    qt=qt(qsub);
+    qb=qb(qsub);
 
-if isempty(qt),continue,end
+    if isempty(qt),continue,end
 
-% disp('HR Filter')
-% tic
-%Heart rate filter
-ns=30;
-hrf1=wmhrfilt(y,yt,qt,qb,ns); % Amanda changed the x in this equation to y because filtfilt couldn't handle nan inputs
-%Doubly filtered normalized signal
-hrf2=filtfilt(bhi,ahi,hrf1);
-% Heart filtered signal without NaNs
-y=hrf2; %hrf2(xgood); Amanda changed this equation because wmhrfilt is being run with the nans removed
-% toc
-% disp('Apnea Probability')
-% tic
-psd1=windowsd(y./env,w1,w2);
+    % disp('HR Filter')
+    % tic
+    %Heart rate filter
+    ns=30;
+    hrf1=wmhrfilt(y,yt,qt,qb,ns); % Amanda changed the x in this equation to y because filtfilt couldn't handle nan inputs
+    %Doubly filtered normalized signal
+    hrf2=filtfilt(bhi,ahi,hrf1);
+    % Heart filtered signal without NaNs
+    y=hrf2; %hrf2(xgood); Amanda changed this equation because wmhrfilt is being run with the nans removed
+    % toc
+    % disp('Apnea Probability')
+    % tic
+    psd1=windowsd(y./env,w1,w2);
 
-j=find(psd1>=0&~(psd1>psd));
-psd(j)=psd1(j);
-% toc
+    j=find(psd1>=0&~(psd1>psd));
+    psd(j)=psd1(j);
+    % toc
 
 end
 
