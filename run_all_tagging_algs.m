@@ -1,11 +1,11 @@
 function run_all_tagging_algs(filename,info,algstorun)
 nalgs = 31;
 if isempty(algstorun)
-    [~,algmaskout] = algmask;
+    [~,algmaskout,~] = algmask;
     algstorun = ones(length(algmaskout),1);
 end
 if ischar(algstorun)
-    [~,algmaskout] = algmask;
+    [~,algmaskout,~] = algmask;
     algstorun = ones(length(algmaskout),1);
 end
 if ischar(info)

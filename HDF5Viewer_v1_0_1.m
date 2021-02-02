@@ -341,12 +341,8 @@ ylimmin = nan;
 ylimmax = nan;
 
 % Get the list of all possible variable strings that go with the desired signame
-if ~isdeployed
-    load('X:\Amanda\NICUHDF5Viewer\VariableNames','VariableNames')
-else
-    loadfilename = which(fullfile('VariableNames.mat'));
-    load(loadfilename,'VariableNames')
-end
+loadfilename = which(fullfile('VariableNames.mat'));
+load(loadfilename,'VariableNames')
 
 % Find out if varname matches with any of the signal names in the varnamestruct
 varnamestruct = getfield(VariableNames,'HR');
