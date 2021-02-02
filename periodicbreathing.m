@@ -18,7 +18,7 @@ if ~exist('lead','var'),lead=[];end
 
 % Add algorithm folders to path
 if ~isdeployed
-    addpath('..\PB')
+    addpath('.\PB')
 end
 
 % Initialize output variables in case the necessary data isn't available

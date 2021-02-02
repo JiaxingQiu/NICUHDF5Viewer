@@ -19,8 +19,8 @@ function [results,pt,tag,tagname,qrs] = apneadetector(info,lead,result_qrs)
 
 % Add algorithm folders to path
 if ~isdeployed
-    addpath('..\Apnea')
-    addpath('..\QRSDetection')
+    addpath('.\Apnea')
+    addpath('.\QRSDetection')
 end
 
 if ~exist('result_qrs','var'),result_qrs=[];end
