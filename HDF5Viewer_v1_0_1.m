@@ -1072,7 +1072,7 @@ function help_menu_about_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 msgbox({
-'HDF5Viewer v4.0alpha2';
+'HDF5Viewer v4.0alpha3';
 'This program allows you to browse the contents of HDF5 files and run algorithms on the data';
 '';
 },'Help')
