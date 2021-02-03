@@ -165,9 +165,13 @@ c2=round(fs*max(respt));
 xt=(c1:c2)';
 
 %Interpolate to get consecutive data
-[x,xt,xna]=naninterp(resp,round(fs*respt),xt);
+[x,xt,xna]=naninterp(resp,round(fs*respt),xt,1);
 xt=xt/fs;
 xgood=~xna;
+
+% Check if signal is flat for 5 or more seconds by checking if xnew filled in anything for more than 5 seconds
+flat = isflat(x,fs);
+xgood(logical(flat))=0;
 
 % Signal without NaNs
 y=x(xgood);
