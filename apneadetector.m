@@ -19,16 +19,16 @@ function [results,pt,tag,tagname,qrs] = apneadetector(info,lead,result_qrs)
 
 % Add algorithm folders to path
 if ~isdeployed
-    addpath('.\Apnea')
-    addpath('.\QRSDetection')
+    addpath('X:\Amanda\NICUHDF5Viewer\Apnea')
+    addpath('X:\Amanda\NICUHDF5Viewer\QRSDetection')
 end
 
 if ~exist('result_qrs','var'),result_qrs=[];end
 if ~exist('lead','var'),lead=[];end
 leadall=isempty(lead);
 
-% disp('Read CI')
-% tic
+disp('Read CI')
+tic
 % Initialize output variables in case the necessary data isn't available
 results = [];
 pt = [];
@@ -36,22 +36,17 @@ tag = [];
 tagname = [];
 qrs=[];
 
-% UTC milleseconds time format
-tformat=3;
-% structure data format
-dformat=1;
-
 % Load in the respiratory signal
 [data,~,info] = getfiledata(info,'Resp');
-[data,~,~] = formatdata(data,info,tformat,dformat);
-% toc
+[data,~,~] = formatdata(data,info,3,1);
+toc
 if isempty(data) % if there is no chest impedance signal, give up
     return
 end
 
-% disp('Load QRS data')
+disp('Load QRS data')
 
-% tic
+tic
 resp = data.x;
 respt = data.t;
 CIfs = data.fs;
@@ -74,8 +69,8 @@ nqrs=length(result_qrs);
 if leadall,lead=[1 2 3]';end
 % Calculate QRS if not in results file
 if nqrs==0    
-%     disp('QRS Detection')
-%     tic
+    disp('QRS Detection')
+    tic
     nlead=length(lead);
     if nlead>0
         clear qrs
@@ -87,7 +82,7 @@ if nqrs==0
             result_qrs(nqrs,1).qrs=qrs1;
         end
     end
-%     toc
+    toc
 end        
 
 %Find good qrs heartbeats for each lead
@@ -124,7 +119,7 @@ goodbeats=goodbeats(keep);
 
 % Calculate the apnea probability
 
-% disp('Calculate the apnea probability')
+disp('Calculate the apnea probability')
 
 [p,pt,pgood]=tombstone(resp,respt/1000,goodbeats,CIfs); % Needs seconds as an input and returns seconds as an output 
 pt = pt*1000; % convert seconds back to ms
@@ -132,14 +127,14 @@ pt = pt*1000; % convert seconds back to ms
 % Output the apnea probability
 results=p;
 
-% disp('Apnea Tags')
+disp('Apnea Tags')
 %Set NaN's
 p(~pgood)=0;
 
-% tic
+tic
 % Create apnea tags
 [tag,tagname]=wmtagevents(p,pt);
-% toc
+toc
 
 end
 
@@ -160,9 +155,9 @@ function [p,pt,pgood]=tombstone(resp,respt,goodbeats,fs)
 % x             interpolated chest impedance signal
 % xt            timestamps for interpolated chest impedance signal
 
-% disp('Find Envelope')
+disp('Find Envelope')
 
-% tic
+tic
 %Find time range
 c1=round(fs*min(respt));
 c2=round(fs*max(respt));
@@ -181,31 +176,29 @@ yt=xt(xgood);
 %Calculate envelope
 [bhi,ahi]=butter(3,0.4/fs*2,'high');
 [blo,alo]=butter(3,1/400*2/fs,'low');
-xhi=filtfilt(bhi,ahi,y); % Amanda changed the x in this equation to y because filtfilt couldn't handle nan inputs
+xhi=filtfilt(bhi,ahi,x); 
 env=filtfilt(blo,alo,abs(xhi)); 
-% toc
+toc
 
 % Envelope without NaNs
-% env=env(xgood); %Amanda commented this out because env already had the nans removed above with her change to the xhi equation
+env=env(xgood);
 
-%Four samples per second % Amanda changed all calls to x and xt to y and yt to keep all indices on track
+%Four samples per second
 ps=4;
-p1=ceil(ps*yt(1));
-p2=ceil(ps*yt(end));
+p1=ceil(ps*xt(1));
+p2=ceil(ps*xt(end));
 pt=(p1:p2)'/ps;
 dt=2;
 nt=length(pt);
 
-tmin=min(yt);
-tmax=max(yt);
+tmin=min(xt);
+tmax=max(xt);
 
 %Find windows for apnea probability calculation
 
 d=dt/2;
 w=[-d d];
 [w1,w2]=findwindows(pt,[-d d],yt);
-w1=w1(~isnan(w1)); % Amanda added this to avoid nan errors in windowsd
-w2=w2(~isnan(w2)); % Amanda added this to avoid nan errors in windowsd
 nw=w2-w1+1;
 dtn=dt*fs;
 pgood=nw>=(dtn*0.9); % At least 90% of the data in the two second window cannot be nans
@@ -217,38 +210,37 @@ nqrs=length(goodbeats);
 
 for i=1:nqrs
 
-    qt=[];
-    try
-        qt=goodbeats(i).qt;        
-    end
+qt=[];
+try
+    qt=goodbeats(i).qt;        
+end
 
-    if isempty(qt),continue,end
-    qb=goodbeats(i).qb;    
-    qt=qt/1000;
-    qsub=qt>=tmin&qt<=tmax;
-    qsub=qsub&qb>0;
-    qt=qt(qsub);
-    qb=qb(qsub);
+if isempty(qt),continue,end
+qb=goodbeats(i).qb;    
+qt=qt/1000;
+qsub=qt>=tmin&qt<=tmax;
+qsub=qsub&qb>0;
+qt=qt(qsub);
+qb=qb(qsub);
 
-    if isempty(qt),continue,end
+if isempty(qt),continue,end
 
-    % disp('HR Filter')
-    % tic
-    %Heart rate filter
-    ns=30;
-    hrf1=wmhrfilt(y,yt,qt,qb,ns); % Amanda changed the x in this equation to y because filtfilt couldn't handle nan inputs
-    %Doubly filtered normalized signal
-    hrf2=filtfilt(bhi,ahi,hrf1);
-    % Heart filtered signal without NaNs
-    y=hrf2; %hrf2(xgood); Amanda changed this equation because wmhrfilt is being run with the nans removed
-    % toc
-    % disp('Apnea Probability')
-    % tic
-    psd1=windowsd(y./env,w1,w2);
-
-    j=find(psd1>=0&~(psd1>psd));
-    psd(j)=psd1(j);
-    % toc
+disp('HR Filter')
+tic
+%Heart rate filter
+ns=30;
+hrf1=wmhrfilt(x,xt,qt,qb,ns);
+%Doubly filtered normalized signal
+hrf2=filtfilt(bhi,ahi,hrf1);
+% Heart filtered signal without NaNs
+y=hrf2(xgood);
+toc
+disp('Apnea Probability')
+tic
+psd1=windowsd(y./env,w1,w2);
+j=find(psd1>=0&~(psd1>psd));
+psd(j)=psd1(j);
+toc
 
 end
 
@@ -351,37 +343,29 @@ end
 end
 
 function [sd,nw]=windowsd(x,w1,w2)
-%function [sd,nw]=windowsd(x,w1,w2)
+%function [sd]=wmaprob(x,xt,pt,dt)
 %
-% x     input signal
-% w1    window start indice
-% w2    window stop indice
+% x     input chest impedance signal
+% xt    timestamps of input chest impedance signal
+% pt    timestamps to calculate probability
+% dt    window to calculate SD (default 2 seconds)
 %
-
-% sd   SD of input signal over time window
-% nw   number of input signal observations in time window
+% p     apnea probability
+% psd   SD of input signal over time window
+% nx    number of input signal observations in time window
 
 n=length(w1);
 sd=NaN*ones(n,1);
-nw=zeros(n,1);
-for i=1:n
-    j=(w1(i):w2(i))';
-    if isempty(j),continue,end
-    nw(i)=length(j);
-    sd(i)=std(x(j));
-end
+T2=[0;cumsum(x.^2)];
+T1=[0;cumsum(x)];
+nw=w2-w1+1;
+good=find(nw>0);
+j2=w2(good);
+j1=w1(good);
+nw=nw(good);
+s1=T1(j2+1)-T1(j1);
+s2=T2(j2+1)-T2(j1);
+sxx=s2-(s1.^2)./nw;
+sd(good)=sqrt(sxx./(nw-1));
 
-% T2=[0;cumsum(x.^2)];
-% T1=[0;cumsum(x)];
-% 
-% nw=w2-w1+1;
-% good=find(nw>0);
-% j2=w2(good);
-% j1=w1(good);
-% nw=nw(good);
-% s1=T1(j2+1)-T1(j1);
-% s2=T2(j2+1)-T2(j1);
-% sxx=s2-(s1.^2)./nw;
-% sd(good)=sqrt(sxx./(nw-1));
-% 
 end
