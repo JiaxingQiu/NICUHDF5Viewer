@@ -27,8 +27,8 @@ if ~exist('result_qrs','var'),result_qrs=[];end
 if ~exist('lead','var'),lead=[];end
 leadall=isempty(lead);
 
-disp('Read CI')
-tic
+% disp('Read CI')
+% tic
 % Initialize output variables in case the necessary data isn't available
 results = [];
 pt = [];
@@ -39,14 +39,14 @@ qrs=[];
 % Load in the respiratory signal
 [data,~,info] = getfiledata(info,'Resp');
 [data,~,~] = formatdata(data,info,3,1);
-toc
+% toc
 if isempty(data) % if there is no chest impedance signal, give up
     return
 end
 
-disp('Load QRS data')
+% disp('Load QRS data')
 
-tic
+% tic
 resp = data.x;
 respt = data.t;
 CIfs = data.fs;
@@ -69,8 +69,8 @@ nqrs=length(result_qrs);
 if leadall,lead=[1 2 3]';end
 % Calculate QRS if not in results file
 if nqrs==0    
-    disp('QRS Detection')
-    tic
+%     disp('QRS Detection')
+%     tic
     nlead=length(lead);
     if nlead>0
         clear qrs
@@ -82,7 +82,7 @@ if nqrs==0
             result_qrs(nqrs,1).qrs=qrs1;
         end
     end
-    toc
+%     toc
 end        
 
 %Find good qrs heartbeats for each lead
@@ -119,7 +119,7 @@ goodbeats=goodbeats(keep);
 
 % Calculate the apnea probability
 
-disp('Calculate the apnea probability')
+% disp('Calculate the apnea probability')
 
 [p,pt,pgood]=tombstone(resp,respt/1000,goodbeats,CIfs); % Needs seconds as an input and returns seconds as an output 
 pt = pt*1000; % convert seconds back to ms
@@ -127,14 +127,14 @@ pt = pt*1000; % convert seconds back to ms
 % Output the apnea probability
 results=p;
 
-disp('Apnea Tags')
+% disp('Apnea Tags')
 %Set NaN's
 p(~pgood)=0;
 
-tic
+% tic
 % Create apnea tags
 [tag,tagname]=wmtagevents(p,pt);
-toc
+% toc
 
 end
 
@@ -155,9 +155,9 @@ function [p,pt,pgood]=tombstone(resp,respt,goodbeats,fs)
 % x             interpolated chest impedance signal
 % xt            timestamps for interpolated chest impedance signal
 
-disp('Find Envelope')
+% disp('Find Envelope')
 
-tic
+% tic
 %Find time range
 c1=round(fs*min(respt));
 c2=round(fs*max(respt));
@@ -182,7 +182,7 @@ yt=xt(xgood);
 [blo,alo]=butter(3,1/400*2/fs,'low');
 xhi=filtfilt(bhi,ahi,x); 
 env=filtfilt(blo,alo,abs(xhi)); 
-toc
+% toc
 
 % Envelope without NaNs
 env=env(xgood);
@@ -229,8 +229,8 @@ qb=qb(qsub);
 
 if isempty(qt),continue,end
 
-disp('HR Filter')
-tic
+% disp('HR Filter')
+% tic
 %Heart rate filter
 ns=30;
 hrf1=wmhrfilt(x,xt,qt,qb,ns);
@@ -238,13 +238,13 @@ hrf1=wmhrfilt(x,xt,qt,qb,ns);
 hrf2=filtfilt(bhi,ahi,hrf1);
 % Heart filtered signal without NaNs
 y=hrf2(xgood);
-toc
-disp('Apnea Probability')
-tic
+% toc
+% disp('Apnea Probability')
+% tic
 psd1=windowsd(y./env,w1,w2);
 j=find(psd1>=0&~(psd1>psd));
 psd(j)=psd1(j);
-toc
+% toc
 
 end
 
