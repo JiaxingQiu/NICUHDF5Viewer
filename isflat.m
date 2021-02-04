@@ -1,5 +1,5 @@
 function flatness = isflat(data,fs)
-window = 5*fs; % Look for 5 seconds of flat signal
+window = round(5*fs); % Look for 5 seconds of flat signal
 points = length(data);
 flatness = zeros(points,1);
 for i=1:points
