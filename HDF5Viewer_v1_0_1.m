@@ -708,9 +708,13 @@ if ~isempty(handles.tags)
     end
 
     try
-        minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Minimum')));
+        if sum(strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Minimum'))
+            minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Minimum')));
+        else
+            minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Extrema')));
+        end
     catch
-        minimum = zeros(length(duration),1);
+    	minimum = zeros(length(duration),1);
     end
     spaces = repmat(' -- ',[size(duration,1),1]);
     set(handles.TagListbox,'string',[daytodisp spaces minimum spaces duration])

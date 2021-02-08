@@ -19,7 +19,7 @@ tagname{2}='Stop';
 tagname{3}='Duration';
 tagname{4}='Number points';
 tagname{5}='Area';
-tagname{6}='Minimum';
+tagname{6}='Extrema';
 tag=zeros(0,length(tagname));
 
 % Remove duplicate timestamps. Only keep the x value relating to the last
