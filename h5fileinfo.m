@@ -461,17 +461,28 @@ for i=1:n
 end
 
 if isnan(T)
-    T=double(cat(1,data.T));
-    [T,~,ic]=unique(T);    
+    T1=double(cat(1,data.T));
+    T=unique(T1);
     nT=length(T);
-    if nT>1       
+%Estimate sample period based on time samples        
+    if nT>1
         nn=zeros(nT,1);
-        for i=1:nT
-            nn(i)=sum(ic==i);
-        end
-%         disp([T nn])
+        for i=1:n
+            t=data(i).t;
+            if length(t)<2,continue,end
+            dt=diff(t);
+            try
+                T1(i)=mean(dt(dt<=4000));
+            end
+            [~,k]=min(abs(T-T1(i)));
+            T1(i)=T(k);
+            nn(k)=nn(k)+1;
+        end    
         [~,j]=max(nn);
         T=T(j);
+        for i=1:n        
+            data(i).T=T;
+        end
     end
 end
 
