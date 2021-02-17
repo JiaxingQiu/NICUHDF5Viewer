@@ -161,6 +161,8 @@ set(handles.loadedfile,'string','Loading File Info...');
 waitfor(handles.loadedfile,'string','Loading File Info...');
 
 % Get the info structure - this gets file attributes, loads result data and loads .dat file data
+handles.info = [];
+waitfor(handles.info)
 handles.info = getfileinfo(fullfile(handles.pathname, handles.filename));
 
 handles.globalzeroms = handles.info.times(1); % ms to/from timezero/eventtime
@@ -171,6 +173,7 @@ corrupt = 0;
 % Set the text below the Load HDF5 button to indicate that the results are loading
 set(handles.loadedfile,'string','Loading Tags...');
 waitfor(handles.loadedfile,'string','Loading Tags...');
+waitfor(handles.info)
 [handles.rname,handles.rdata,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile);
 
 % Populate the Available Signals listbox with the signal names

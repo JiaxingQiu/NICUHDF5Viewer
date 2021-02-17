@@ -79,7 +79,11 @@ t1=pt(e);
 if isempty(s)
     tag = [];
 else
-    tag=[s e-s+1 wad nna t0 t1 gapl gapr];    
+    t1local = utc2local(t1/1000);
+    t0local = utc2local(t0/1000);
+    dur = etime(datevec(t1local),datevec(t0local))*1000;
+%     tag=[s e-s+1 wad nna t0 t1 gapl gapr];
+    tag=[s dur wad nna t0 t1 gapl gapr];
 end
 % tag=[s duration wad nna t0 t1 gapl gapr];  
 % if n<=1
