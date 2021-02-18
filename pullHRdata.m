@@ -8,7 +8,7 @@ function [results,vt,tag,tagname] = pullHRdata(info)
 % results: binary array of 1 for bradycardia and 0 for no bradycardia
 % vt:      UTC time
 % tag:     empty placeholder array
-% tagname: empty placeholder array
+% tagname: placeholder array
 
 % Initialize output variables in case the necessary data isn't available
 results = [];

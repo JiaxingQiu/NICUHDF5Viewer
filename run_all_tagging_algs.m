@@ -1,5 +1,5 @@
 function run_all_tagging_algs(filename,info,algstorun)
-nalgs = 31;
+nalgs = 33;
 if isempty(algstorun)
     [~,algmaskout,~] = algmask;
     algstorun = ones(length(algmaskout),1);
@@ -173,6 +173,12 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             case 31
                 % Determine when an ECGIII signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGIII',0);
+            case 32
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,85,pmin,tmin);
+            case 33
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,90,pmin,tmin);
         end
         if exist('tagcol')
             if isfirst
