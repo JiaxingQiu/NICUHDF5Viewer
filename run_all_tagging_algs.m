@@ -1,5 +1,5 @@
 function run_all_tagging_algs(filename,info,algstorun)
-nalgs = 33;
+nalgs = 45;
 if isempty(algstorun)
     [~,algmaskout,~] = algmask;
     algstorun = ones(length(algmaskout),1);
@@ -179,6 +179,42 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             case 33
                 % Run a desaturation detection algorithm which identifies any and all drops < the threshold
                 [result,t_temp,tag,tagcol] = desatdetector(info,90,pmin,tmin);
+            case 34
+                % Compute the hourly HR mean
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'HR','mean');
+            case 35
+                % Compute the hourly pulse rate mean
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'Pulse','mean');
+            case 36
+                % Compute the hourly SPO2% mean
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','mean');
+            case 37
+                % Compute the hourly HR std
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'HR','std');
+            case 38
+                % Compute the hourly pulse rate std
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'Pulse','std');
+            case 39
+                % Compute the hourly SPO2% std
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','std');    
+            case 40
+                % Compute the hourly HR skewness
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'HR','skewness');
+            case 41
+                % Compute the hourly pulse rate skewness
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'Pulse','skewness');
+            case 42
+                % Compute the hourly SPO2% skewness
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','skewness');
+            case 43
+                % Compute the hourly HR kurtosis
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'HR','kurtosis');
+            case 44
+                % Compute the hourly pulse rate kurtosis
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'Pulse','kurtosis');
+            case 45
+                % Compute the hourly SPO2% kurtosis
+                [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','kurtosis');
         end
         if exist('tagcol')
             if isfirst

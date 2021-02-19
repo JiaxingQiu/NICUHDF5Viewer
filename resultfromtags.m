@@ -33,6 +33,10 @@ end
 result = zeros(length(tglobalnew),1);
 if ~isempty(tag)
     for i=1:length(startindices)
-        result(startindices(i):stopindices(i))=1;
+        if sum(strcmp(tagcol.tagname,'Value'))
+            result(startindices(i):stopindices(i)) = tag(i,strcmp(tagcol.tagname,'Value'));
+        else
+            result(startindices(i):stopindices(i))=1;
+        end
     end
 end

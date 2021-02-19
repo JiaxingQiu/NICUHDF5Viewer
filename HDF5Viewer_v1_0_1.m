@@ -392,7 +392,7 @@ elseif contains(varname,'Results/CUartifact')
     plotcolor = 'r';
 end
 
-if contains(varname,'Results')
+if contains(varname,'Results') && ~contains(varname,'Hourly')
     ylimmin = 0;
     ylimmax = 1;
 end
@@ -402,6 +402,23 @@ if contains(varname,'Results/HR')
     ylimmax = 250;
 end
 
+if contains(varname,'Results/HourlyHRMean')
+    plotcolor = 'r';
+    ylimmin = 0;
+    ylimmax = 250;
+end
+
+if contains(varname,'Results/HourlyPulseMean')
+    plotcolor = 'm';
+    ylimmin = 0;
+    ylimmax = 250;
+end
+
+if contains(varname,'Results/HourlySPO2_pctMean')
+    plotcolor = 'b';
+    ylimmin = 0;
+    ylimmax = 100;
+end
 
 % --- Executes during object creation, after setting all properties.
 function listbox_avail_signals_CreateFcn(hObject, eventdata, handles)
