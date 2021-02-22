@@ -93,4 +93,4 @@ resultname = {...
         '/Results/HourlyPulseKurtosis',1;... % 44
         '/Results/HourlySPO2_pctKurtosis',1}; % 45
 
-algmask_newqrs = [1:3,6:7,32:33,12,17:21,23,25:31,34:45];
+algmask_newqrs = [1:3,6:7,32:33,12,17:21,25:31,34:45];
