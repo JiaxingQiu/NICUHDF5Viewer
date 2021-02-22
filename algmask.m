@@ -32,19 +32,20 @@ masteralgmask = {...
         'Data Available: ECG II',2;... % 30
         'Data Available: ECG III',2;... % 31
         'Desat Detection <85',1;... % 32
-        'Desat Detection <90',1;... % 33
-        'Hourly HR Mean',1;... % 34
-        'Hourly Pulse Mean',1;... % 35
-        'Hourly SPO2_pct Mean',1;... % 36
-        'Hourly HR Std',1;... % 37
-        'Hourly Pulse Std',1;... % 38
-        'Hourly SPO2_pct Std',1;... % 39
-        'Hourly HR Skewness',1;... % 40
-        'Hourly Pulse Skewness',1;... % 41
-        'Hourly SPO2_pct Skewness',1;... % 42
-        'Hourly HR Kurtosis',1;... % 43
-        'Hourly Pulse Kurtosis',1;... % 44
-        'Hourly SPO2_pct Kurtosis',1}; % 45
+        'Desat Detection <88',1;... % 33
+        'Desat Detection <90',1;... % 34
+        'Hourly HR Mean',1;... % 35
+        'Hourly Pulse Mean',1;... % 36
+        'Hourly SPO2_pct Mean',1;... % 37
+        'Hourly HR Std',1;... % 38
+        'Hourly Pulse Std',1;... % 39
+        'Hourly SPO2_pct Std',1;... % 40
+        'Hourly HR Skewness',1;... % 41
+        'Hourly Pulse Skewness',1;... % 42
+        'Hourly SPO2_pct Skewness',1;... % 43
+        'Hourly HR Kurtosis',1;... % 44
+        'Hourly Pulse Kurtosis',1;... % 45
+        'Hourly SPO2_pct Kurtosis',1}; % 46
     
 resultname = {...
         '',2;... % 1
@@ -79,18 +80,19 @@ resultname = {...
         '/Results/DataAvailable:ECGII',2;... % 30
         '/Results/DataAvailable:ECGIII',2;... % 31
         '/Results/Desat<85',1;... % 32
-        '/Results/Desat<90',1;... % 33
-        '/Results/HourlyHRMean',1;... % 34
-        '/Results/HourlyPulseMean',1;... % 35
-        '/Results/HourlySPO2_pctMean',1;... % 36
-        '/Results/HourlyHRStd',1;... % 37
-        '/Results/HourlyPulseStd',1;... % 38
-        '/Results/HourlySPO2_pctStd',1;... % 39
-        '/Results/HourlyHRSkewness',1;... % 40
-        '/Results/HourlyPulseSkewness',1;... % 41
-        '/Results/HourlySPO2_pctSkewness',1;... % 42
-        '/Results/HourlyHRKurtosis',1;... % 43
-        '/Results/HourlyPulseKurtosis',1;... % 44
-        '/Results/HourlySPO2_pctKurtosis',1}; % 45
+        '/Results/Desat<88',1;... % 33
+        '/Results/Desat<90',1;... % 34
+        '/Results/HourlyHRMean',1;... % 35
+        '/Results/HourlyPulseMean',1;... % 36
+        '/Results/HourlySPO2_pctMean',1;... % 37
+        '/Results/HourlyHRStd',1;... % 38
+        '/Results/HourlyPulseStd',1;... % 39
+        '/Results/HourlySPO2_pctStd',1;... % 40
+        '/Results/HourlyHRSkewness',1;... % 41
+        '/Results/HourlyPulseSkewness',1;... % 42
+        '/Results/HourlySPO2_pctSkewness',1;... % 43
+        '/Results/HourlyHRKurtosis',1;... % 44
+        '/Results/HourlyPulseKurtosis',1;... % 45
+        '/Results/HourlySPO2_pctKurtosis',1}; % 46
 
-algmask_newqrs = [1:3,6:7,32:33,12,17:21,25:31,34:45];
+algmask_newqrs = [1:3,6:7,32:33,12,17:21,25:31,34:46];
