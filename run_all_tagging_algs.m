@@ -1,5 +1,4 @@
 function run_all_tagging_algs(filename,info,algstorun)
-nalgs = 46;
 if isempty(algstorun)
     [~,algmaskout,~] = algmask;
     algstorun = ones(length(algmaskout),1);
@@ -98,124 +97,175 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             case 6
                 % Run a bradycardia detection algorithm which identifies any and all drops < the threshold
                 [result,t_temp,tag,tagcol] = bradydetector(info,100,pmin,tmin);
-            case 7
-                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
-                [result,t_temp,tag,tagcol] = desatdetector(info,80,pmin,tmin);
-            case 8 
+            case 7 
                 % Apnea detection algorithm using lead I
                 [result,t_temp,tag,tagcol,qrs] = apneadetector(info,1,result_qrs);
-            case 9
+            case 8
                 % Apnea detection algorithm using lead II
                 [result,t_temp,tag,tagcol,qrs] = apneadetector(info,2,result_qrs);
-            case 10
+            case 9
                 % Apnea detection algorithm using lead III
                 [result,t_temp,tag,tagcol,qrs] = apneadetector(info,3,result_qrs);
-            case 11
+            case 10
                 % Apnea detection algorithm using no EKG lead
                 [result,t_temp,tag,tagcol] = apneadetector(info,0,result_qrs);
-            case 12
+            case 11
                 % Apnea detection algorithm using all EKG leads
                 [result,t_temp,tag,tagcol,qrs] = apneadetector(info,[],result_qrs);
-            case 13
+            case 12
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with ecg lead I
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,1,result_tagtitle,result_data);
-            case 14
+            case 13
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with ecg lead II
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,2,result_tagtitle,result_data);
-            case 15
+            case 14
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with ecg lead III
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,3,result_tagtitle,result_data);
-            case 16
+            case 15
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with no ecg lead
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,0,result_tagtitle,result_data);
-            case 17
+            case 16
                 % Mary Mohr's periodic breathing algorithm run on results from apnea detector with all EKG leads
                 [result,t_temp,tag,tagcol] = periodicbreathing(info,[],result_tagtitle,result_data);
-            case 18
+            case 17
                 % Pete's bradycardia detection algorithm: Bradys are <100 for ECG HR for at least 4 seconds. Joining rule for bradys is 4 seconds
                 [result,t_temp,tag,tagcol] = bradydetector(info,100,4,4000);
-            case 19
+            case 18
                 % Pete's Desat detection algorithm: <80% for at least 10 seconds if two of those events happen within 10 seconds of eachother, join them together as one event
                 [result,t_temp,tag,tagcol] = desatdetector(info,80,10,10000);
-            case 20
+            case 19
                 % Brady Desat Algorithm with a 30 second threshold. Any brady within 30 seconds of any desat (in either direction) will count
                 [result,t_temp,tag,tagcol] = bradydesat(info,30000,result_tags,result_tagcolumns,result_tagtitle);
-            case 21
+            case 20
                 % Brady Desat Algorithm with a 30 second threshold. Any brady within 30 seconds of any desat (in either direction) will count
                 [result,t_temp,tag,tagcol] = bradydesatpete(info,30000,result_tags,result_tagcolumns,result_tagtitle);
-            case 22
+            case 21
                 % ABD Algorithm with a 30 second threshold. Used Pete's B and D tags along with Apnea-NoECG
                 [result,t_temp,tag,tagcol] = abd(info,30000,result_tags,result_tagcolumns,result_tagtitle,result_qrs,0);
-            case 23
+            case 22
                 % ABD Algorithm with a 30 second threshold. Used Pete's B and D tags along with Apnea
                 [result,t_temp,tag,tagcol] = abd(info,30000,result_tags,result_tagcolumns,result_tagtitle,result_qrs,1);
-            case 24
+            case 23
                 % Store HR Vital Sign
                 [result,t_temp,tag,tagcol] = pullHRdata(info);
-            case 25
+            case 24
                 % Determine when a pulse signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'Pulse',1);
-            case 26
+            case 25
                 % Determine when a hr signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'HR',1);
-            case 27
+            case 26
                 % Determine when a spo2% signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'SPO2_pct',1);
-            case 28
+            case 27
                 % Determine when a resp signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'Resp',0);
-            case 29
+            case 28
                 % Determine when an ECGI signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGI',0);
-            case 30
+            case 29
                 % Determine when an ECGII signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGII',0);
-            case 31
+            case 30
                 % Determine when an ECGIII signal exists
                 [result,t_temp,tag,tagcol] = dataavailable(info,pmin,tmin,'ECGIII',0);
+            case 31
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,75,pmin,tmin);
             case 32
                 % Run a desaturation detection algorithm which identifies any and all drops < the threshold
-                [result,t_temp,tag,tagcol] = desatdetector(info,85,pmin,tmin);
+                [result,t_temp,tag,tagcol] = desatdetector(info,76,pmin,tmin);
             case 33
                 % Run a desaturation detection algorithm which identifies any and all drops < the threshold
-                [result,t_temp,tag,tagcol] = desatdetector(info,88,pmin,tmin);
+                [result,t_temp,tag,tagcol] = desatdetector(info,77,pmin,tmin);
             case 34
                 % Run a desaturation detection algorithm which identifies any and all drops < the threshold
-                [result,t_temp,tag,tagcol] = desatdetector(info,90,pmin,tmin);
+                [result,t_temp,tag,tagcol] = desatdetector(info,78,pmin,tmin);
             case 35
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,79,pmin,tmin);
+            case 36
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,80,pmin,tmin);
+            case 37
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,81,pmin,tmin);
+            case 38
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,82,pmin,tmin);
+            case 39
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,83,pmin,tmin);
+            case 40
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,84,pmin,tmin);
+            case 41
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,85,pmin,tmin);
+            case 42
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,86,pmin,tmin);
+            case 43
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,87,pmin,tmin);
+            case 44
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,88,pmin,tmin);
+            case 45
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,89,pmin,tmin);
+            case 46
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,90,pmin,tmin);
+            case 47
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,91,pmin,tmin);
+            case 48
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,92,pmin,tmin);
+            case 49
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,93,pmin,tmin);
+            case 50
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,94,pmin,tmin);
+            case 51
+                % Run a desaturation detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = desatdetector(info,95,pmin,tmin);
+            case 52
                 % Compute the hourly HR mean
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'HR','mean');
-            case 36
+            case 53
                 % Compute the hourly pulse rate mean
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'Pulse','mean');
-            case 37
+            case 54
                 % Compute the hourly SPO2% mean
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','mean');
-            case 38
+            case 55
                 % Compute the hourly HR std
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'HR','std');
-            case 39
+            case 56
                 % Compute the hourly pulse rate std
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'Pulse','std');
-            case 40
+            case 57
                 % Compute the hourly SPO2% std
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','std');    
-            case 41
+            case 58
                 % Compute the hourly HR skewness
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'HR','skewness');
-            case 42
+            case 59
                 % Compute the hourly pulse rate skewness
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'Pulse','skewness');
-            case 43
+            case 60
                 % Compute the hourly SPO2% skewness
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','skewness');
-            case 44
+            case 61
                 % Compute the hourly HR kurtosis
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'HR','kurtosis');
-            case 45
+            case 62
                 % Compute the hourly pulse rate kurtosis
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'Pulse','kurtosis');
-            case 46
+            case 63
                 % Compute the hourly SPO2% kurtosis
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','kurtosis');
         end
