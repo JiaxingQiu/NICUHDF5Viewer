@@ -27,13 +27,13 @@ fullalgorithmlist = {...
         'ABD Pete No ECG',                       '/Results/ABDPete-NoECG',              3;...% 21
         'ABD Pete',                              '/Results/ABDPete',                    2;...% 22
         'Save HR in Results',                    '/Results/HR',                         1;...% 23
-        'Data Available: Pulse',                 '/Results/DataAvailable:Pulse',        2;...% 24
-        'Data Available: HR',                    '/Results/DataAvailable:HR',           2;...% 25
-        'Data Available: SPO2_pct',              '/Results/DataAvailable:SPO2_pct',     2;...% 26
-        'Data Available: Resp',                  '/Results/DataAvailable:Resp',         2;...% 27
-        'Data Available: ECG I',                 '/Results/DataAvailable:ECGI',         2;...% 28
-        'Data Available: ECG II',                '/Results/DataAvailable:ECGII',        2;...% 29
-        'Data Available: ECG III',               '/Results/DataAvailable:ECGIII',       2;...% 30
+        'Data Available: Pulse',                 '/Results/DataAvailable:Pulse',        3;...% 24
+        'Data Available: HR',                    '/Results/DataAvailable:HR',           3;...% 25
+        'Data Available: SPO2_pct',              '/Results/DataAvailable:SPO2_pct',     3;...% 26
+        'Data Available: Resp',                  '/Results/DataAvailable:Resp',         3;...% 27
+        'Data Available: ECG I',                 '/Results/DataAvailable:ECGI',         3;...% 28
+        'Data Available: ECG II',                '/Results/DataAvailable:ECGII',        3;...% 29
+        'Data Available: ECG III',               '/Results/DataAvailable:ECGIII',       3;...% 30
         'Desat Detection <75',                   '/Results/Desat<75',                   1;...% 31
         'Desat Detection <76',                   '/Results/Desat<76',                   1;...% 32
         'Desat Detection <77',                   '/Results/Desat<77',                   1;...% 33
