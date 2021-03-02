@@ -1,11 +1,5 @@
-function [result,t_temp,tag,tagcol] = abd(info,thresh,result_tags,result_tagcolumns,result_tagtitle,result_qrs,ECG)
-% Set ECG to 0 to use Apnea-NoECG. Set ECG to 1 to use Apnea with all ECG
-% leads.
-
-t_temp = info.times+info.timezero;
-result = zeros(length(t_temp),1);
-tag = [];
-tagcol = {'Start';'Stop';'Duration'};
+function [result,t_temp,tag,tagcol] = abd(info,result_tags,result_tagcolumns,result_tagtitle,result_qrs,ECG)
+% Set ECG to 0 to use Apnea-NoECG. Set ECG to 1 to use Apnea with all ECG leads.
 
 if isempty(result_tagtitle)
     if ~isempty(info.resultfile)
@@ -50,32 +44,32 @@ elseif ECG == 1
 end
 
 % Get brady results
-idx = findresultindex('/Results/Brady<100-Pete',2,result_tagtitle);
+idx = findresultindex('/Results/Brady<100',2,result_tagtitle);
 if sum(idx)
     bradytags = result_tags(idx);
     bradytagcolumns = result_tagcolumns(idx);
 else
     % Run brady algorithm
-    [~,~,bt,b] = bradydetector(info,100,4,4000);
+    [~,~,bt,b] = bradydetector(info,100,1,0);
     bradytags(1).tagtable = bt;
     bradytagcolumns(1).tagname = b;
 end
 
 % Get desat results
-idx = findresultindex('/Results/Desat<80-Pete',2,result_tagtitle);
+idx = findresultindex('/Results/Desat<80',2,result_tagtitle);
 if sum(idx)
     desattags = result_tags(idx);
     desattagcolumns = result_tagcolumns(idx);
 else
     % Run desat algorithm
-    [~,~,dt,d] = desatdetector(info,80,10,10000);
+    [~,~,dt,d] = desatdetector(info,80,1,0);
     desattags(1).tagtable = dt;
     desattagcolumns(1).tagname = d;
 end
 
-% Find the ABD overlap
+% Find the ABD overlap using Hoshik Lee's rules from "A new algorithm for detecting central apnea in neonates," Hoshik Lee et al 2012 Physiol. Meas. 33 1
 if ~isempty(desattagcolumns(1).tagname) && ~isempty(bradytagcolumns(1).tagname) && ~isempty(apneatagcolumns(1).tagname)
-    [result,t_temp,tag,tagcol] = tripletagmerge(apneatagcolumns,bradytagcolumns,desattagcolumns,apneatags,bradytags,desattags,thresh,info);
+    [~,~,tag,tagcol] = abd_tag_combiner(apneatagcolumns,bradytagcolumns,desattagcolumns,apneatags,bradytags,desattags,info);
 else
     tag = [];
     tagcol = [];

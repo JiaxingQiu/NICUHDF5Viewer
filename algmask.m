@@ -35,8 +35,8 @@ fullalgorithmlist = {...
         'Desat Detection Pete',                  '/Results/Desat<80-Pete',              2;...% 18
         'Brady Desat',                           '/Results/BradyDesat',                 2;...% 19
         'Brady Desat Pete',                      '/Results/BradyDesatPete',             2;...% 20
-        'ABD Pete No ECG',                       '/Results/ABDPete-NoECG',              3;...% 21
-        'ABD Pete',                              '/Results/ABDPete',                    2;...% 22
+        'ABD No ECG',                            '/Results/ABD-NoECG',                  1;...% 21
+        'ABD',                                   '/Results/ABD',                        1;...% 22
         'Save HR in Results',                    '/Results/HR',                         1;...% 23
         'Data Available: Pulse',                 '/Results/DataAvailable:Pulse',        3;...% 24
         'Data Available: HR',                    '/Results/DataAvailable:HR',           3;...% 25
@@ -84,4 +84,4 @@ fullalgorithmlist = {...
 masteralgmask = fullalgorithmlist(:,[1,3]);
 resultname = fullalgorithmlist(:,[2,3]);
 
-algs_to_include = [1:3,6,11,16:20,24:65];
+algs_to_include = [1:3,6,11,16:20,22,24:65];

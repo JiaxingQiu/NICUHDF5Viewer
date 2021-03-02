@@ -140,11 +140,11 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 % Brady Desat Algorithm with a 30 second threshold. Any brady within 30 seconds of any desat (in either direction) will count
                 [result,t_temp,tag,tagcol] = bradydesatpete(info,30000,result_tags,result_tagcolumns,result_tagtitle);
             case 21
-                % ABD Algorithm with a 30 second threshold. Used Pete's B and D tags along with Apnea-NoECG
-                [result,t_temp,tag,tagcol] = abd(info,30000,result_tags,result_tagcolumns,result_tagtitle,result_qrs,0);
+                % ABD Algorithm using Hoshik's thresholds. Uses Apnea-NoECG
+                [result,t_temp,tag,tagcol] = abd(info,result_tags,result_tagcolumns,result_tagtitle,result_qrs,0);
             case 22
-                % ABD Algorithm with a 30 second threshold. Used Pete's B and D tags along with Apnea
-                [result,t_temp,tag,tagcol] = abd(info,30000,result_tags,result_tagcolumns,result_tagtitle,result_qrs,1);
+                % ABD Algorithm using Hoshik's thresholds. Uses Apnea.
+                [result,t_temp,tag,tagcol] = abd(info,result_tags,result_tagcolumns,result_tagtitle,result_qrs,1);
             case 23
                 % Store HR Vital Sign
                 [result,t_temp,tag,tagcol] = pullHRdata(info);
