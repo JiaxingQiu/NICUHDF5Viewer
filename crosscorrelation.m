@@ -57,20 +57,20 @@ end
 % vt - times of vital signs
 % vname - vital sign names
 % dw - calculation frequency in seconds
-%      (default - every 5 minutes)
+%      (default - every 10 minutes)
 % w  - window for calculations in seconds
 %      (default - last 10 minutes)
 % xt - times of calculations
 
 dt=2;
 numLags=15;
-dw=300;
+dw=600;
 w=[-600 0];
 
 tmin=min(vt);
 tmax=max(vt);
 
-% Make 10 minute windows every 5 minutes
+% Make 10 minute windows every 10 minutes
 wmin=ceil(tmin/dw);
 wmax=ceil(tmax/dw);
 xt=dw*(wmin:wmax)';
