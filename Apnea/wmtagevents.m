@@ -110,11 +110,11 @@ for i=2:n0
         tag(n,:)=tag0(i,:);
         continue
     end
-    e=tag0(i,1)+tag0(i,2)-1;
-    tag(n,2)=e-tag(n,1)+1;    
+    %e=tag0(i,1)+tag0(i,2)-1;
+    tag(n,2)=tag0(i,6)-tag(n,5); % e-tag(n,1)+1;    
     tag(n,3)=tag(n,3)+tag0(i,3);
     tag(n,4)=tag(n,4)+tag0(i,4);    
-    tag(n,6)=pt(e);
+    tag(n,6)=tag0(i,6); %pt(e);
     tag(n,8)=tag0(i,8);
 end
 

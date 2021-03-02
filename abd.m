@@ -20,7 +20,7 @@ end
 
 % Get apnea results
 if ECG == 0
-    idx = findresultindex('/Results/Apnea-NoECG',2,result_tagtitle);
+    idx = findresultindex('/Results/Apnea-NoECG',4,result_tagtitle);
     if sum(idx)
         apneatags = result_tags(idx);
         apneatagcolumns = result_tagcolumns(idx);
@@ -31,7 +31,7 @@ if ECG == 0
         apneatagcolumns(1).tagname = a;
     end
 elseif ECG == 1
-    idx = findresultindex('/Results/Apnea',1,result_tagtitle);
+    idx = findresultindex('/Results/Apnea',3,result_tagtitle);
     if sum(idx)
         apneatags = result_tags(idx);
         apneatagcolumns = result_tagcolumns(idx);

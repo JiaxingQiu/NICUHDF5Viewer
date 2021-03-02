@@ -30,8 +30,9 @@ stopd = tagsa.tagtable(:,stopcold);
 
 % Cycle through each apnea event to determine whether it meets the
 % definition for an AB, AD, or ABD event
-ABD = zeros(length(startcola),1);
-for a=1:length(startcola)
+AB = zeros(length(starta),1);
+AD = zeros(length(starta),1);
+for a=1:length(tagsa)
     TB = startb-starta(a); % TB from Lee paper: tB ? tA,i = time interval from beginning of apnea to bradycardia
     TD = startd-starta(a); % TD from Lee paper: tD ? tA,i = time interval from beginning of apnea to desaturation
 
@@ -39,14 +40,15 @@ for a=1:length(startcola)
     tauD = startd-stopa(a); % ?D from Lee paper: tD ? tA,i = time interval from end of apnea to desaturation
     
     % Rule for AB event: AB if TB>0 AND [TB<50s OR ?B<25s]
-    AB = sum(TB>0&(TB<50000|tauB<25000));
+    AB(a) = sum(TB>0&(TB<50000|tauB<25000));
     % Rule for AD event: AD if TD>0 AND [TD<55s OR ?D<38s]
-    AD = sum(TD>0&(TD<55000|tauD<38000));
-    % If both of the conditions AB and AD hold, it is an ABD event.
-    ABD(a) = AB&AD;
+    AD(a) = sum(TD>0&(TD<55000|tauD<38000));
 end
+% If both of the conditions AB and AD hold, it is an ABD event.
+ABD = AB&AD;
 
 wadcol = strcmp(tagcolumnsa.tagname,'WtdApneaDur');
 durcol = strcmp(tagcolumnsa.tagname,'Duration');
-tag = tagsa(ABD,[startcola,stopcola,durcol,wadcol]);
+rearrangetags = tagsa.tagtable(:,[find(startcola),find(stopcola),find(durcol),find(wadcol)]);
+tag = rearrangetags(ABD,:);
 tagcol = {'Start' 'Stop' 'Duration' 'WtdApneaDur'}';

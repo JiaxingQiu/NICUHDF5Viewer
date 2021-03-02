@@ -32,30 +32,22 @@ tagname = [];
 load('wavelets.inf.mat','Wavelets_Info')
 setappdata(0,'Wavelets_Info',Wavelets_Info);
 
-%Single lead result names
-filename={'/Results/Apnea-NoECG','/Results/Apnea-I','/Results/Apnea-II','/Results/Apnea-III'}';
+
 %Default is all leads
 apneaname='/Results/Apnea'; 
-version=1;
+version=3;
+% If a single lead is chosen:
 if ~isempty(lead)
+    filename={'/Results/Apnea-NoECG','/Results/Apnea-I','/Results/Apnea-II','/Results/Apnea-III'}';
     if lead>=0&&lead<=3
         apneaname=filename{lead+1};
-        version=2;
+        version=4;
     end
 end
 
 % Check if we have just run the apnea detector
 unTomb=[];
 Ttime=[];
-% if lead == 0
-%     filename = '/Results/Apnea-NoECG';
-% elseif lead == 1
-%     filename = '/Results/Apnea-I';
-% elseif lead == 2
-%     filename = '/Results/Apnea-II';
-% elseif lead == 3
-%     filename = '/Results/Apnea-III';
-% end
 if ~isempty(result_tagtitle)
     idx = findresultindex(apneaname,version,result_tagtitle);
     apneaindex=find(idx);

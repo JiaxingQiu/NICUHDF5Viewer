@@ -83,7 +83,6 @@ t2=t2(j);
 nt=length(xt);
 
 c=NaN*ones(nt,4);
-disp(nt)
 for i=1:nt
     k=(t1(i):t2(i))';
     if isempty(k),continue,end
