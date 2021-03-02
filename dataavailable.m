@@ -34,27 +34,16 @@ outdata = data.x;
 vt = data.t;
 fs = data.fs;
 
-% Remove duplicate timestamps. Only keep the x value relating to the last
-% copy of a given timestamp;
-[vt,ia] = unique(vt,'last');
-outdata = outdata(ia);
+vtdiff = diff(vt)>(1/fs);
 
-vtdiff = diff(vt/1000)>(1/fs)*2;
 
 if removeneg
     outdata(outdata<=1) = nan; % Remove negative values
 else
     outdata(outdata==-32768) = nan; % Remove empty values
 end
-
 binarydata = ~isnan(outdata);
-binarydata = double(binarydata);
-binarydata2 = zeros(length(outdata),1);
-binarydata2(logical([vtdiff; 0])) = 1;
-[tag,tagname]=dataavailabletags(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,binarydata2);
-% [tag,tagname]=threshtags2(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,2);
-% This is how this is done on the master branch, but I don't know which is
-% superior. Both should be tested I think going forward. 
+[tag,tagname]=threshtags2(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,2);
 
 results = [];
 vt = [];
