@@ -60,7 +60,7 @@ for i=1:n
     wad(i) = (sum(temp) - 0.5*(p(s(i)) + p(e(i))))/ps;
 end
 %Include events with WAD > 2 seconds and less than 200 missing points 
-j=nna<=200&wad>=10;
+j=nna<=200&wad>=2;
 s=s(j); 
 e=e(j); 
 wad=wad(j); 
@@ -91,13 +91,16 @@ end
 %     gapr = repelem(Inf,length(s));
 %     return
 % end    
-j=wad>=5|gapl<=10|gapr<=10;
+
+% Ignore all events having WAD less than 5 s unless the event is within 5 s of another event.
+j=wad>=5|gapl<=5|gapr<=5;
 tag=tag(j,:);
 tag0=tag;
 n=size(tag,1);
 if n<2,return,end
 n0=n;
-%Merge events
+% Merge events
+% Combine events if they are separated by less than 3 s
 dg=3;
 tag=tag0(1,:);
 n=1;
