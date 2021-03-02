@@ -21,11 +21,11 @@ fullalgorithmlist = {...
         'CU Artifact',                           '/Results/CUartifact',                 1;...% 4
         'WUSTL Artifact',                        '/Results/WUSTLartifact',              1;...% 5
         'Brady Detection <100',                  '/Results/Brady<100',                  2;...% 6
-        'Apnea Detection with ECG Lead I',       '/Results/Apnea-I',                    3;...% 7
-        'Apnea Detection with ECG Lead II',      '/Results/Apnea-II',                   3;...% 8
-        'Apnea Detection with ECG Lead III',     '/Results/Apnea-III',                  3;...% 9
-        'Apnea Detection with No ECG Lead',      '/Results/Apnea-NoECG',                3;...% 10
-        'Apnea Detection',                       '/Results/Apnea',                      2;...% 11
+        'Apnea Detection with ECG Lead I',       '/Results/Apnea-I',                    4;...% 7
+        'Apnea Detection with ECG Lead II',      '/Results/Apnea-II',                   4;...% 8
+        'Apnea Detection with ECG Lead III',     '/Results/Apnea-III',                  4;...% 9
+        'Apnea Detection with No ECG Lead',      '/Results/Apnea-NoECG',                4;...% 10
+        'Apnea Detection',                       '/Results/Apnea',                      3;...% 11
         'Periodic Breathing with ECG Lead I',    '/Results/PeriodicBreathing-I',        2;...% 12
         'Periodic Breathing with ECG Lead II',   '/Results/PeriodicBreathing-II',       2;...% 13
         'Periodic Breathing with ECG Lead III',  '/Results/PeriodicBreathing-III',      2;...% 14
