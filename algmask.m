@@ -1,4 +1,15 @@
-function [masteralgmask,algmask_newqrs,resultname] = algmask
+function [masteralgmask,algs_to_include,resultname] = algmask
+% This is a register of all possible algorithms that can be loaded into the
+% BAP and the HDF5 Viewer. To change which algorithms are called in the BAP
+% or the viewer, simply alter the algs_to_include matrix at the bottom of
+% this script. The order of the algorithms in this script must match the
+% order of the algorithms in run_all_tagging_algs.m.
+%
+% OUTPUT:
+%   masteralgmask: a cell array containing the algorithm display name and version number
+%   algs_to_include: an array containing the numerical indexes of the algorithms to be run
+%   resultname: a cell array containing the algorithm names and version numbers stored in the results files
+
 % Column 1: display name (what is shown to the user in the BAP)
 % Column 2: result file algorithm name (how it is stored)
 % Column 3: algorithm version number
@@ -73,4 +84,4 @@ fullalgorithmlist = {...
 masteralgmask = fullalgorithmlist(:,[1,3]);
 resultname = fullalgorithmlist(:,[2,3]);
 
-algmask_newqrs = [1:3,6,11,16:20,24:65];
+algs_to_include = [1:3,6,11,16:20,24:65];
