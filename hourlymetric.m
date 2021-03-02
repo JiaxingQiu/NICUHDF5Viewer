@@ -28,7 +28,7 @@ end
 mydata = data.x;
 vt = data.t;
 
-% Remove negative HR values
+% Remove negative values
 mydata(mydata<=1) = nan;
 
 % Remove duplicate timestamps. Only keep the data value relating to the last

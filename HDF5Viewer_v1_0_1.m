@@ -420,6 +420,11 @@ if contains(varname,'Results/HourlySPO2_pctMean')
     ylimmax = 100;
 end
 
+if contains(varname,'/Results/MaxCrossCorr')
+    ylimmin = -1;
+    ylimmax = 1;
+end
+
 % --- Executes during object creation, after setting all properties.
 function listbox_avail_signals_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to listbox_avail_signals (see GCBO)

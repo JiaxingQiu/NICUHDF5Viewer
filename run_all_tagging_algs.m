@@ -268,6 +268,12 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             case 63
                 % Compute the hourly SPO2% kurtosis
                 [result,t_temp,tag,tagcol] = hourlymetric(info,'SPO2_pct','kurtosis');
+            case 64
+                % Compute max cross corr every 5 minutes, using the last 10 min of data (min xcorr & lags are also computed. All values are stored in tags.)
+                [result,t_temp,tag,tagcol] = crosscorrelation(info,'HR','SPO2_pct');
+            case 65
+                % Compute max cross corr every 5 minutes, using the last 10 min of data (min xcorr & lags are also computed. All values are stored in tags.)
+                [result,t_temp,tag,tagcol] = crosscorrelation(info,'Pulse','SPO2_pct');
         end
         if exist('tagcol')
             if isfirst

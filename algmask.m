@@ -66,9 +66,11 @@ fullalgorithmlist = {...
         'Hourly SPO2_pct Skewness',              '/Results/HourlySPO2_pctSkewness',     1;...% 60
         'Hourly HR Kurtosis',                    '/Results/HourlyHRKurtosis',           1;...% 61
         'Hourly Pulse Kurtosis',                 '/Results/HourlyPulseKurtosis',        1;...% 62
-        'Hourly SPO2_pct Kurtosis',              '/Results/HourlySPO2_pctKurtosis',     1};  % 63
+        'Hourly SPO2_pct Kurtosis',              '/Results/HourlySPO2_pctKurtosis',     1;...% 63
+        'Max Cross Correlation HR SPO2_pct',     '/Results/MaxCrossCorrHR_SPO2_pct',    1;...% 64
+        'Max Cross Correlation Pulse SPO2_pct',  '/Results/MaxCrossCorrPulse_SPO2_pct', 1};  % 65
     
 masteralgmask = fullalgorithmlist(:,[1,3]);
 resultname = fullalgorithmlist(:,[2,3]);
 
-algmask_newqrs = [1:3,6,11,16:20,24:63];
+algmask_newqrs = [1:3,6,11,16:20,24:65];
