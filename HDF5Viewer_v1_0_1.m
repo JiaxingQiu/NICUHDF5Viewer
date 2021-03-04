@@ -804,8 +804,12 @@ set(handles.tagalgstextbox,'string','Running...');
 drawnow
 run_all_tagging_algs(fullfile(handles.pathname, handles.filename),handles.info,[])
 % Get the info structure again now that the results file has been generated
+set(handles.tagalgstextbox,'string','Loading info...');
+drawnow
 handles.info = getfileinfo(fullfile(handles.pathname, handles.filename));
 % Load the results data
+set(handles.tagalgstextbox,'string','Loading results...');
+drawnow
 [handles.rname,handles.rdata,handles.tagtitles,handles.tagcolumns,handles.tags,handles.rqrs] = getresultsfile3(handles.info.resultfile); % need to run this because handles.info doesn't have tagtitles in it
 set(handles.tagalgstextbox,'string','');
 
