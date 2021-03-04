@@ -128,7 +128,16 @@ try
     source=h5readatt(file,'/','Source Reader');
 end
 
-globaltime=~strcmp('TDMS',source);
+% WE MUST KEEP THIS DWC STATEMENT! It fixes the UM DWC file problem where
+% you end up with 8 second gaps
+if strcmp('DWC',source)	
+    globaltime=0;	
+elseif strcmp('TDMS',source)	
+    globaltime=0;	
+else	
+    globaltime=1;	
+end
+
 
 %Get global times and fix jitter
 %
