@@ -54,8 +54,13 @@ for i=1:2
     nn=length(good);    
     xt=t(good);
 %Find common points
-    [~,jx,jz]=intersect(xt,zt);
-    z(jz,i)=xx(jx);
+    if isinteger(median(diff(xt)))
+        [~,jx,jz]=intersect(xt,zt);
+        z(jz,i)=xx(jx);
+    else
+        [~, closestIndex] = min(abs(xt - zt'));
+        z(:,i) = xx(closestIndex);
+    end
 end
 z1=z(:,1);
 z2=z(:,2);

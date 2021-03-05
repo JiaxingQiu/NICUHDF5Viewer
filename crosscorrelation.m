@@ -18,38 +18,42 @@ tagname = [];
 
 % Load in the var1 signal
 [data1,~,info] = getfiledata(info,var1);
+% If the necessary data isn't available, return empty matrices & exit
 if isempty(data1)
     return
 end
-[mydata1,~,~] = formatdata(data1,info,3,-1); % Load it in using global time stamps
-% If the necessary data isn't available, return empty matrices & exit
-
-% mydata1 = data1.x;
-% vt1 = data1.t;
-
+[data1,~,~] = formatdata(data1,info,3,1);
+mydata1 = data1.x;
+vt1 = data1.t;
 % Remove negative values
 mydata1(mydata1<=1) = nan;
+% Remove nans
+vt1(isnan(mydata1)) = [];
+mydata1(isnan(mydata1)) = [];
 
 % Load in the var2 signal
 [data2,~,info] = getfiledata(info,var2);
-[mydata2,vt,xfs] = formatdata(data2,info,3,-1);
-
 % If the necessary data isn't available, return empty matrices & exit
 if isempty(data2)
     return
 end
-
+[data2,~,~] = formatdata(data2,info,3,1);
+mydata2 = data2.x;
+vt2 = data2.t;
 % Remove negative values
 mydata2(mydata2<=1) = nan;
+% Remove nans
+vt2(isnan(mydata2)) = [];
+mydata2(isnan(mydata2)) = [];
+
+% Keep only data that occurs at the same timestamps in both datasets
+[vt,vt1i,vt2i] = intersect(vt1,vt2,'sorted');
+mydata1 = mydata1(vt1i);
+mydata2 = mydata2(vt2i) ;
 
 % Put the data in the format needed for Doug's script
 vdata = [mydata1,mydata2]; % Put data in two columns
 vt = vt/info.tunit; % put timestamps in seconds
-% If vitals are every second, grab every 2 second data
-if xfs==1
-    vdata = vdata(1:2:end,:);
-    vt = vt(1:2:end);
-end
 
 % The following code was extracted from vitalsumstats, written by Doug Lake:
 
@@ -62,7 +66,7 @@ end
 %      (default - last 10 minutes)
 % xt - times of calculations
 
-dt=2;
+dt=2; % This is the period that xcorrstand will resample the data to
 numLags=15;
 dw=600;
 w=[-600 0];

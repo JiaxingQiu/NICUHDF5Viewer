@@ -10,7 +10,7 @@ else
     starttime = info.start;
     stoptime = info.stop;
 end
-sampleperiod = info.sampleperiod/max([info.alldata(:).block]); % create the most fine-grained time array so that any resolution tags will be able to be detected.
+sampleperiod = info.sampleperiod;%/max([info.alldata(:).block]); % create the most fine-grained time array so that any resolution tags will be able to be detected.
 tglobalnew = (starttime:sampleperiod:stoptime)';
 if ~isempty(tag)
     [A,startindices] = ismember(tag(:,startcol),tglobalnew);
