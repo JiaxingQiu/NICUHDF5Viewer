@@ -30,7 +30,7 @@ fullalgorithmlist = {...
         'Periodic Breathing with ECG Lead II',   '/Results/PeriodicBreathing-II',       2;...% 13
         'Periodic Breathing with ECG Lead III',  '/Results/PeriodicBreathing-III',      2;...% 14
         'Periodic Breathing with No ECG Lead',   '/Results/PeriodicBreathing-NoECG',    2;...% 15
-        'Periodic Breathing',                    '/Results/PeriodicBreathing',          1;...% 16
+        'Periodic Breathing',                    '/Results/PeriodicBreathing',          2;...% 16
         'Brady Detection Pete',                  '/Results/Brady<100-Pete',             2;...% 17
         'Desat Detection Pete',                  '/Results/Desat<80-Pete',              2;...% 18
         'Brady Desat',                           '/Results/BradyDesat',                 2;...% 19
