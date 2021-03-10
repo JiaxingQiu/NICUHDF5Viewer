@@ -33,15 +33,15 @@ stopd = tagsa.tagtable(:,stopcold);
 AB = zeros(length(starta),1);
 AD = zeros(length(starta),1);
 for a=1:length(tagsa)
-    TB = startb-starta(a); % TB from Lee paper: tB ? tA,i = time interval from beginning of apnea to bradycardia
-    TD = startd-starta(a); % TD from Lee paper: tD ? tA,i = time interval from beginning of apnea to desaturation
+    TB = startb-starta(a); % TB from Lee paper: tB - tA,i = time interval from beginning of apnea to bradycardia
+    TD = startd-starta(a); % TD from Lee paper: tD - tA,i = time interval from beginning of apnea to desaturation
 
-    tauB = startb-stopa(a); % ?B from Lee paper: tB ? tA,i = time interval from end of apnea to bradycardia
-    tauD = startd-stopa(a); % ?D from Lee paper: tD ? tA,i = time interval from end of apnea to desaturation
+    tauB = startb-stopa(a); % tauB from Lee paper: tB - tA,f = time interval from end of apnea to bradycardia (I believe the i subscript in the paper is a mistake and should be f)
+    tauD = startd-stopa(a); % tauD from Lee paper: tD - tA,f = time interval from end of apnea to desaturation (I believe the i subscript in the paper is a mistake and should be f)
     
-    % Rule for AB event: AB if TB>0 AND [TB<50s OR ?B<25s]
+    % Rule for AB event: AB if TB>0 AND [TB<50s OR tauB<25s]
     AB(a) = sum(TB>0&(TB<50000|tauB<25000));
-    % Rule for AD event: AD if TD>0 AND [TD<55s OR ?D<38s]
+    % Rule for AD event: AD if TD>0 AND [TD<55s OR tauD<38s]
     AD(a) = sum(TD>0&(TD<55000|tauD<38000));
 end
 % If both of the conditions AB and AD hold, it is an ABD event.

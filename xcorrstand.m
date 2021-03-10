@@ -22,6 +22,7 @@ lags=(-maxlag:maxlag)';
 nlags=length(lags);
 c=NaN*ones(nlags,1);
 [n,m]=size(x);
+settozero = 0; 
 
 if m<2,return,end
 
@@ -50,6 +51,9 @@ for i=1:2
     xx=x(good,i);
     u=mean(xx);
     s=std(xx);
+    if s==0 % in the case that one of the signals is totally flat, we want to set the cross correlation to zero in this case
+        settozero = 1;
+    end
     xx=(xx-u)/s;
     nn=length(good);    
     xt=t(good);
@@ -66,6 +70,10 @@ z1=z(:,1);
 z2=z(:,2);
 try
     c=xcorr(z1,z2,maxlag)/nt;
+end
+
+if settozero==1
+    c(:)=0;
 end
 
 if dt~=1

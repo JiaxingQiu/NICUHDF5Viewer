@@ -735,11 +735,13 @@ if ~isempty(handles.tags)
     try
         if sum(strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Minimum'))
             minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Minimum')));
-        else
+        elseif sum(strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Extrema'))
             minimum = num2str(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Extrema')));
+        else
+            minimum = repmat(' [ ] ',[size(duration,1),1]);
         end
     catch
-    	minimum = zeros(length(duration),1);
+    	minimum = repmat(' [ ] ',[size(duration,1),1]);
     end
     spaces = repmat(' -- ',[size(duration,1),1]);
     set(handles.TagListbox,'string',[daytodisp spaces minimum spaces duration])

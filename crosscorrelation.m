@@ -49,7 +49,7 @@ mydata2(isnan(mydata2)) = [];
 % Keep only data that occurs at the same timestamps in both datasets
 [vt,vt1i,vt2i] = intersect(vt1,vt2,'sorted');
 mydata1 = mydata1(vt1i);
-mydata2 = mydata2(vt2i) ;
+mydata2 = mydata2(vt2i);
 
 % Put the data in the format needed for Doug's script
 vdata = [mydata1,mydata2]; % Put data in two columns
@@ -111,6 +111,7 @@ tagname{3}='Value'; % This is Maximum cross correlation. It is labeled as "value
 tagname{4}='LagMax';
 tagname{5}='MinCrossCorr'; % Minimum cross correlation
 tagname{6}='LagMin';
+tagname{7}='Duration';
 
 vt=vt*info.tunit; % put timestamps back in UTC ms
-tag=[vt(t1) vt(t2) c(:,1) c(:,2) c(:,3) c(:,4)];
+tag=[vt(t1) vt(t2) c(:,1) c(:,2) c(:,3) c(:,4) vt(t2)-vt(t1)+median(diff(vt1))];
