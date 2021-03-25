@@ -22,8 +22,8 @@ if ~exist('version','var'),version=[];end
 
 % Add algorithm folders to path
 if ~isdeployed
-    addpath('.\Apnea')
-    addpath('.\QRSDetection')
+    addpath([fileparts(which('qrsdetector.m')) '\Apnea'])
+    addpath([fileparts(which('qrsdetector.m')) '\QRSDetection'])
 end
 
 % Initialize output variables in case the necessary data isn't available

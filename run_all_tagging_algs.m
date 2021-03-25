@@ -30,14 +30,30 @@ result_tagcolumns = [];
 result_tagtitle = [];
 result_qrs = [];
 
+% Find the Log Filename
+if contains(filename,'.hdf5')
+    logfilename = strrep(filename,'.hdf5','_log.mat');
+elseif contains(filename,'.dat')
+    logfilename = strrep(filename,'.dat','_log.mat');
+elseif contains(filename,'.mat')
+    logfilename = strrep(filename,'.mat','_log.mat');
+end
+log = struct;
+% fid = fopen(logfilename,'w'); % Overwrite previous log file
+% fprintf(fid,'%s\r\n',['FILE: ' filename]);
+% fprintf(fid,'%23s\n',datestr(clock,'YYYY/mm/dd HH:MM:SS'));
+
 for i=1:length(algstorun)
     if algstorun(i)
         if isempty(isfirst)
             isfirst = firstindex==i;
         end
-        [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,isfirst] = runalg(filename,info,i,isfirst,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+        [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,isfirst,log] = runalg(filename,info,i,isfirst,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,log);
     end
 end
+
+% fclose(fid);
+save(logfilename,'log')
 
 % Find the Result Filename
 if contains(filename,'.hdf5')
@@ -60,7 +76,7 @@ if isvalid(w)
 end
 end
 
-function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,isfirst] = runalg(filename,info,algnum,isfirst,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs)
+function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,isfirst,log] = runalg(filename,info,algnum,isfirst,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,log)
     [algdispname,algmask_current,resultname] = algmask;
     algnum1 = algnum;
     algnum = algmask_current(algnum1);
@@ -69,6 +85,7 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
     % Find out if this algorithm has already been run. If it has, but this is the first alg on the list, load in the data that the program expects
     shouldrun = shouldrunalgorithm(filename,algnum1,resultname,algdispname(algmask_current,:),result_tagtitle,result_qrs);
     if ~shouldrun
+        log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'Previously run',[]);
         return
     end
     
@@ -281,14 +298,21 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 isfirst = 0;
                 if ~isfile && ~isempty(tagcol) % If there is no results file and we have something to put in one, create a file!
                     [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = createresultsfile(resultname(algnum1,:),result,t_temp,tag,tagcol,[]);
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'Success',[]);
                 elseif ~isfile % If there is no results file and we don't have something to put in one, don't create one yet - wait!
                     isfirst = 1;
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'Cleanly exited',[]);
                 elseif isfile && ~isempty(tagcol) % If there is a results file and we have something to put in it, put it in!
                     [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(resultname(algnum1,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
                     % Note: If there is a results file and we don't have anything to put in it, there is nothing more to do
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'Success',[]);
                 end
+                
             elseif ~isempty(tagcol)
                 [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(resultname(algnum1,:),result,t_temp,tag,tagcol,[],result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+                log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'Success',[]);
+            else
+                log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'Cleanly exited',[]);
             end
         end
         if exist('qrs')
@@ -297,15 +321,23 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 isfirst = 0;
                 if ~isfile && ~isempty(qrs) % If there is no results file and we have something to put in one, create a file!
                     [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = createresultsfile([],[],[],[],[],qrs);
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'QRS Success',[]);
                 elseif ~isfile % If there is no results file and we don't have something to put in one, don't create one yet - wait!
                     isfirst = 1;
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'QRS Cleanly exited',[]);
                 elseif isfile && ~isempty(qrs) % If there is a results file and we have something to put in it, put it in!
                     [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(algdispname(algnum,:),[],[],[],[],qrs,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
                     % Note: If there is a results file and we don't have anything to put in it, there is nothing more to do
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'QRS Success',[]);
+                else
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'QRS Cleanly exited',[]);
                 end
             else
                 if ~isempty(qrs)
                     [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs] = addtoresultsfile3(algdispname(algnum,:),[],[],[],[],qrs,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs);
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'QRS Success',[]);
+                else
+                    log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'QRS Cleanly exited',[]);
                 end
             end
         end
@@ -321,7 +353,26 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             disp(['Line: ' num2str(ME.stack(m).line)])
         end
         disp(newline)
+        log = addtolog(log,filename,resultname(algnum1,:),algdispname(algnum1,:),'Error',ME);
         pause(1)
     end
 
+end
+
+function log = addtolog(log,filename,result_name,algdispname,success,error)
+    if isfield(log,'algorithm')
+        r = length(log)+1;
+    else
+        r = 1;
+    end
+    if strcmp(result_name(1,1),'')
+        log(r).algorithm = algdispname(1,1);
+        log(r).version = algdispname{1,2};
+    else
+        log(r).algorithm = result_name(1,1);
+        log(r).version = result_name{1,2};
+    end
+    log(r).success = success;
+    log(r).error = error;
+    log(r).filename = filename;
 end

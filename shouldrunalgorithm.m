@@ -59,25 +59,6 @@ if contains(algdispname(algnum),'QRS Detection')
         oldversion = [];
     end
     
-% If you are running a Data Available Tagging Algorithm    
-elseif contains(algdispname(algnum),'Data Available')
-    % Check to see if the algorithm name matches any of those in the results file
-    if isempty(result_tagtitle)
-        return
-    end
-    
-    if sum(contains(result_tagtitle(:,1),algdispname(algnum)))
-        % Find out which version number has previously been run
-        index = strcmp(result_tagtitle(:,1),algdispname(algnum));
-        if size(result_tagtitle,2)>1
-            oldversion = result_tagtitle(index,2);
-        else
-            oldversion = 1;
-        end
-    else
-        oldversion = [];
-    end 
-    
 % If you are running an algorithm that generates a tagtitle
 else
     % Check to see if the algorithm name matches any of those in the results file

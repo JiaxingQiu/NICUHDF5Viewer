@@ -93,7 +93,7 @@ end
 
 end
 
-function [name,index]=findindex(allname,name)
+ function [name,index]=findindex(allname,name)
 %function [index]=findindex(allname,name)
 %
 %allname    name of all datasets 
