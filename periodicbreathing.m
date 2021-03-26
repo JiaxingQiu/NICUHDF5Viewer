@@ -69,7 +69,11 @@ if isempty(unTomb)
 end
 
 % Run the periodic breathing algorithm
-[pb_indx,pb_time,~,~,~] = Calc_pb_wavelet(unTomb,Ttime);
+try
+    [pb_indx,pb_time,~,~,~] = Calc_pb_wavelet(unTomb,Ttime);
+catch % if file is super short, Calc_pb_wavelet will fail because analyze_wavelet_coeffs will fail
+    return
+end
 if isrow(pb_indx)
     pb_indx = pb_indx';
     pb_time = pb_time';

@@ -294,13 +294,17 @@ for s=1:numsigs
     handles.windowendtime = handles.windowstarttime+handles.windowsize;
     
     % Find start and end indices for signal
-    [~,handles.startindex(s,1)] = min(abs(handles.vdata.t-handles.windowstarttime));
-    [~,handles.endindex(s,1)] = min(abs(handles.vdata.t-handles.windowendtime));
-    
-    % Pull the data and timestamps for the window we want to plot
-    handles.sig = handles.vdata.x(handles.startindex(s,1):handles.endindex(s,1));
-    handles.tplot = handles.vdata.t(handles.startindex(s,1):handles.endindex(s,1));
-    I = ~isnan(handles.sig); % Don't try to plot the NaN values
+    if ~isempty(handles.vdata.t)
+        [~,handles.startindex(s,1)] = min(abs(handles.vdata.t-handles.windowstarttime));
+        [~,handles.endindex(s,1)] = min(abs(handles.vdata.t-handles.windowendtime));
+
+        % Pull the data and timestamps for the window we want to plot
+        handles.sig = handles.vdata.x(handles.startindex(s,1):handles.endindex(s,1));
+        handles.tplot = handles.vdata.t(handles.startindex(s,1):handles.endindex(s,1));
+        I = ~isnan(handles.sig); % Don't try to plot the NaN values
+    else
+        I = [];
+    end
     
     % Actually plot the data
     if isempty(I) || sum(I)==0
