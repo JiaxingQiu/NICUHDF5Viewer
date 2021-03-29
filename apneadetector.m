@@ -202,6 +202,12 @@ tmax=max(xt);
 
 d=dt/2;
 w=[-d d];
+if isempty(yt) % Handle the situation where the whole signal is interpolated
+    p = [];
+    pt = [];
+    pgood = [];
+    return
+end
 [w1,w2]=findwindows(pt,[-d d],yt);
 nw=w2-w1+1;
 dtn=dt*fs;
