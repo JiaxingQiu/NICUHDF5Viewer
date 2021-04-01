@@ -285,7 +285,8 @@ for s=1:numsigs
             handles.windowstarttime = handles.globalzerolocaldate;
         end
         if handles.info.dayzero==0
-            daytodisp = 'Date Unknown';
+            daytodisp =  datestr(handles.windowstarttime+datenum(1970,1,1),'mm/dd/yy'); % this is experimental
+%             daytodisp = 'Date Unknown';
         else
             daytodisp = datestr(handles.windowstarttime,'mm/dd/yy');
         end
