@@ -30,7 +30,7 @@ qecg = handles.rqrs(lead).qrs.qecg;
 if handles.tstampchoice==1 % convert from utc date in milliseconds to days since time zero
     qt = qt-double(handles.info.timezero); % puts UTC date (ms) into ms since time zero
     qt = qt/86400/1000; % convert to days since time zero
-elseif handles.tstampchoice==2 && handles.info.timezero==0 % convert from utc date in milliseconds
+elseif handles.tstampchoice==2 && handles.info.timezero==0 % convert from utc date in milliseconds (medi files use this elseif statement)
     qt = qt/86400/1000; % convert to days since time zero
 elseif handles.tstampchoice==2
     qt = utc2local(qt/1000); % convert from utc date in milliseconds to matlab date

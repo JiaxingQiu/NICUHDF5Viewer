@@ -467,7 +467,7 @@ set(handles.TagCategoryListbox,'Value',1);
 for i=1:length(allfiles) 
     filenames(i) = string(allfiles(i).name);
 end
-filenames = filenames(~contains(filenames,'results'));
+filenames = filenames(~contains(filenames,'results')&~contains(filenames,'log'));
 % Sort the filenames so we are always looking at them in the same order regardless of what order the computer grabs them
 if length(allfiles)>1 
     filenames = sort(filenames);
