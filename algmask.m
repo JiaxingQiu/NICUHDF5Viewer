@@ -79,9 +79,10 @@ fullalgorithmlist = {...
         'Hourly Pulse Kurtosis',                 '/Results/HourlyPulseKurtosis',        1;...% 62
         'Hourly SPO2_pct Kurtosis',              '/Results/HourlySPO2_pctKurtosis',     1;...% 63
         'Max Cross Correlation HR SPO2_pct',     '/Results/MaxCrossCorrHR_SPO2_pct',    1;...% 64
-        'Max Cross Correlation Pulse SPO2_pct',  '/Results/MaxCrossCorrPulse_SPO2_pct', 1};  % 65
+        'Max Cross Correlation Pulse SPO2_pct',  '/Results/MaxCrossCorrPulse_SPO2_pct', 1;...% 65
+        'HCTSA FC_Surprise HR'                   '/Results/HCTSA_FC_Surprise_HR_HowSurprised', 1};  % 66
     
 masteralgmask = fullalgorithmlist(:,[1,3]);
 resultname = fullalgorithmlist(:,[2,3]);
 
-algs_to_include = [1:3,6,11,16:20,22,24:65];
+algs_to_include = [1:3,6,11,16:20,22,24:66];

@@ -397,7 +397,7 @@ elseif contains(varname,'Results/CUartifact')
     plotcolor = 'r';
 end
 
-if contains(varname,'Results') && ~contains(varname,'Hourly')
+if contains(varname,'Results') && ~contains(varname,'Hourly') && ~contains(varname,'HCTSA')
     ylimmin = 0;
     ylimmax = 1;
 end

@@ -291,6 +291,8 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             case 65
                 % Compute max cross corr every 10 minutes, using the last 10 min of data (min xcorr & lags are also computed. All values are stored in tags.)
                 [result,t_temp,tag,tagcol] = crosscorrelation(info,'Pulse','SPO2_pct');
+            case 66
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'FC_Surprise','HR');
         end
         if exist('tagcol')
             if isfirst
