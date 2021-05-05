@@ -292,7 +292,65 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 % Compute max cross corr every 10 minutes, using the last 10 min of data (min xcorr & lags are also computed. All values are stored in tags.)
                 [result,t_temp,tag,tagcol] = crosscorrelation(info,'Pulse','SPO2_pct');
             case 66
+                % HCTSA Algorithm: How Suprised?
                 [result,t_temp,tag,tagcol] = call_hctsa(info,'FC_Surprise','HR');
+            case 67
+                % HCTSA Algorithm: Probability of successive increases
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_MotifTwo','HR');
+            case 68
+                % HCTSA Algorithm: STD of random walk
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'PH_Walker','SPO2_pct');
+            case 69
+                % HCTSA Algorithm: Average threshold
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'EX_MovingThreshold','HR');
+            case 70
+                % HCTSA Algorithm: Average thrshold
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'EX_MovingThreshold','SPO2_pct');
+            case 71
+                % HCTSA Algorithm: Distribution HR SD (CV?)
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'DN_cv','HR');
+            case 72
+                % HCTSA Algorithm: Distribution HR Skewness
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'DN_Cumulants','HR');
+            case 73
+                % HCTSA Algorithm: Distribution HR Max
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'DN_Quantile','HR');
+            case 74
+                % HCTSA Algorithm: Symbolic transforms HR autocorrelation
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_TransitionMatrix_tau3','HR');
+            case 75
+                % HCTSA Algorithm: Symbolic transforms HR entropy
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_MotifThree_quantile','HR');
+            case 76
+                % HCTSA Algorithm: HR wavelet autoregressive model
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'MF_arfit','HR');
+            case 77
+                % HCTSA Algorithm: Symbolic transforms HR first differences of coarsely-grained series
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_MotifThree_diffquant','HR');
+            case 78
+                % HCTSA Algorithm: Std of 17th derivative of time series
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SY_StdNthDer','HR');
+            case 79
+                % HCTSA Algorithm: Distribution SpO2 mean
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'DN_RemovePoints','SPO2_pct');
+            case 80
+                % HCTSA Algorithm: Symbolic transforms SpO2 interquartile ranges of ??
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_BinaryStats','SPO2_pct');
+            case 81
+                % HCTSA Algorithm: SpO2 wavelet autoregressive model
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'MF_arfit','SPO2_pct');
+            case 82
+                % HCTSA Algorithm: Symbolic transforms SpO2 eigenvalues of transition matrix
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_TransitionMatrix_tau2','SPO2_pct');
+            case 83
+                % HCTSA Algorithm: Correlation SpO2 autocorrelation coefficient at lag = 4
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'CO_AutoCorr','SPO2_pct');
+            case 84
+                % HCTSA Algorithm: Symbolic transforms SpO2 entropy
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_MotifThree_diffquant','SPO2_pct');
+            case 85
+                % HCTSA Algorithm: Symbolic transforms SpO2 binary state transitions
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_TransitionMatrix_tau1','SPO2_pct');
         end
         if exist('tagcol')
             if isfirst
