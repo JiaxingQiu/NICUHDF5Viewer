@@ -68,7 +68,8 @@ else
 end
 
 % Find the ABD overlap using Hoshik Lee's rules from "A new algorithm for detecting central apnea in neonates," Hoshik Lee et al 2012 Physiol. Meas. 33 1
-if ~isempty(desattagcolumns(1).tagname) && ~isempty(bradytagcolumns(1).tagname) && ~isempty(apneatagcolumns(1).tagname)
+% if ~isempty(desattagcolumns(1).tagname) && ~isempty(bradytagcolumns(1).tagname) && ~isempty(apneatagcolumns(1).tagname)
+if ~isempty(desattags.tagtable) && ~isempty(bradytags.tagtable) && ~isempty(apneatags.tagtable)
     [~,~,tag,tagcol] = abd_tag_combiner(apneatagcolumns,bradytagcolumns,desattagcolumns,apneatags,bradytags,desattags,info);
 else
     tag = [];
