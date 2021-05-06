@@ -36,7 +36,7 @@ fullalgorithmlist = {...
         'Brady Desat',                                  '/Results/BradyDesat',                                   2;...% 19
         'Brady Desat Pete',                             '/Results/BradyDesatPete',                               2;...% 20
         'ABD No ECG',                                   '/Results/ABD-NoECG',                                    1;...% 21
-        'ABD',                                          '/Results/ABD',                                          1;...% 22
+        'ABD',                                          '/Results/ABD',                                          2;...% 22
         'Save HR in Results',                           '/Results/HR',                                           1;...% 23
         'Data Available: Pulse',                        '/Results/DataAvailable:Pulse',                          3;...% 24
         'Data Available: HR',                           '/Results/DataAvailable:HR',                             3;...% 25
