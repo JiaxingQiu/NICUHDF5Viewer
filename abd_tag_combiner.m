@@ -25,14 +25,14 @@ stopa = tagsa.tagtable(:,stopcola); %tA,f from Lee paper: time of end of apnea (
 startb = tagsb.tagtable(:,startcolb); %tB from Lee paper: time of Bradycardia (when the average heart rate reported by the monitor falls through 100 bpm)
 stopb = tagsb.tagtable(:,stopcolb);
 
-startd = tagsa.tagtable(:,startcold); %tD from Lee paper: time of Desaturation (when SpO2 falls through 80%)
-stopd = tagsa.tagtable(:,stopcold);
+startd = tagsd.tagtable(:,startcold); %tD from Lee paper: time of Desaturation (when SpO2 falls through 80%)
+stopd = tagsd.tagtable(:,stopcold);
 
 % Cycle through each apnea event to determine whether it meets the
 % definition for an AB, AD, or ABD event
 AB = zeros(length(starta),1);
 AD = zeros(length(starta),1);
-for a=1:length(tagsa)
+for a=1:length(tagsa.tagtable)
     TB = startb-starta(a); % TB from Lee paper: tB - tA,i = time interval from beginning of apnea to bradycardia
     TD = startd-starta(a); % TD from Lee paper: tD - tA,i = time interval from beginning of apnea to desaturation
 
