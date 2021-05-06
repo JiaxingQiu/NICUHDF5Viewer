@@ -100,6 +100,7 @@ fullalgorithmlist = {...
         'HCTSA CO_AutoCorr SPO2',                       '/Results/HCTSA_CO_AutoCorr_SPO2',                       1;...% 83
         'HCTSA SB_MotifThree SPO2 Sym Entropy',         '/Results/HCTSA_SB_MotifThree_SPO2_SymEntropy',          1;...% 84
         'HCTSA SB_TransitionMatrix1 SPO2 Sym Bin',      '/Results/HCTSA_SB_TransitionMatrix1_SPO2_SymBin',       1};  % 85
+
     
 masteralgmask = fullalgorithmlist(:,[1,3]);
 resultname = fullalgorithmlist(:,[2,3]);

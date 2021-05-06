@@ -32,7 +32,7 @@ stopd = tagsd.tagtable(:,stopcold);
 % definition for an AB, AD, or ABD event
 AB = zeros(length(starta),1);
 AD = zeros(length(starta),1);
-for a=1:length(tagsa.tagtable)
+for a=1:size(tagsa.tagtable,1)
     TB = startb-starta(a); % TB from Lee paper: tB - tA,i = time interval from beginning of apnea to bradycardia
     TD = startd-starta(a); % TD from Lee paper: tD - tA,i = time interval from beginning of apnea to desaturation
 
