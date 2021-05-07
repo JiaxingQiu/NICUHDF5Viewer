@@ -51,6 +51,13 @@ resp = data.x;
 respt = data.t;
 CIfs = data.fs;
 
+% If the resp signal is full of nans, stop here and don't run the algorithm
+% - this will avoid the error message later and will NOT return a result
+% saying there were no apneas - run_all_tagging_algs will be smart enough
+% to know not to store an apnea result in this case.
+if sum(~isnan(resp))==0,return,end
+if nanvar(resp)==0,return,end
+
 if round(CIfs,1)~=CIfs
     CIfs = 1/round(1/CIfs,3);
 end
