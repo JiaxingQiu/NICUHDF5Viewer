@@ -125,6 +125,9 @@ for c=1:totalchunks
         case 'SB_MotifThree_diffquant'
             out = SB_MotifThree(tenminofdata,'diffquant');
             value(c) = out.hhhh;
+        case 'ST_LocalExtrema'
+            out = ST_LocalExtrema(tenminofdata,'n',100);
+            value(c) = out.minabsmin;
     end
     np(c) = sum(indicesinwindow); % number of points
 end

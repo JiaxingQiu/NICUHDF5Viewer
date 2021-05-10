@@ -351,6 +351,9 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             case 85
                 % HCTSA Algorithm: Symbolic transforms SpO2 binary state transitions
                 [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_TransitionMatrix_tau1','SPO2_pct');
+            case 86
+                % HCTSA Algorithm: Stationarity SpO2 ratio of minimum to range
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'ST_LocalExtrema','SPO2_pct');
         end
         if exist('tagcol')
             if isfirst
