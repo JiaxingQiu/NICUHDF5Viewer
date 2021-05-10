@@ -100,11 +100,12 @@ fullalgorithmlist = {...
         'HCTSA CO_AutoCorr SPO2',                       '/Results/HCTSA_CO_AutoCorr_SPO2',                       1;...% 83
         'HCTSA SB_MotifThree SPO2 Sym Entropy',         '/Results/HCTSA_SB_MotifThree_SPO2_SymEntropy',          1;...% 84
         'HCTSA SB_TransitionMatrix1 SPO2 Sym Bin',      '/Results/HCTSA_SB_TransitionMatrix1_SPO2_SymBin',       1;...% 85
-        'HCTSA ST_LocalExtrema Stat SpO2 Ratio Min',    '/Results/HCTSA_ST_LocalExtrema',                        1};% 86
+        'HCTSA ST_LocalExtrema Stationarity SpO2 Min',  '/Results/HCTSA_ST_LocalExtrema_SPO2',                   1;...% 86
+        'HCTSA ST_LocalExtrema Stationarity HR Min',    '/Results/HCTSA_ST_LocalExtrema_HR',                     1};% 87
     
 
     
 masteralgmask = fullalgorithmlist(:,[1,3]);
 resultname = fullalgorithmlist(:,[2,3]);
 
-algs_to_include = [1:3,6,11,16:20,22,24:86];
+algs_to_include = [1:3,6,11,16:20,22,24:87];

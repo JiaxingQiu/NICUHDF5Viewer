@@ -125,7 +125,10 @@ for c=1:totalchunks
         case 'SB_MotifThree_diffquant'
             out = SB_MotifThree(tenminofdata,'diffquant');
             value(c) = out.hhhh;
-        case 'ST_LocalExtrema'
+        case 'ST_LocalExtrema_SPO2'
+            out = ST_LocalExtrema(tenminofdata,'n',100);
+            value(c) = out.minabsmin;
+        case 'ST_LocalExtrema_HR'
             out = ST_LocalExtrema(tenminofdata,'n',100);
             value(c) = out.minabsmin;
     end

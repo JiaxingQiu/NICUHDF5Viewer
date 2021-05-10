@@ -353,7 +353,10 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
                 [result,t_temp,tag,tagcol] = call_hctsa(info,'SB_TransitionMatrix_tau1','SPO2_pct');
             case 86
                 % HCTSA Algorithm: Stationarity SpO2 ratio of minimum to range
-                [result,t_temp,tag,tagcol] = call_hctsa(info,'ST_LocalExtrema','SPO2_pct');
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'ST_LocalExtrema_SPO2','SPO2_pct');
+            case 87
+                % HCTSA Algorithm: Stationary HR min
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'ST_LocalExtrema_HR','HR');
         end
         if exist('tagcol')
             if isfirst
