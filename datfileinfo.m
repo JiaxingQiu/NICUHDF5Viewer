@@ -170,8 +170,12 @@ rawdata(:,4)=sf(4)*rawdata(:,4);
 %Find individual waveforms and vital sign signals
 ecg=rawdata(:,1);
 resp=rawdata(:,2);
-spo2=downsample(rawdata(:,3),wfs);        
-hr=downsample(rawdata(:,4),wfs);        
+
+% spo2=downsample(rawdata(:,3),wfs);        
+% hr=downsample(rawdata(:,4),wfs);        
+
+[spo2,spo2good,hr,hrgood]=noisefilter(rawdata(:,3),rawdata(:,4));
+
 clear rawdata
 
 %Filter out high frequency noise in ECG waveform
@@ -196,18 +200,18 @@ for i=1:length(low)
 end
 
 %Find SPO2 and HR outliers
-hrgood=hr>40;
-uhr=mean(hr(hrgood));
-shr=std(hr(hrgood));
-Thr=min(80,uhr-4*shr);
-hrgood=hrgood&hr>Thr;
+% hrgood=hr>40;
+% uhr=mean(hr(hrgood));
+% shr=std(hr(hrgood));
+% Thr=min(80,uhr-4*shr);
+% hrgood=hrgood&hr>Thr;
 hr(~hrgood)=NaN;
 
-spo2good=spo2>40;
-uspo2=mean(spo2(spo2good));
-sspo2=std(spo2(spo2good));
-Tspo2=min(60,uspo2-4*sspo2);
-spo2good=spo2good&spo2>Tspo2;
+% spo2good=spo2>40;
+% uspo2=mean(spo2(spo2good));
+% sspo2=std(spo2(spo2good));
+% Tspo2=min(60,uspo2-4*sspo2);
+% spo2good=spo2good&spo2>Tspo2;
 spo2(~spo2good)=NaN;
 
 data(5).x=ecg;
