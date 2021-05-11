@@ -82,8 +82,8 @@ else
     j1=i1;
     j2=i2;
 end    
-t1=xt(j1);
-t2=xt(j2);
+t1=xt(j1)';
+t2=xt(j2)';
 ne=length(j1);
 
 dur=t2-t1+tsamp;
@@ -102,20 +102,23 @@ for i=1:ne
     if extrema(i)<1
         extrema(i) = round(extrema(i),2);
     end
-    aa=max(T+1-xx,0);
-    area(i)=sum(aa);
     if lessequal==1
         if negthresh
+            aa=max(T-xx,0);
             np(i)=sum(xx<T);
         else
+            aa=max(xx-T,0);
             np(i)=sum(xx>T);
         end
     else
         if negthresh
+            aa=max(T-xx,0);
             np(i)=sum(xx<=T);
         else
+            aa=max(xx-T,0);
             np(i)=sum(xx>=T);
         end
     end
+    area(i)=sum(aa);
 end
 tag=[t1 t2 dur np area extrema];

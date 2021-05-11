@@ -23,7 +23,7 @@ tag = [];
 tagname = [];
     
 negthresh = 0; % we want to tag all points with values above a certain threshold
-threshold = 0.5;
+threshold = 0;
 
 [data,~,~] = getfiledata(info,signame);
 [data,~,~] = formatdata(data,info,3,1);
@@ -43,7 +43,7 @@ else
     outdata(outdata==-32768) = nan; % Remove empty values
 end
 binarydata = ~isnan(outdata);
-[tag,tagname]=threshtags2(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,2);
+[tag,tagname]=threshtags2(binarydata,vt,threshold,ceil(pmin*fs),tmin,negthresh,1);
 
 results = [];
 vt = [];

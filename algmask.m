@@ -20,52 +20,52 @@ fullalgorithmlist = {...
         'QRS Detection: ECG III',                       '',                                                      2;...% 3
         'CU Artifact',                                  '/Results/CUartifact',                                   1;...% 4
         'WUSTL Artifact',                               '/Results/WUSTLartifact',                                1;...% 5
-        'Brady Detection <100',                         '/Results/Brady<100',                                    2;...% 6
+        'Brady Detection <100',                         '/Results/Brady<100',                                    3;...% 6
         'Apnea Detection with ECG Lead I',              '/Results/Apnea-I',                                      4;...% 7
         'Apnea Detection with ECG Lead II',             '/Results/Apnea-II',                                     4;...% 8
         'Apnea Detection with ECG Lead III',            '/Results/Apnea-III',                                    4;...% 9
         'Apnea Detection with No ECG Lead',             '/Results/Apnea-NoECG',                                  4;...% 10
         'Apnea Detection',                              '/Results/Apnea',                                        3;...% 11
-        'Periodic Breathing with ECG Lead I',           '/Results/PeriodicBreathing-I',                          2;...% 12
-        'Periodic Breathing with ECG Lead II',          '/Results/PeriodicBreathing-II',                         2;...% 13
-        'Periodic Breathing with ECG Lead III',         '/Results/PeriodicBreathing-III',                        2;...% 14
-        'Periodic Breathing with No ECG Lead',          '/Results/PeriodicBreathing-NoECG',                      2;...% 15
-        'Periodic Breathing',                           '/Results/PeriodicBreathing',                            2;...% 16
-        'Brady Detection Pete',                         '/Results/Brady<100-Pete',                               2;...% 17
-        'Desat Detection Pete',                         '/Results/Desat<80-Pete',                                2;...% 18
-        'Brady Desat',                                  '/Results/BradyDesat',                                   2;...% 19
-        'Brady Desat Pete',                             '/Results/BradyDesatPete',                               2;...% 20
-        'ABD No ECG',                                   '/Results/ABD-NoECG',                                    1;...% 21
+        'Periodic Breathing with ECG Lead I',           '/Results/PeriodicBreathing-I',                          3;...% 12
+        'Periodic Breathing with ECG Lead II',          '/Results/PeriodicBreathing-II',                         3;...% 13
+        'Periodic Breathing with ECG Lead III',         '/Results/PeriodicBreathing-III',                        3;...% 14
+        'Periodic Breathing with No ECG Lead',          '/Results/PeriodicBreathing-NoECG',                      3;...% 15
+        'Periodic Breathing',                           '/Results/PeriodicBreathing',                            3;...% 16
+        'Brady Detection Pete',                         '/Results/Brady<100-Pete',                               3;...% 17
+        'Desat Detection Pete',                         '/Results/Desat<80-Pete',                                3;...% 18
+        'Brady Desat',                                  '/Results/BradyDesat',                                   3;...% 19
+        'Brady Desat Pete',                             '/Results/BradyDesatPete',                               3;...% 20
+        'ABD No ECG',                                   '/Results/ABD-NoECG',                                    2;...% 21
         'ABD',                                          '/Results/ABD',                                          2;...% 22
         'Save HR in Results',                           '/Results/HR',                                           1;...% 23
-        'Data Available: Pulse',                        '/Results/DataAvailable:Pulse',                          3;...% 24
-        'Data Available: HR',                           '/Results/DataAvailable:HR',                             3;...% 25
-        'Data Available: SPO2_pct',                     '/Results/DataAvailable:SPO2_pct',                       3;...% 26
-        'Data Available: Resp',                         '/Results/DataAvailable:Resp',                           3;...% 27
-        'Data Available: ECG I',                        '/Results/DataAvailable:ECGI',                           3;...% 28
-        'Data Available: ECG II',                       '/Results/DataAvailable:ECGII',                          3;...% 29
-        'Data Available: ECG III',                      '/Results/DataAvailable:ECGIII',                         3;...% 30
-        'Desat Detection <75',                          '/Results/Desat<75',                                     1;...% 31
-        'Desat Detection <76',                          '/Results/Desat<76',                                     1;...% 32
-        'Desat Detection <77',                          '/Results/Desat<77',                                     1;...% 33
-        'Desat Detection <78',                          '/Results/Desat<78',                                     1;...% 34
-        'Desat Detection <79',                          '/Results/Desat<79',                                     1;...% 35
-        'Desat Detection <80',                          '/Results/Desat<80',                                     2;...% 36
-        'Desat Detection <81',                          '/Results/Desat<81',                                     1;...% 37
-        'Desat Detection <82',                          '/Results/Desat<82',                                     1;...% 38
-        'Desat Detection <83',                          '/Results/Desat<83',                                     1;...% 39
-        'Desat Detection <84',                          '/Results/Desat<84',                                     1;...% 40
-        'Desat Detection <85',                          '/Results/Desat<85',                                     1;...% 41
-        'Desat Detection <86',                          '/Results/Desat<86',                                     1;...% 42
-        'Desat Detection <87',                          '/Results/Desat<87',                                     1;...% 43
-        'Desat Detection <88',                          '/Results/Desat<88',                                     1;...% 44
-        'Desat Detection <89',                          '/Results/Desat<89',                                     1;...% 45
-        'Desat Detection <90',                          '/Results/Desat<90',                                     1;...% 46
-        'Desat Detection <91',                          '/Results/Desat<91',                                     1;...% 47
-        'Desat Detection <92',                          '/Results/Desat<92',                                     1;...% 48
-        'Desat Detection <93',                          '/Results/Desat<93',                                     1;...% 49
-        'Desat Detection <94',                          '/Results/Desat<94',                                     1;...% 50
-        'Desat Detection <95',                          '/Results/Desat<95',                                     1;...% 51
+        'Data Available: Pulse',                        '/Results/DataAvailable:Pulse',                          4;...% 24
+        'Data Available: HR',                           '/Results/DataAvailable:HR',                             4;...% 25
+        'Data Available: SPO2_pct',                     '/Results/DataAvailable:SPO2_pct',                       4;...% 26
+        'Data Available: Resp',                         '/Results/DataAvailable:Resp',                           4;...% 27
+        'Data Available: ECG I',                        '/Results/DataAvailable:ECGI',                           4;...% 28
+        'Data Available: ECG II',                       '/Results/DataAvailable:ECGII',                          4;...% 29
+        'Data Available: ECG III',                      '/Results/DataAvailable:ECGIII',                         4;...% 30
+        'Desat Detection <75',                          '/Results/Desat<75',                                     2;...% 31
+        'Desat Detection <76',                          '/Results/Desat<76',                                     2;...% 32
+        'Desat Detection <77',                          '/Results/Desat<77',                                     2;...% 33
+        'Desat Detection <78',                          '/Results/Desat<78',                                     2;...% 34
+        'Desat Detection <79',                          '/Results/Desat<79',                                     2;...% 35
+        'Desat Detection <80',                          '/Results/Desat<80',                                     3;...% 36
+        'Desat Detection <81',                          '/Results/Desat<81',                                     2;...% 37
+        'Desat Detection <82',                          '/Results/Desat<82',                                     2;...% 38
+        'Desat Detection <83',                          '/Results/Desat<83',                                     2;...% 39
+        'Desat Detection <84',                          '/Results/Desat<84',                                     2;...% 40
+        'Desat Detection <85',                          '/Results/Desat<85',                                     2;...% 41
+        'Desat Detection <86',                          '/Results/Desat<86',                                     2;...% 42
+        'Desat Detection <87',                          '/Results/Desat<87',                                     2;...% 43
+        'Desat Detection <88',                          '/Results/Desat<88',                                     2;...% 44
+        'Desat Detection <89',                          '/Results/Desat<89',                                     2;...% 45
+        'Desat Detection <90',                          '/Results/Desat<90',                                     2;...% 46
+        'Desat Detection <91',                          '/Results/Desat<91',                                     2;...% 47
+        'Desat Detection <92',                          '/Results/Desat<92',                                     2;...% 48
+        'Desat Detection <93',                          '/Results/Desat<93',                                     2;...% 49
+        'Desat Detection <94',                          '/Results/Desat<94',                                     2;...% 50
+        'Desat Detection <95',                          '/Results/Desat<95',                                     2;...% 51
         'Hourly HR Mean',                               '/Results/HourlyHRMean',                                 1;...% 52
         'Hourly Pulse Mean',                            '/Results/HourlyPulseMean',                              1;...% 53
         'Hourly SPO2_pct Mean',                         '/Results/HourlySPO2_pctMean',                           1;...% 54
