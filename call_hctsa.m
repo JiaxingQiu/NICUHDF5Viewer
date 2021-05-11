@@ -131,6 +131,12 @@ for c=1:totalchunks
         case 'ST_LocalExtrema_HR'
             out = ST_LocalExtrema(tenminofdata,'n',100);
             value(c) = out.minabsmin;
+        case 'CO_tc3_HR'
+            out = CO_tc3(tenminofdata,1);
+            value(c) = out.denom;
+        case 'CO_tc3_SPO2'
+            out = CO_tc3(tenminofdata,1);
+            value(c) = out.denom;
     end
     np(c) = sum(indicesinwindow); % number of points
 end

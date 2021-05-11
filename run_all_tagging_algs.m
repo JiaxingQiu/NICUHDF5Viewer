@@ -357,6 +357,12 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             case 87
                 % HCTSA Algorithm: Stationary HR min
                 [result,t_temp,tag,tagcol] = call_hctsa(info,'ST_LocalExtrema_HR','HR');
+            case 88
+                % HCTSA Algorithm: Correlation HR mean
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'CO_tc3_HR','HR');
+            case 89
+                % HCTSA Algorithm: Correlation SPO2 mean
+                [result,t_temp,tag,tagcol] = call_hctsa(info,'CO_tc3_SPO2','SPO2_pct');
         end
         if exist('tagcol')
             if isfirst
