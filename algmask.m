@@ -18,8 +18,8 @@ fullalgorithmlist = {...
         'QRS Detection: ECG I',                         '',                                                      2;...% 1
         'QRS Detection: ECG II',                        '',                                                      2;...% 2
         'QRS Detection: ECG III',                       '',                                                      2;...% 3
-        'CU Artifact',                                  '/Results/CUartifact',                                   1;...% 4
-        'WUSTL Artifact',                               '/Results/WUSTLartifact',                                1;...% 5
+        'CU Artifact',                                  '/Results/CUartifact',                                   2;...% 4
+        'WUSTL Artifact',                               '/Results/WUSTLartifact',                                2;...% 5
         'Brady Detection <100',                         '/Results/Brady<100',                                    3;...% 6
         'Apnea Detection with ECG Lead I',              '/Results/Apnea-I',                                      4;...% 7
         'Apnea Detection with ECG Lead II',             '/Results/Apnea-II',                                     4;...% 8
@@ -37,7 +37,7 @@ fullalgorithmlist = {...
         'Brady Desat Pete',                             '/Results/BradyDesatPete',                               3;...% 20
         'ABD No ECG',                                   '/Results/ABD-NoECG',                                    2;...% 21
         'ABD',                                          '/Results/ABD',                                          2;...% 22
-        'Save HR in Results',                           '/Results/HR',                                           1;...% 23
+        'Save HR in Results',                           '/Results/HR',                                           2;...% 23
         'Data Available: Pulse',                        '/Results/DataAvailable:Pulse',                          4;...% 24
         'Data Available: HR',                           '/Results/DataAvailable:HR',                             4;...% 25
         'Data Available: SPO2_pct',                     '/Results/DataAvailable:SPO2_pct',                       4;...% 26
@@ -66,20 +66,20 @@ fullalgorithmlist = {...
         'Desat Detection <93',                          '/Results/Desat<93',                                     2;...% 49
         'Desat Detection <94',                          '/Results/Desat<94',                                     2;...% 50
         'Desat Detection <95',                          '/Results/Desat<95',                                     2;...% 51
-        'Hourly HR Mean',                               '/Results/HourlyHRMean',                                 1;...% 52
-        'Hourly Pulse Mean',                            '/Results/HourlyPulseMean',                              1;...% 53
-        'Hourly SPO2_pct Mean',                         '/Results/HourlySPO2_pctMean',                           1;...% 54
-        'Hourly HR Std',                                '/Results/HourlyHRStd',                                  1;...% 55
-        'Hourly Pulse Std',                             '/Results/HourlyPulseStd',                               1;...% 56
-        'Hourly SPO2_pct Std',                          '/Results/HourlySPO2_pctStd',                            1;...% 57
-        'Hourly HR Skewness',                           '/Results/HourlyHRSkewness',                             1;...% 58
-        'Hourly Pulse Skewness',                        '/Results/HourlyPulseSkewness',                          1;...% 59
-        'Hourly SPO2_pct Skewness',                     '/Results/HourlySPO2_pctSkewness',                       1;...% 60
-        'Hourly HR Kurtosis',                           '/Results/HourlyHRKurtosis',                             1;...% 61
-        'Hourly Pulse Kurtosis',                        '/Results/HourlyPulseKurtosis',                          1;...% 62
-        'Hourly SPO2_pct Kurtosis',                     '/Results/HourlySPO2_pctKurtosis',                       1;...% 63
-        'Max Cross Correlation HR SPO2_pct',            '/Results/MaxCrossCorrHR_SPO2_pct',                      1;...% 64
-        'Max Cross Correlation Pulse SPO2_pct',         '/Results/MaxCrossCorrPulse_SPO2_pct',                   1;...% 65
+        'Hourly HR Mean',                               '/Results/HourlyHRMean',                                 2;...% 52
+        'Hourly Pulse Mean',                            '/Results/HourlyPulseMean',                              2;...% 53
+        'Hourly SPO2_pct Mean',                         '/Results/HourlySPO2_pctMean',                           2;...% 54
+        'Hourly HR Std',                                '/Results/HourlyHRStd',                                  2;...% 55
+        'Hourly Pulse Std',                             '/Results/HourlyPulseStd',                               2;...% 56
+        'Hourly SPO2_pct Std',                          '/Results/HourlySPO2_pctStd',                            2;...% 57
+        'Hourly HR Skewness',                           '/Results/HourlyHRSkewness',                             2;...% 58
+        'Hourly Pulse Skewness',                        '/Results/HourlyPulseSkewness',                          2;...% 59
+        'Hourly SPO2_pct Skewness',                     '/Results/HourlySPO2_pctSkewness',                       2;...% 60
+        'Hourly HR Kurtosis',                           '/Results/HourlyHRKurtosis',                             2;...% 61
+        'Hourly Pulse Kurtosis',                        '/Results/HourlyPulseKurtosis',                          2;...% 62
+        'Hourly SPO2_pct Kurtosis',                     '/Results/HourlySPO2_pctKurtosis',                       2;...% 63
+        'Max Cross Correlation HR SPO2_pct',            '/Results/MaxCrossCorrHR_SPO2_pct',                      2;...% 64
+        'Max Cross Correlation Pulse SPO2_pct',         '/Results/MaxCrossCorrPulse_SPO2_pct',                   2;...% 65
         'HCTSA FC_Surprise HR How Surprised',           '/Results/HCTSA_FC_Surprise_HR_HowSurprised',            1;...% 66
         'HCTSA SB_MotifTwo HR Prob Increases',          '/Results/HCTSA_SB_MotifTwo_HR_ProbIncreases',           1;...% 67
         'HCTSA PH_Walker SPO2 Std Rand Walk',           '/Results/HCTSA_PH_Walker_SPO2_StdRandWalk',             1;...% 68
