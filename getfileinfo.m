@@ -112,6 +112,14 @@ end
 
 if length(result_data)~=n,return,end
 
+if n>length(result_tags)
+    disp(['Error using results from file: ' file])
+    disp('Error caused by a bad previous version of BAP generating a bad results file.')
+    disp('Please delete results file and re-run algorithms.')
+    disp('For more information about this error, see https://github.com/UVA-CAMA/NICUHDF5Viewer/issues/22')
+    return
+end
+
 %Default timestamps in UTC and ms
 tunit=1000;
 timezero=0;
@@ -151,7 +159,6 @@ for j=1:n
 %         t=round((t-dayzero)*86400*tunit);
     end
     if isempty(x) % If there is no continuous result data (i.e. if this is just binary tags), store tag time points in a binary array
-        
         tglobal = info.times+timezero;
         tag = result_tags(j).tagtable;
         [x,t] = resultfromtags(tag,result_tagcolumns(j),tglobal,info);
