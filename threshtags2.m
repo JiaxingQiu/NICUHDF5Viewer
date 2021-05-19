@@ -82,8 +82,8 @@ else
     j1=i1;
     j2=i2;
 end    
-t1=xt(j1)';
-t2=xt(j2)';
+t1=xt(j1);
+t2=xt(j2);
 ne=length(j1);
 
 dur=t2-t1+tsamp;
