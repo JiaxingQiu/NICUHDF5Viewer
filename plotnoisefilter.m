@@ -26,7 +26,7 @@ clear
 
 load noiserawdata noise nf D datdir fac
 
-ns=1;
+ns=2;
 
 for i=1:nf
 

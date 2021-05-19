@@ -2,7 +2,7 @@ function [y,ynum,ymax,ymin,yt,nu,nmax]=downsamplestats(x,fs,ns,dx,skip)
 %
 % x     input raw signal
 % fs    sampling frequency
-% ns    number of samples per second
+% ns    integer number of samples per second (default=2)
 % dx    tolerance for consitent "good" data
 % skip  number of dsta points to skip for next window
 %
@@ -15,7 +15,9 @@ function [y,ynum,ymax,ymin,yt,nu,nmax]=downsamplestats(x,fs,ns,dx,skip)
 % nmax  number of most frequent value
 
 if ~exist('fs','var'),fs=200;end
-if ~exist('ns','var'),ns=1;end
+if ~exist('ns','var'),ns=2;end
+ns=round(ns);
+if ns<1,ns=1;end
 if ~exist('dx','var'),dx=.5;end
 if ~exist('skip','var'),skip=fs/ns;end
 
@@ -49,4 +51,17 @@ for i=1:nt
     ymin(i)=uxx(1);
     ymax(i)=uxx(end);
 end
-    
+if ns==1,return,end
+
+%For multiple samples per second, chose one with most stable points
+yt=(fs:fs:N)'/fs;
+nt=length(yt);
+num=reshape(ynum(1:(ns*nt)),ns,nt)';
+[~,j]=max(num,[],2);
+sub=ns*(1:nt)'-ns+j;
+y=y(sub);
+ynum=ynum(sub);
+ymax=ymax(sub);
+ymin=ymin(sub);
+nu=nu(sub);
+nmax=nmax(sub);
