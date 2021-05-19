@@ -17,16 +17,25 @@ if strcmp(tz,'CDT')
 elseif strcmp(tz,'CST')
     dv(:,4)=dv(:,4)-1;
     d=datenum(dv);
+elseif strcmp(tz,'CT')
+    dv(:,4)=dv(:,4)-1;
+    d=datenum(dv);
 elseif strcmp(tz,'MDT')
     dv(:,4)=dv(:,4)-2;
     d=datenum(dv);
 elseif strcmp(tz,'MST')
     dv(:,4)=dv(:,4)-2;
     d=datenum(dv);
+elseif strcmp(tz,'MT')
+    dv(:,4)=dv(:,4)-2;
+    d=datenum(dv);
 elseif strcmp(tz,'PDT')
     dv(:,4)=dv(:,4)-3;
     d=datenum(dv);
 elseif strcmp(tz,'PST')
+    dv(:,4)=dv(:,4)-3;
+    d=datenum(dv);
+elseif strcmp(tz,'PT')
     dv(:,4)=dv(:,4)-3;
     d=datenum(dv);
 end
