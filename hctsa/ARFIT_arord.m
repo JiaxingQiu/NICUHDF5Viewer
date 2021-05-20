@@ -44,7 +44,9 @@ function [sbc, fpe, logdp, np] = ARFIT_arord(R, m, mcor, ne, pmin, pmax)
 
   % From R22, get inverse of residual cross-product matrix for model
   % of order pmax
+  warning('off','MATLAB:singularMatrix')
   invR22  = inv(R22);
+  warning('on','all')
   Mp      = invR22*invR22';
   
   % For order selection, get determinant of residual cross-product matrix

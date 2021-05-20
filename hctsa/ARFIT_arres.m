@@ -91,7 +91,9 @@ function [siglev,res, lmp, dof_lmp]=ARFIT_arres(w,A,v,k)
   end
   
   % Get "covariance matrix" in LMP statistic
+  warning('off','MATLAB:singularMatrix')
   c0_inv= inv(c0);                      % inverse of lag 0 correlation matrix
+  warning('on','MATLAB:singularMatrix')
   rr    = kron(c0_inv, c0_inv);         % "covariance matrix" in LMP statistic
 
   % Compute modified Li-McLeod portmanteau statistic

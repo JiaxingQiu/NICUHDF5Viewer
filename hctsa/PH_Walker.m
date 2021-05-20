@@ -242,7 +242,9 @@ out.sw_distdiff = sum(abs(dy-dw));
 
 % (iii) Looking at residuals between time series and walker
 res = w - y;
+warning('off','all')
 [h, pval] = runstest(res); % runs test
+warning('off','all')
 out.res_runstest = pval;
 out.res_swss5_1 = SY_SlidingWindow(res,'std','std',5,1); % sliding window stationarity
 out.res_ac1 = CO_AutoCorr(res,1); % auto correlation at lag-1

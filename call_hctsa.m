@@ -76,67 +76,71 @@ for c=1:totalchunks
     end
     
     % Run the HCTSA algorithm
-    switch algname
-        case 'FC_Surprise'
-            out = FC_Surprise(tenminofdata);
-            value(c) = out.mean;
-        case 'SB_MotifTwo'
-            out = SB_MotifTwo(tenminofdata,'diff');
-            value(c) = out.uu;
-        case 'PH_Walker'
-            out = PH_Walker(tenminofdata,'momentum',2);
-            value(c) = out.sw_stdrat;
-        case 'EX_MovingThreshold'
-            out = EX_MovingThreshold(zscore(tenminofdata),0.25,0.1);
-            value(c) = out.meanq;
-        case 'DN_cv'
-            out = DN_cv(tenminofdata,3);
-            value(c) = out;
-        case 'DN_Cumulants'
-            out = DN_Cumulants(tenminofdata,'skew2');
-            value(c) = out;
-        case 'DN_Quantile'
-            out = DN_Quantile(tenminofdata,0.99);
-            value(c) = out;
-        case 'SB_TransitionMatrix_tau1'
-            out = SB_TransitionMatrix(tenminofdata,'quantile',2,1);
-            value(c) = out.T3;
-        case 'SB_TransitionMatrix_tau2'
-            out = SB_TransitionMatrix(tenminofdata,'quantile',2,2);
-            value(c) = out.mineig;
-        case 'SB_TransitionMatrix_tau3'
-            out = SB_TransitionMatrix(tenminofdata,'quantile',2,3);
-            value(c) = out.stdeigcov;
-        case 'MF_arfit'
-            out = MF_arfit(tenminofdata);
-            value(c) = out.sbc_7;
-        case 'SY_StdNthDer'
-            out = SY_StdNthDer(tenminofdata,17);
-            value(c) = out;
-        case 'DN_RemovePoints'
-            out = DN_RemovePoints(zscore(tenminofdata),'min',0.2);
-            value(c) = out.mean;
-        case 'SB_BinaryStats'
-            out = SB_BinaryStats(tenminofdata,'iqr');
-            value(c) = out.pstretch1;
-        case 'SB_MotifThree_quantile'
-            out = SB_MotifThree(tenminofdata,'quantile');
-            value(c) = out.hhhh;
-        case 'SB_MotifThree_diffquant'
-            out = SB_MotifThree(tenminofdata,'diffquant');
-            value(c) = out.hhhh;
-        case 'ST_LocalExtrema_SPO2'
-            out = ST_LocalExtrema(tenminofdata,'n',100);
-            value(c) = out.minabsmin;
-        case 'ST_LocalExtrema_HR'
-            out = ST_LocalExtrema(tenminofdata,'n',100);
-            value(c) = out.minabsmin;
-        case 'CO_tc3_HR'
-            out = CO_tc3(tenminofdata,1);
-            value(c) = out.denom;
-        case 'CO_tc3_SPO2'
-            out = CO_tc3(tenminofdata,1);
-            value(c) = out.denom;
+    try
+        switch algname
+            case 'FC_Surprise'
+                out = FC_Surprise(tenminofdata);
+                value(c) = out.mean;
+            case 'SB_MotifTwo'
+                out = SB_MotifTwo(tenminofdata,'diff');
+                value(c) = out.uu;
+            case 'PH_Walker'
+                out = PH_Walker(tenminofdata,'momentum',2);
+                value(c) = out.sw_stdrat;
+            case 'EX_MovingThreshold'
+                out = EX_MovingThreshold(tenminofdata,0.25,0.1);
+                value(c) = out.meanq;
+            case 'DN_cv'
+                out = DN_cv(tenminofdata,3);
+                value(c) = out;
+            case 'DN_Cumulants'
+                out = DN_Cumulants(tenminofdata,'skew2');
+                value(c) = out;
+            case 'DN_Quantile'
+                out = DN_Quantile(tenminofdata,0.99);
+                value(c) = out;
+            case 'SB_TransitionMatrix_tau1'
+                out = SB_TransitionMatrix(tenminofdata,'quantile',2,1);
+                value(c) = out.T3;
+            case 'SB_TransitionMatrix_tau2'
+                out = SB_TransitionMatrix(tenminofdata,'quantile',2,2);
+                value(c) = out.mineig;
+            case 'SB_TransitionMatrix_tau3'
+                out = SB_TransitionMatrix(tenminofdata,'quantile',2,3);
+                value(c) = out.stdeigcov;
+            case 'MF_arfit'
+                out = MF_arfit(tenminofdata);
+                value(c) = out.sbc_7;
+            case 'SY_StdNthDer'
+                out = SY_StdNthDer(tenminofdata,17);
+                value(c) = out;
+            case 'DN_RemovePoints'
+                out = DN_RemovePoints(tenminofdata,'min',0.2);
+                value(c) = out.mean;
+            case 'SB_BinaryStats'
+                out = SB_BinaryStats(tenminofdata,'iqr');
+                value(c) = out.pstretch1;
+            case 'SB_MotifThree_quantile'
+                out = SB_MotifThree(tenminofdata,'quantile');
+                value(c) = out.hhhh;
+            case 'SB_MotifThree_diffquant'
+                out = SB_MotifThree(tenminofdata,'diffquant');
+                value(c) = out.hhhh;
+            case 'ST_LocalExtrema_SPO2'
+                out = ST_LocalExtrema(tenminofdata,'n',100);
+                value(c) = out.minabsmin;
+            case 'ST_LocalExtrema_HR'
+                out = ST_LocalExtrema(tenminofdata,'n',100);
+                value(c) = out.minabsmin;
+            case 'CO_tc3_HR'
+                out = CO_tc3(tenminofdata,1);
+                value(c) = out.denom;
+            case 'CO_tc3_SPO2'
+                out = CO_tc3(tenminofdata,1);
+                value(c) = out.denom;
+        end
+    catch
+        value(c) = nan;
     end
     np(c) = sum(indicesinwindow); % number of points
 end

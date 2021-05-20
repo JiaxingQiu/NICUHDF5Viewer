@@ -61,7 +61,7 @@ doPlot = false; % can set to 1 to plot outputs
 % ------------------------------------------------------------------------------
 % Check that the time series is z-scored (just a warning)
 if ~BF_iszscored(y)
-    warning('The input time series should be z-scored')
+%     warning('The input time series should be z-scored')
 end
 
 if nargin < 2 || isempty(a)

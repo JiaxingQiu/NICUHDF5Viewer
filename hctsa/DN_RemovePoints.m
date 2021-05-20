@@ -71,7 +71,7 @@ if nargin < 4 || isempty(removeOrSaturate)
 end
 
 if ~BF_iszscored(y)
-    warning('The input time series should be z-scored')
+%     warning('The input time series should be z-scored')
 end
 
 % ------------------------------------------------------------------------------
