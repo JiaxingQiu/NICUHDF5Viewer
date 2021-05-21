@@ -32,7 +32,7 @@ numthresh=fs/2;
 
 [spo2,spo2num,spo2max,spo2min,t]=downsamplestats(rawspo2,fs,ns,dx);
 spo2(spo2>100)=100;
-spo2good=isolatedbad(spo2,spo2num>=numthresh,dx);
+spo2good=isolatedbad(spo2,spo2num>=numthresh,hrdx);
 spo2range=spo2max-spo2min;
 spo2good=spo2good&spo2min>minvalue;
 spo2good=spo2good&spo2range<maxrange;
