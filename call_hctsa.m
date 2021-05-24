@@ -75,6 +75,11 @@ for c=1:totalchunks
         tenminofdata = interp1(tenminoftimestamps,tenminofdata,(tenminoftimestamps(1):tsamp:tenminoftimestamps(end))','previous');
     end
     
+    % Then drop any leading nans at the beginning of the chunk of data
+    if ~strcmp(algname(1:2),'DN')
+        tenminofdata = tenminofdata(~isnan(tenminofdata));
+    end
+    
     % Run the HCTSA algorithm
     try
         switch algname
@@ -138,6 +143,9 @@ for c=1:totalchunks
             case 'CO_tc3_SPO2'
                 out = CO_tc3(tenminofdata,1);
                 value(c) = out.denom;
+            case 'CO_AutoCorr'
+                out = CO_AutoCorr(tenminofdata,4,'TimeDomainStat');
+                value(c) = out(4);
         end
     catch
         value(c) = nan;
