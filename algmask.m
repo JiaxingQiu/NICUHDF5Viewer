@@ -103,11 +103,14 @@ fullalgorithmlist = {...
         'HCTSA ST_LocalExtrema SPO2 Stationarity Min',  '/Results/HCTSA_ST_LocalExtrema_SPO2_StationMin',        1;...% 86
         'HCTSA ST_LocalExtrema HR Stationarity Min',    '/Results/HCTSA_ST_LocalExtrema_HR_StationMin',          1;...% 87
         'HCTSA CO_tc3 HR Correlaton Mean',              '/Results/HCTSA_CO_tc3_HR_CorrMean',                     1;...% 88
-        'HCTSA CO_tc3 SPO2 Correlaton Mean',            '/Results/HCTSA_CO_tc3_SPO2_CorrMean',                   1};% 89
+        'HCTSA CO_tc3 SPO2 Correlaton Mean',            '/Results/HCTSA_CO_tc3_SPO2_CorrMean',                   1;...% 89
+        'Brady Detection <90',                          '/Results/Brady<90',                                     1;...% 90
+        'Brady Detection <80',                          '/Results/Brady<80',                                     1;...% 91
+        'Brady Detection <70',                          '/Results/Brady<70',                                     1};%92
     
 
     
 masteralgmask = fullalgorithmlist(:,[1,3]);
 resultname = fullalgorithmlist(:,[2,3]);
 
-algs_to_include = [1:3,6,11,16:20,22,24:89];
+algs_to_include = [1:3,6,90:92,11,16:20,22,24:89];

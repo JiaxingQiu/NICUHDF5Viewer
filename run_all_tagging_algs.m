@@ -363,6 +363,15 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
             case 89
                 % HCTSA Algorithm: Correlation SPO2 mean
                 [result,t_temp,tag,tagcol] = call_hctsa(info,'CO_tc3_SPO2','SPO2_pct');
+            case 90
+                % Run a bradycardia detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = bradydetector(info,90,pmin,tmin);
+            case 91
+                % Run a bradycardia detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = bradydetector(info,80,pmin,tmin);
+            case 92
+                % Run a bradycardia detection algorithm which identifies any and all drops < the threshold
+                [result,t_temp,tag,tagcol] = bradydetector(info,70,pmin,tmin);
         end
         if exist('tagcol')
             if isfirst
