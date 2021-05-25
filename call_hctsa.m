@@ -61,7 +61,7 @@ for c=1:totalchunks
     tenminofdata = mydata(indicesinwindow);
     
     % If less than one minute's worth of data points are available in this chunk, don't run algorithm. Just return value(c) as nan.
-    if length(tenminofdata)<30,continue,end
+    if sum(~isnan(tenminofdata))<30,continue,end
     
     % Fill in nans using sample and hold (but don't fill in nans for DN algorithms since they deal with the distribution and not the order)
     if ~strcmp(algname(1:2),'DN')
@@ -145,7 +145,7 @@ for c=1:totalchunks
                 value(c) = out.denom;
             case 'CO_AutoCorr'
                 out = CO_AutoCorr(tenminofdata,4,'TimeDomainStat');
-                value(c) = out(4);
+                value(c) = out;
         end
     catch
         value(c) = nan;
