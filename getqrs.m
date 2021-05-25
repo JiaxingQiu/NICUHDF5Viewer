@@ -54,6 +54,10 @@ if ~isempty(j1)
         good(k)=0;
     end
     ecg=ecg(good);
+    if length(good)~=length(ecgt)
+        msg = 'Data is a different length than the timestamps. \Data length is %g. Time length is %g. \nThis is an error we have seen in hdf5 files converted from stp where the stp file contains thousands of improperly repeated timestamps. \nThe algorithm SHOULD fail here and not return a result. \nThis stp waveform is corrupt and should not be used to generate results. \nThis is appropriate. No correction is needed. \nHowever, if this error occurs with a file that was not converted from stp, please investigate further.';
+        error(msg,length(ecg),length(ecgt))
+    end
     ecgt=ecgt(good);
 end
 
