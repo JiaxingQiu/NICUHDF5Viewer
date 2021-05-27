@@ -178,7 +178,7 @@ xt=xt/fs;
 xgood=~xna;
 
 % Check if signal is flat for 2 or more seconds by checking if xnew filled in anything for more than 2 seconds
-flat = isflat(x,fs);
+flat = isflat(x,fs,2);
 xgood(logical(flat))=0;
 
 % Signal without NaNs
