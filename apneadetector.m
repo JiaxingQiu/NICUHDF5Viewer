@@ -80,7 +80,8 @@ if nqrs==0
 %     tic
     nlead=length(lead);
     if nlead>0
-        clear qrs
+        %clear qrs
+        qrs = [];
         for i=1:nlead      
             qrs1=qrsdetector(info,lead(i));
             if isempty(qrs1),continue,end
