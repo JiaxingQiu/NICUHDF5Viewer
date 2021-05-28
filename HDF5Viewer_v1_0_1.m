@@ -728,6 +728,9 @@ if ~isempty(handles.tags)
                 handles.starttimesfigure = starttimes/86400/1000+handles.info.dayzero; % convert to days
                 ntags = size(handles.starttimesfigure,1);
                 daytodisp = [datestr(handles.starttimesfigure,'mm/dd/yy HH:MM:SS') repmat('   ',ntags,1)];
+                if handles.info.dayzero==0
+                    daytodisp =  [datestr(handles.starttimesfigure+datenum(1970,1,1),'mm/dd/yy HH:MM:SS') repmat('   ',ntags,1)];
+                end
             end
             duration = num2str(round(tagsselected.tagtable(:,strcmp(handles.tagcolumns(handles.tagtitlechosen).tagname,'Duration'))/1000)); % seconds
         end
