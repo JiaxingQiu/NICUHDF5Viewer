@@ -111,12 +111,20 @@ if isempty(name)
     return
 end
 
-fixed=size(allname,2)>1;
+nc=size(allname,2);
+fixed=nc>1;
 %allname=[allname fixedname(allname)];
 
 %Find requested names
 sub=zeros(n,1);
 for i=1:length(name)
+    if fixed
+        j=strmatch(name{i},allname(:,2),'exact');
+        if ~isempty(j)
+            sub(j)=2;
+            continue
+        end
+    end
     j=strmatch(name{i},allname(:,1),'exact');
     if isempty(j)
         group=length(strfind(name{i},'/'))==1;
@@ -126,12 +134,6 @@ for i=1:length(name)
     end
     if ~isempty(j)    
         sub(j)=1;
-        continue
-    end
-    if ~fixed,continue,end
-    j=strmatch(name{i},allname(:,2),'exact');
-    if ~isempty(j)
-        sub(j)=2;
     end
 end
 

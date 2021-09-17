@@ -10,35 +10,34 @@ tagname = [];
 %     addpath([fileparts(which('call_hctsa.m')) '\hctsa'])
 % end
 
-% % Load in the var signal (will be HR or SPO2_pct)
-% [data,~,info] = getfiledata(info,var);
-% [data,~,~] = formatdata(data,info,3,1);
-% % If the necessary data isn't available, return empty matrices & exit
-% if isempty(data),return,end
-% mydata = data.x;
-% vt = data.t;
-% 
-% % Remove negative values
-% mydata(mydata<=1) = nan;
-% 
-% % Create a dataset that has no nans in it
-% j=find(isnan(mydata));
-% mydata(j)=[];
-% vt(j)=[];
-% if isempty(mydata),return,end
-% 
-% % Remove duplicate timestamps. Only keep the data value relating to the last
-% % copy of a given timestamp;
-% 
-% %Round timestamps to every two seconds and downsample to every 2 seconds by
-% %taking last value
-% 
-% dtms=2000;
-% vt=dtms*ceil(vt/dtms);
-% 
-% [vt,ia] = unique(vt,'last');
-% mydata = mydata(ia);
-% nt=length(vt);
+% Load in the var signal (will be HR or SPO2_pct)
+[data,~,info] = getfiledata(info,var);
+[data,~,~] = formatdata(data,info,3,1);
+% If the necessary data isn't available, return empty matrices & exit
+if isempty(data),return,end
+mydata = data.x;
+vt = data.t;
+
+% Remove negative values
+mydata(mydata<=1) = nan;
+
+% Create a dataset that has no nans in it
+j=find(isnan(mydata));
+mydata(j)=[];
+vt(j)=[];
+if isempty(mydata),return,end
+
+% Remove duplicate timestamps. Only keep the data value relating to the last
+% copy of a given timestamp;
+
+%Round timestamps to every two seconds and downsample to every 2 seconds by
+%taking last value
+
+dt=2000;
+vt=dt*ceil(vt/dt);
+
+[vt,ia] = unique(vt,'last');
+mydata = mydata(ia);
 
 % if median(diff(vt))<2000
 %     vt = vt(2:2:end);
@@ -53,148 +52,99 @@ tagname = [];
 % vt_nonans(j)=[];
 % if isempty(mydata_nonans),return,end
 
-data=getfiledata(info,var);
-if isempty(data),return,end
+%Find 10-minute windows stop times
 
-[vdata,vt]=formatdata(data,info,3,0);
-
-%Convert everything to seconds
-%Find 10-minute windows stop times and assign each time to a window number
-
-vt = vt/1000; % put timestamps in seconds
-
-%Downsample to two seconds to be consistent across sites
-dt=2;
-[vdata,vt]=newsample(vdata,vt,dt);    
-
-dw=600;
-windowms=dw*1000;
-win=[-dw 0];
-wt=unique(dw*ceil(vt/dw));
-[w1,w2]=findwindows(wt,win,vt);
-j=find(w2>=w1);
-w1=w1(j);
-w2=w2(j);
-wt=wt(j);
-%[wt,~,w]=unique(dw*ceil(vt/dw));
+windowms=10*60*1000;
+nmin=200;
+wt=windowms*unique(ceil(vt/windowms));
 nw=length(wt);
-
-if nw==0,return,end
-
-% w2=find(diff(w)>0);
-% w1=[1;(w2+1)];
-% w2=[w2;nt];
-
-% nmin=200;
-% wt=unique(windowms*ceil(vt/windowms));
-
-if nw==0,return,end
 np=zeros(nw,1);
 value=NaN*ones(nw,1);
-arfit=contains(algname,'arfit');
-
-for i=1:nw    
-%    j=find(vt>wt(i)-windowms&vt<=wt(i));
-    j=(w1(i):w2(i))';
-    if isempty(j),continue,end
-    x=vdata(j);
-    xt=vt(j);
-    good=~isnan(x);
-%     xt=dt*ceil(vt(j)/dt);
-%     [xt,ia]=unique(xt,'last');
-%     j=j(ia);
-%     x=vdata(j);
-    xt=xt(good);
-    if isempty(xt),continue,end    
-    x=x(good);
-    np(i)=length(x);
-    if arfit
-        if np(i)<30,continue,end
-    end
-%    if np(i)<200,continue,end
-    warning('off')    
+for c=1:nw
+    j=find(vt>wt(c)-windowms&vt<=wt(c));
+    x=mydata(j);
+    x(isnan(x))=[];
+    np(c)=length(x);
+    if np(c)<200,continue,end
+    
     try
         switch algname
             case 'FC_Surprise'
                 out = FC_Surprise(x);
-                value(i) = out.mean;
+                value(c) = out.mean;
             case 'SB_MotifTwo'
                 out = SB_MotifTwo(x,'diff');
-                value(i) = out.uu;
+                value(c) = out.uu;
             case 'PH_Walker'
                 out = PH_Walker(x,'momentum',2);
-                value(i) = out.sw_stdrat;
+                value(c) = out.sw_stdrat;
             case 'EX_MovingThreshold'
                 out = EX_MovingThreshold(x,0.25,0.1);
-                value(i) = out.meanq;
+                value(c) = out.meanq;
             case 'DN_cv'
                 out = DN_cv(x,3);
-                value(i) = out;
+                value(c) = out;
             case 'DN_Cumulants'
                 out = DN_Cumulants(x,'skew2');
-                value(i) = out;
+                value(c) = out;
             case 'DN_Quantile'
                 out = DN_Quantile(x,0.99);
-                value(i) = out;
+                value(c) = out;
             case 'SB_TransitionMatrix_tau1'
                 out = SB_TransitionMatrix(x,'quantile',2,1);
-                value(i) = out.T3;
+                value(c) = out.T3;
             case 'SB_TransitionMatrix_tau2'
                 out = SB_TransitionMatrix(x,'quantile',2,2);
-                value(i) = out.mineig;
+                value(c) = out.mineig;
             case 'SB_TransitionMatrix_tau3'
                 out = SB_TransitionMatrix(x,'quantile',2,3);
-                value(i) = out.stdeigcov;
+                value(c) = out.stdeigcov;
             case 'MF_arfit'
                 out = MF_arfit(x);
-                value(i) = out.sbc_7;
+                value(c) = out.sbc_7;
             case 'SY_StdNthDer'
                 out = SY_StdNthDer(x,17);
-                value(i) = out;
+                value(c) = out;
             case 'DN_RemovePoints'
                 out = DN_RemovePoints(x,'min',0.2);
-                value(i) = out.mean;
+                value(c) = out.mean;
             case 'SB_BinaryStats'
                 out = SB_BinaryStats(x,'iqr');
-                value(i) = out.pstretch1;
+                value(c) = out.pstretch1;
             case 'SB_MotifThree_quantile'
                 out = SB_MotifThree(x,'quantile');
-                value(i) = out.hhhh;
+                value(c) = out.hhhh;
             case 'SB_MotifThree_diffquant'
                 out = SB_MotifThree(x,'diffquant');
-                value(i) = out.hhhh;
+                value(c) = out.hhhh;
             case 'ST_LocalExtrema_SPO2'
                 out = ST_LocalExtrema(x,'n',100);
-                value(i) = out.minabsmin;
+                value(c) = out.minabsmin;
             case 'ST_LocalExtrema_HR'
                 out = ST_LocalExtrema(x,'n',100);
-                value(i) = out.minabsmin;
+                value(c) = out.minabsmin;
             case 'CO_tc3_HR'
                 out = CO_tc3(x,1);
-                value(i) = out.denom;
+                value(c) = out.denom;
             case 'CO_tc3_SPO2'
                 out = CO_tc3(x,1);
-                value(i) = out.denom;
+                value(c) = out.denom;
             case 'CO_AutoCorr'
                 out = CO_AutoCorr(x,4,'TimeDomainStat');
-                value(i) = out;
+                value(c) = out;
             case 'mean'
-                value(i) = mean(x);
+                value(c) = mean(x);
             case 'std'
-                value(i) = std(x);
+                value(c) = std(x);
             case 'skewness'
-                value(i) = skewness(x);
+                value(c) = skewness(x);
             case 'kurtosis'
-                value(i) = kurtosis(x);
+                value(c) = kurtosis(x);
         end
     catch
-        value(i) = NaN;
+        value(c) = nan;
     end
-    warning('on')
 end
-
-%Covert back to ms for tags
-wt=1000*wt;
 
 % Store means in the tags
 tagname=cell(4,1);
@@ -231,7 +181,7 @@ vt = [];
 %     tenminoftimestamps = vt(indicesinwindow);
 %     tenminofdata = mydata(indicesinwindow);
 %     
-%     % If less than one minute's worth of data points are available in this chunk, don't run algorithm. Just return value(i) as nan.
+%     % If less than one minute's worth of data points are available in this chunk, don't run algorithm. Just return value(c) as nan.
 %     if sum(~isnan(tenminofdata))<30,continue,end
 %     
 %     % Fill in nans using sample and hold (but don't fill in nans for DN algorithms since they deal with the distribution and not the order)
@@ -256,70 +206,70 @@ vt = [];
 %         switch algname
 %             case 'FC_Surprise'
 %                 out = FC_Surprise(tenminofdata);
-%                 value(i) = out.mean;
+%                 value(c) = out.mean;
 %             case 'SB_MotifTwo'
 %                 out = SB_MotifTwo(tenminofdata,'diff');
-%                 value(i) = out.uu;
+%                 value(c) = out.uu;
 %             case 'PH_Walker'
 %                 out = PH_Walker(tenminofdata,'momentum',2);
-%                 value(i) = out.sw_stdrat;
+%                 value(c) = out.sw_stdrat;
 %             case 'EX_MovingThreshold'
 %                 out = EX_MovingThreshold(tenminofdata,0.25,0.1);
-%                 value(i) = out.meanq;
+%                 value(c) = out.meanq;
 %             case 'DN_cv'
 %                 out = DN_cv(tenminofdata,3);
-%                 value(i) = out;
+%                 value(c) = out;
 %             case 'DN_Cumulants'
 %                 out = DN_Cumulants(tenminofdata,'skew2');
-%                 value(i) = out;
+%                 value(c) = out;
 %             case 'DN_Quantile'
 %                 out = DN_Quantile(tenminofdata,0.99);
-%                 value(i) = out;
+%                 value(c) = out;
 %             case 'SB_TransitionMatrix_tau1'
 %                 out = SB_TransitionMatrix(tenminofdata,'quantile',2,1);
-%                 value(i) = out.T3;
+%                 value(c) = out.T3;
 %             case 'SB_TransitionMatrix_tau2'
 %                 out = SB_TransitionMatrix(tenminofdata,'quantile',2,2);
-%                 value(i) = out.mineig;
+%                 value(c) = out.mineig;
 %             case 'SB_TransitionMatrix_tau3'
 %                 out = SB_TransitionMatrix(tenminofdata,'quantile',2,3);
-%                 value(i) = out.stdeigcov;
+%                 value(c) = out.stdeigcov;
 %             case 'MF_arfit'
 %                 out = MF_arfit(tenminofdata);
-%                 value(i) = out.sbc_7;
+%                 value(c) = out.sbc_7;
 %             case 'SY_StdNthDer'
 %                 out = SY_StdNthDer(tenminofdata,17);
-%                 value(i) = out;
+%                 value(c) = out;
 %             case 'DN_RemovePoints'
 %                 out = DN_RemovePoints(tenminofdata,'min',0.2);
-%                 value(i) = out.mean;
+%                 value(c) = out.mean;
 %             case 'SB_BinaryStats'
 %                 out = SB_BinaryStats(tenminofdata,'iqr');
-%                 value(i) = out.pstretch1;
+%                 value(c) = out.pstretch1;
 %             case 'SB_MotifThree_quantile'
 %                 out = SB_MotifThree(tenminofdata,'quantile');
-%                 value(i) = out.hhhh;
+%                 value(c) = out.hhhh;
 %             case 'SB_MotifThree_diffquant'
 %                 out = SB_MotifThree(tenminofdata,'diffquant');
-%                 value(i) = out.hhhh;
+%                 value(c) = out.hhhh;
 %             case 'ST_LocalExtrema_SPO2'
 %                 out = ST_LocalExtrema(tenminofdata,'n',100);
-%                 value(i) = out.minabsmin;
+%                 value(c) = out.minabsmin;
 %             case 'ST_LocalExtrema_HR'
 %                 out = ST_LocalExtrema(tenminofdata,'n',100);
-%                 value(i) = out.minabsmin;
+%                 value(c) = out.minabsmin;
 %             case 'CO_tc3_HR'
 %                 out = CO_tc3(tenminofdata,1);
-%                 value(i) = out.denom;
+%                 value(c) = out.denom;
 %             case 'CO_tc3_SPO2'
 %                 out = CO_tc3(tenminofdata,1);
-%                 value(i) = out.denom;
+%                 value(c) = out.denom;
 %             case 'CO_AutoCorr'
 %                 out = CO_AutoCorr(tenminofdata,4,'TimeDomainStat');
-%                 value(i) = out;
+%                 value(c) = out;
 %         end
 %     catch
-%         value(i) = nan;
+%         value(c) = nan;
 %     end
 %     np(c) = sum(indicesinwindow); % number of points
 % end

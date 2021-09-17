@@ -20,12 +20,6 @@ function qrs = qrsdetector(info,lead,version)
 
 if ~exist('version','var'),version=[];end
 
-% Add algorithm folders to path
-if ~isdeployed
-    addpath([fileparts(which('qrsdetector.m')) '\Apnea'])
-    addpath([fileparts(which('qrsdetector.m')) '\QRSDetection'])
-end
-
 % Initialize output variables in case the necessary data isn't available
 qrs = [];
 
@@ -45,7 +39,8 @@ dformat=1;
 
 %Find ecg name and lead number
 ecgleads={'ECGI','ECGII','ECGIII'}';
-ecgname='ECGI';
+%ecgname='ECGI';
+ecgname='';
 if ischar(lead)
     ecgname=lead;
     lead=strmatch(ecgname,ecgleads,'exact');
@@ -56,12 +51,23 @@ else
     try
         ecgname=ecgleads(lead);
     end
-end     
+end
+
+if isempty(ecgname),return,end
+
 [data,~,fs] = formatdata(ecgname,info,3,1);
 
-if isempty(data) && lead>0
+%if isempty(data) && lead>0
+if isempty(data)
     return
 end
+
+% Add algorithm folders to path
+% if ~isdeployed
+%     addpath([fileparts(which('qrsdetector.m')) '\Apnea'])
+%     addpath([fileparts(which('qrsdetector.m')) '\QRSDetection'])
+% end
+
 ecg = data.x;
 ecgt = data.t; % date in UTC milliseconds format
 name='';

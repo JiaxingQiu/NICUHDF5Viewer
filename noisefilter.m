@@ -43,3 +43,7 @@ hrgood=isolatedbad(hr,hrnum>=numthresh,dx);
 hrrange=hrmax-hrmin;
 hrgood=hrgood&hrmin>minvalue;
 hrgood=hrgood&hrrange<hrmaxrange;
+
+%Round off vital signs to integers
+% hr=round(hr);
+% spo2=round(spo2);

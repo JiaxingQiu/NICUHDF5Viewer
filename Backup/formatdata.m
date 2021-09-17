@@ -190,7 +190,6 @@ for i=1:n
     end
     if xinteger(i)
         x=round(x);
-        x(x<=0)=NaN;
     end
     data(i).x=x;
     nx=length(x);    

@@ -62,7 +62,7 @@ if sum(idx)
     desattagcolumns = result_tagcolumns(idx);
 else
     % Run desat algorithm
-    [~,~,dt,d] = desatdetector(info,80,1,0);
+    [~,~,dt,d] = desatdetector(info,80,1,0, 1, 1);
     desattags(1).tagtable = dt;
     desattagcolumns(1).tagname = d;
 end

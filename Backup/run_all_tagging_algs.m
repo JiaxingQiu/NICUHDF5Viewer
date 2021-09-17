@@ -2,18 +2,20 @@ function run_all_tagging_algs(filename,info,algstorun)
 
 [algdispname,algmaskout,resultname] = algmask;
 nalgs=size(algdispname,1);
-nmask=length(algmaskout);
 if isempty(algstorun)
-     algstorun=ones(nmask,1);
+     algstorun=zeros(nalgs,1);
+     algstorun(algmaskout)=1;
 %     [~,algmaskout,~] = algmask;
 %     algstorun = ones(length(algmaskout),1);
 end
 if ischar(algstorun)
-     algstorun=ones(nmask,1);    
+     algstorun=zeros(nalgs,1);
+     algstorun(algmaskout)=1;
 %     [~,algmaskout,~] = algmask;
 %     algstorun = ones(length(algmaskout),1);
 end
-algnum=find(algstorun);
+algnum=find(algstorun>0);
+algnum(algnum>nalgs)=[];
 newalg=length(algnum);
 if newalg==0,return,end
 
@@ -70,11 +72,7 @@ for k=1:newalg
 %         if isempty(isfirst)
 %             isfirst = firstindex==i;
 %         end
-     try
      [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,isfirst,log] = runalg(filename,info,i,isfirst,result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,result_qrs,log);
-     catch
-         disp(i)
-     end
 %    end
 end
 
@@ -99,37 +97,6 @@ elseif contains(filename,'.mat')
     resultfilename = strrep(filename,'.mat','_results.mat');
 end
 
-%Clean up results file
-nres=size(result_name,1);
-rnum=NaN*ones(nres,1);
-value=NaN*ones(nres,1);
-desat=contains(result_name(:,1),'Desat<');
-for i=1:nres
-    try
-        rnum(i)=strmatch(result_name{i},resultname(:,1),'exact');
-    end
-    if desat(i)
-        str=result_name{i,1};
-        j=strfind(str,'<');
-        try
-            value(i)=sscanf(str(j+(1:2)),'%d');
-        end
-    end
-end
-rgood=true(nres,1);
-rgood(isnan(rnum))=0;
-rgood(desat&rem(value,5)~=0)=0;
-rgood(contains(result_name(:,1),'CrossCorr'))=1;
-j=find(~rgood);
-disp(result_name(j,1))
-if ~isempty(j)
-    result_name(j,:)=[];
-    result_tags(j)=[];    
-    result_tagtitle(j,:)=[];    
-    result_tagcolumns(j)=[];        
-    result_data(j)=[];    
-end
-    
 % Save the Results
 msgbox('Saving the results','Tagging','modal');
 info = rmfield(info,'alldata');
@@ -547,9 +514,9 @@ function [result_name,result_data,result_tags,result_tagcolumns,result_tagtitle,
     r=length(log);
     if r>0
         log(r).time=algtime;
-%         algorithm=log(r).algorithm{1};        
-%         disp(algorithm)
-%         disp(algtime)
+        algorithm=log(r).algorithm{1};        
+        disp(algorithm)
+        disp(algtime)
     end
 
 end

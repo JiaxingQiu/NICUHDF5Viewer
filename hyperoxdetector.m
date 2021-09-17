@@ -1,4 +1,4 @@
-function [results,vt,tag,tagname] = desatdetector(info,threshold,pmin,tmin,negthresh,lessequal)
+function [results,vt,tag,tagname] = hyperoxdetector(info,threshold,pmin,tmin)
 % This desaturation detection algorithm tags desat events based on the
 % thresholds and joining rules in the input array
 
@@ -7,8 +7,6 @@ function [results,vt,tag,tagname] = desatdetector(info,threshold,pmin,tmin,negth
 % threshold: spo2 (<) threshold for desat event.
 % pmin:      minimum number of points below threshold (default one)
 % tmin:      time gap between crossings to join (default zero)
-% negthresh: 1 = desat (<), 0 = hyperox (>)
-% lessequal = set to 1 for < or >. Set to 2 for <= or >=.
 
 % OUTPUT:
 % results: binary array of 1 for desaturation and 0 for no desaturation
@@ -38,7 +36,7 @@ fs = data.fs;
 spo2data(spo2data<=1) = nan;
 
 % Tag desaturation events
-[tag,tagname]=threshtags2(spo2data,vt,threshold,ceil(pmin*fs),tmin,negthresh, lessequal);
+[tag,tagname]=threshtags2(spo2data,vt,threshold,ceil(pmin*fs),tmin,0,1);
 
 % % Store desaturation timepoints in a binary array
 % [~,startindices] = ismember(tag(:,1),vt);

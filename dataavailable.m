@@ -37,22 +37,22 @@ fs = data.fs;
 vtdiff = diff(vt)>(1/fs);
 
 flat = [];
-switch signame
-    case 'Pulse'
-        flat = isflat(outdata,fs,60);
-    case 'HR'
-        flat = isflat(outdata,fs,60);
-    case 'SPO2_pct'
-        flat = isflat(outdata,fs,600);
-    case 'Resp'
-        flat = isflat(outdata,fs,10);
+% switch signame
+%     case 'Pulse'
+%         flat = isflat(outdata,fs,60);
+%     case 'HR'
+%         flat = isflat(outdata,fs,60);
+%     case 'SPO2_pct'
+%         flat = isflat(outdata,fs,600);
+%     case 'Resp'
+%         flat = isflat(outdata,fs,10);
 %     case 'ECGI'
 %         flat = isflat(outdata,fs,10);
 %     case 'ECGII'
 %         flat = isflat(outdata,fs,10);
 %     case 'ECGIII'
 %         flat = isflat(outdata,fs,10);
-end
+% end
 outdata(logical(flat)) = nan;
 
 if removeneg
