@@ -101,6 +101,10 @@ end
 
 %Clean up results file
 nres=size(result_name,1);
+if nres==0
+    result_name=cell(0,2);
+    result_tagtitle=cell(0,2);    
+end
 rnum=NaN*ones(nres,1);
 value=NaN*ones(nres,1);
 desat=contains(result_name(:,1),'Desat<');
@@ -121,7 +125,7 @@ rgood(isnan(rnum))=0;
 rgood(desat&rem(value,5)~=0)=0;
 rgood(contains(result_name(:,1),'CrossCorr'))=1;
 j=find(~rgood);
-disp(result_name(j,1))
+%disp(result_name(j,1))
 if ~isempty(j)
     result_name(j,:)=[];
     result_tags(j)=[];    

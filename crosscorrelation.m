@@ -70,7 +70,9 @@ tagname = [];
 % Put the data in the format needed for Doug's script
 vname={var1,var2}';
 data=getfiledata(info,vname);
+if length(data)<2,return,end
 [vdata,vt]=formatdata(data,info,3,0);
+if size(vdata,2)~=2,return,end
 good=sum(~isnan(vdata),2)>0;
 vt=vt(good);
 nt=length(vt);
